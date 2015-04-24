@@ -1,11 +1,12 @@
 <!DOCTYPE html>
 <html>
-<head>
- <link rel="stylesheet" href="leaflet.css" />
-<script src="d3.v3.min.js"></script>
- <style type="text/css">
-
-</style>
+t<head>
+	<link rel="stylesheet" href="leaflet.css" />
+	<script src="d3.v3.min.js"></script>
+	<script src="jquery-2.1.3.js"></script>
+	<script src="osmtogeojson.js"></script>
+	<style type="text/css">
+	</style>
 </head><meta charset="utf-8">
 
 <body>
@@ -14,8 +15,40 @@
 
 <script type="text/javascript">
 // Load map via api
-var url='http://api.openstreetmap.org/api/0.6/map?bbox=6.148,53.475,6.169,53.485';
+// url = 'http://api.openstreetmap.org/api/0.6/map?bbox=6.148,53.475,6.169,53.485';
+// resp = $.get(url);
+// geojson = osmtogeojson(resp.responseXML);
 
+
+
+// // // why doesn't this work??? The inner code works... Maybe the async timing?
+// osm_xml = (function () {
+// 	var xml = null;
+//     $.get('http://api.openstreetmap.org/api/0.6/map?bbox=6.148,53.483,6.150,53.485',
+//       function (data) { xml = data; }
+//     );
+//     return xml;
+// })();
+
+// var geojson = osmtogeojson(osm_xml);
+
+osm_json = (function () {
+	var json = null;
+    $.get('http://api.openstreetmap.org/api/0.6/map?bbox=6.148,53.483,6.150,53.485',
+      function (data) {
+      	console.log(data);
+      	json = osmtogeojson(data);
+      	console.log(json);
+      }
+    );
+    return json;
+})();
+
+setTimeout(function(){
+console.log('bob');
+console.log(osm_json);
+console.log('bob');
+}, 5000);
 
 </script>
 
