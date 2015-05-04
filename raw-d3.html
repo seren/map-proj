@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html>
-t<head>
+<head>
 	<link rel="stylesheet" href="leaflet.css" />
 	<script src="d3.v3.min.js"></script>
 	<script src="jquery-2.1.3.js"></script>
@@ -13,7 +13,34 @@ t<head>
 
   <div id="map"></div>
 
+<input onclick="doit()" type="button" value="doit" id="myButton1" />
+
 <script type="text/javascript">
+  var HttpClient = function() {
+      this.get = function(aUrl, aCallback) {
+          var anHttpRequest = new XMLHttpRequest();
+          anHttpRequest.onreadystatechange = function() {
+              if (anHttpRequest.readyState == 4 && anHttpRequest.status == 200)
+                  aCallback(anHttpRequest.responseText);
+          }
+
+          anHttpRequest.open( "GET", aUrl, true );
+          anHttpRequest.send( null );
+      }
+  }
+test='';
+  function doit () {
+  aClient = new HttpClient();
+  aClient.get('http://api.openstreetmap.org/api/0.6/map?bbox=6.148,53.483,6.150,53.485', function(response) {
+    document.getElementById('map').innerHTML = response;
+    document.getElementById('map').innerHTML += response.toString();
+    document.getElementById('map').innerHTML += 'zzz';
+console.log(response);
+test = response;
+  });
+
+  }
+
 // Load map via api
 // url = 'http://api.openstreetmap.org/api/0.6/map?bbox=6.148,53.475,6.169,53.485';
 // resp = $.get(url);
