@@ -10,6 +10,7 @@ var M = function M() {
         console.log('setting object:');
         console.log(value);
         this.setItem(key, JSON.stringify(value));
+        alert('setting');
     };
     Storage.prototype.getObject = function(key) {
         var value = this.getItem(key);
@@ -28,75 +29,104 @@ var M = function M() {
     var self = this;
     self.ugh = 'a';
 
-    self.util = function util(){
-        return {
-            // extend an object with properties of one or more other objects
-            extend: function (dest) {
-                var i, j, len, src;
 
-                for (j = 1, len = arguments.length; j < len; j++) {
-                    src = arguments[j];
-                    for (i in src) {
-                        dest[i] = src[i];
-                    }
-                }
-                return dest;
-            },
-
-            stacktrace: function stackTrace() {
-                var err = new Error();
-                return err.stack;
-            },
-
-            // create an object from a given prototype
-            create: Object.create || (function () {
-                function F() {}
-                return function (proto) {
-                    F.prototype = proto;
-                    return new F();
-                };
-            })(),
-
-            // bind a function to be called with a given context
-            bind: function (fn, obj) {
-                var slice = Array.prototype.slice;
-
-                if (fn.bind) {
-                    return fn.bind.apply(fn, slice.call(arguments, 1));
-                }
-
-                var args = slice.call(arguments, 2);
-
-                return function () {
-                    return fn.apply(obj, args.length ? args.concat(slice.call(arguments)) : arguments);
-                };
-            // },
-
-    //         HttpClient:  {
-    //             get: function(aUrl, aCallback) {
-    //                 var anHttpRequest = new XMLHttpRequest();
-    //                 anHttpRequest.onreadystatechange = function() {
-    //                     if (anHttpRequest.readyState == 4 && anHttpRequest.status == 200)
-    // console.log('-start-------------');
-    // console.log(anHttpRequest.responseText);
-    // console.log(typeof aCallback);
-    // console.log('-end--------');
-    //                         aCallback(anHttpRequest.responseText);
-    //                 };
-    //                 anHttpRequest.open( 'GET', aUrl, true );
-    //                 anHttpRequest.send( null );
-    //             }
-            }
-        };
-    } // var util
-
-
-    function version() {
-        return '0.1';
+    var version = function version() {
         console.log(this);
-    }
+        return '0.1';
+    };
 
-    function getOsmXml(dataProcessingFunc) {
+    var test = function test () {
+        console.log(self.ugh);
+        return 'yup';
+    };
+
+    var main = function main () {
+        version();
+        console.log('in main');
+        console.log(self);
+        console.log(M.Data.mapData());
+        // console.log(self.mapData());
+        console.log('end main');
+    };
+
+    self.version = version;
+    self.test = test;
+    self.main = main;
+
+};
+
+M.Util = {
+    // extend an object with properties of one or more other objects
+    extend: function (dest) {
+        var i, j, len, src;
+
+        for (j = 1, len = arguments.length; j < len; j++) {
+            src = arguments[j];
+            for (i in src) {
+                dest[i] = src[i];
+            }
+        }
+        return dest;
+    },
+
+    stacktrace: function stackTrace() {
+        var err = new Error();
+        return err.stack;
+    },
+
+    // create an object from a given prototype
+    create: Object.create || (function () {
+        function F() {}
+        return function (proto) {
+            F.prototype = proto;
+            return new F();
+        };
+    })(),
+
+    // bind a function to be called with a given context
+    bind: function (fn, obj) {
+        var slice = Array.prototype.slice;
+
+        if (fn.bind) {
+            return fn.bind.apply(fn, slice.call(arguments, 1));
+        }
+
+        var args = slice.call(arguments, 2);
+
+        return function () {
+            return fn.apply(obj, args.length ? args.concat(slice.call(arguments)) : arguments);
+        };
+    }
+};
+
+M.aaaa = {
+    aa: function() {
+        return 'aaa';
+    }
+};
+
+M.Util.HttpClient = {
+    get: function(aUrl, aCallback) {
+        var anHttpRequest = new XMLHttpRequest();
+        anHttpRequest.onreadystatechange = function() {
+            if (anHttpRequest.readyState == 4 && anHttpRequest.status == 200)
+// console.log('-start-------------');
+// console.log(anHttpRequest.responseText);
+// console.log(typeof aCallback);
+// console.log('-end--------');
+                aCallback(anHttpRequest.responseText);
+        };
+        anHttpRequest.open( 'GET', aUrl, true );
+        anHttpRequest.send( null );
+    }
+}; // var util
+
+
+
+
+
+M.Data = {
+    getOsmXml: function (dataProcessingFunc) {
         // if (typeof dataProcessingFunc !== 'function') {
         //     dataProcessingFunc = this.updateMapVectors;
         // }
@@ -104,31 +134,29 @@ var M = function M() {
         console.log('retrieving');
 console.log(self);
 console.log(self.util);
-        self.util.HttpClient.get('http://api.openstreetmap.org/api/0.6/map?bbox=6.148,53.483,6.150,53.485', dataProcessingFunc);
+        M.Util.HttpClient.get('http://api.openstreetmap.org/api/0.6/map?bbox=6.148,53.483,6.150,53.485', dataProcessingFunc);
         console.log('retrieved');
-    }
+    },
 
     // function updateMapVectors(xmlResponse) {
     //     cacheMapData(xmlResponse);
     // };
 
-    function cacheMapData(data) {
-        console.log('caching1');
-        console.log(data);
-        console.log('caching2');
+    cacheMapData: function (data) {
+        console.log('caching');
         localStorage.setObject('mapdata',data);
         console.log('cached');
         // self.util.stacktrace();
-        util.stacktrace();
-    }
+        M.Util.stacktrace();
+    },
 
     // retrieves map data from cache or OSM
-    function mapData() {
+    mapData: function () {
         console.log(self);
         var d = localStorage.getObject('mapdata');
         if (typeof d !== 'string') {
             console.log('no local map data. getting new stuff.');
-            getOsmXml(cacheMapData);
+            M.Data.getOsmXml(M.Data.cacheMapData);
 
             // $.ajax({
             //     url: 'http://api.openstreetmap.org/api/0.6/map?bbox=6.148,53.483,6.150,53.485',
@@ -148,29 +176,7 @@ console.log(self.util);
         console.log('end mapData');
     }
 
-    function test() {
-        console.log(self.ugh);
-        return 'yup';
-    }
 
-    function main() {
-        version();
-        console.log('in main');
-        console.log(self);
-        console.log(mapData());
-        // console.log(self.mapData());
-        console.log('end main');
-    }
-
-
-    return {
-        version: version,
-        getOsmXml: getOsmXml,
-        cacheMapData: cacheMapData,
-        mapData: mapData,
-        test: test,
-        main: main
-    };
 };
 
 
