@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+</style>
+<body>
+<script>
+
+var illumap = function illumap() {
+  // Global vars
+  var svgElement = "bob";
+
+  var view = function view() {
+    return {
+      one: function one(x) {
+        return x+1;
+      },
+      two: function two(x) {
+        return x+2;
+      }
+    }; // end return
+  };
+
+
+  var graphics = function graphics() {
+    var svg = null;
+
+    return {
+      init: function init(svgArg) {
+        svg = svgArg;
+      },
+
+      debug: function () {
+        debugger;
+      },
+
+      line: function line() {
+        return d3.svg.line()
+                .x(function(d) { return d[0] * 10; })
+                .y(function(d) { return d[1] * 10; })
+                .interpolate("linear");
+      }
+    };
+
+  }(); // end return
+
+
+  // API
+  return {
+    graphics: graphics,
+    view: view
+  };
+
+}(); // invoke whole module
+
+
+
+</script>
+
+</body>
+</html>

@@ -33,7 +33,7 @@ var tiler = d3.geo.tile()
 var projection = d3.geo.mercator()
     .center([6.148,53.483])
     // .center([-122.4183, 37.7750])
-    .scale((1 << 21) / 2 / Math.PI)
+    .scale((1 << 22) / 2 / Math.PI)
     .translate([width / 2, height / 2]);
 
 var path = d3.geo.path()

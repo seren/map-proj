@@ -1,0 +1,122 @@
+<html>
+<body>
+</body>
+<script type="text/javascript">
+
+
+
+//////// Scope misunderstanding ///////
+
+
+    /// suggestion by Romain
+    function newM(){
+        var retval = {};
+        var helperDefinedLocally = function(){ console.log("hi"); };
+        retval.version = function(){ return "1.1"; };
+        retval.selftest = function(){
+            console.log('--selftest--');
+            console.log(this);  // why does self refer to the global object (window?)
+            helperDefinedLocally();
+        };
+        return retval;
+    }
+
+
+
+
+
+
+    function M() {
+        var self = this;
+        var ver = this.ver = self.ver = '0.1';  // try setting 'ver' every way possible
+
+        this.helperDefinedLocally = function () {
+            console.log(ver);
+        };
+
+        return this;
+    }
+
+    M.prototype = {
+        helperDefinedInPrototpe: function() { console.log(ver); },
+
+        selftest1: function() {
+            console.log('--selftest1--');
+            console.log(self);  // why does self refer to the global object (window?)
+            self.helperDefinedInPrototpe();  // because of the above, it makes sense that self.helperDefinedInPrototpe isn't a function
+        },
+
+        thistest1: function() {
+            console.log('--thistest1--');
+            console.log(this);  // "this" seems to be correct
+            this.helperDefinedInPrototpe();  // why is helperDefinedInPrototpe undefined?
+        },
+
+        selftest2: function() {
+            console.log('--selftest2--');
+            console.log(self);  // why does self refer to the global object (window?)
+            self.helperDefinedLocally();  // because of the above, it makes sense that self.helperDefinedInPrototpe isn't a function
+        },
+
+        thistest2: function() {
+            console.log('--thistest2--');
+            console.log(this);  // "this" seems to be correct
+            this.helperDefinedLocally();  // why is helperDefinedInPrototpe undefined?
+        }
+    };
+
+    runner = function(meth) {
+        try {
+            meth();
+        } catch(e) {
+            console.log(e);
+        }
+    };
+
+    m = new M();
+
+    runner(m.selftest1); // Error: "self.helperDefinedInPrototpe is not a function"
+    runner(m.thistest1); // Error: "ver is not defined"
+    runner(m.selftest2);
+    runner(m.thistest2);
+console.log('---------');
+
+        try {               // this works. why?
+            m.thistest2();
+        } catch(e) {
+            console.log(e);
+        }
+
+
+
+/////// How should my module/app be built? ////////////
+
+    // var M = function () {
+    //     var fun = function() {
+    //         return 'me';
+    //     }
+    // }
+
+    // function Mfactory() {
+    //     var fun = function() {
+    //         return 'me';
+    //     }
+    // }
+    // var M = new Mfactory();
+
+
+    // var M = {};
+    // M.prototype.fun = function() {
+    //     return 'me';
+    // }
+
+    // ---html---
+    // <script>var m = new M();</script>
+    // <div onclick="m.fun();">click me</div>
+
+
+
+</script>
+</html>
+
+

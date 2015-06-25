@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+body {
+  margin: 0;
+}
+
+.button {
+  outline: none;
+  display: block;
+  width: 100px;
+  padding: 6px 0;
+  text-align: center;
+  border: 1px solid #ddd;
+  border-bottom: 1px solid #aaa;
+  border-right: 1px solid #aaa;
+  background-color: #ccc;
+  background-repeat: repeat-x;
+  background-position: left top;
+  font-size: 14px;
+  text-shadow: 1px 1px 1px #fff;
+  font-weight: bold;
+  height: 22px;
+  line-height: 1.5em;
+  margin-bottom: 6px;
+}
+
+
+</style>
+<body>
+  <div class='readout'></div><br>
+  <a class="button" id='prunebutton'>prune</a>
+  <a class="button" id='resetbutton'>reset</a><br>
+<script src="js/d3.v3.min.js"></script>
+<script src="js/d3.geo.tile.v0.min.js"></script>
+<script>
+
+// (function(){
+  obj = {};
+
+  obj.data = {
+    init: function() {
+      this.data = [];
+      this.reset();
+    },
+
+    reset: function() {
+      this.data = [[1,1],[2,2],[2,3],[3,3],[3,4]];
+    },
+
+    prune: function() {
+      this.data.pop();
+      return this.data;
+    },
+
+    dataAsString: function() {
+      return '[' + this.data.join('],[') + ']';
+    },
+
+    dataArray: function() {
+      return data;
+    }
+
+  };
+
+
+  obj.view = {
+    elements: {},
+    init: function() {
+      d3.select('#prunebutton')
+        .on('click', obj.controller.prune);
+      d3.select('#resetbutton')
+        .on('click', obj.controller.reset);
+    },
+    readout: function() {
+      if (obj.view.elements.readout === undefined) {
+        obj.view.elements.readout = document.getElementsByClassName('readout')[0];
+      }
+      return obj.view.elements.readout;
+    },
+    width: function() {
+      Math.max(960, window.innerWidth);
+    },
+    height: function() {
+     Math.max(500, window.innerHeight);
+    },
+    svg: function() {
+      if (obj.view.elements.svg === undefined) {
+       obj.view.elements.svg = d3.select("body").append("svg")
+            .attr("width", this.width)
+            .attr("height", this.height);
+      }
+      return obj.view.elements.svg;
+    },
+      // line generator
+    line: function() {
+        return d3.svg.line()
+                .x(function(d) { return d[0] * 10; })
+                .y(function(d) { return d[1] * 10; })
+                .interpolate("linear");
+    },
+
+
+
+    updateReadout: function(text) {
+      this.readout.innerText = text;
+    },
+
+    draw: function() {
+      var data = obj.data.data;
+      // console.log('drawing data array: ' + nestedArrayToString(data));
+      var selection = obj.view.svg().selectAll("path")
+            .data([data])
+            // .data([data], function(d) { return ''+d; })
+            .attr('d',this.line())
+            .each(function(d) {
+              console.log('update: ' + d );
+            });
+
+      selection.enter().append('path')
+            .attr("stroke", "black")
+            .attr("fill", "none")
+            .attr("stroke-width",2)
+            .attr('d',this.line())
+            .each(function(d) {
+              console.log('enter: ' + d);
+            });
+
+      // selection.exit().remove();
+      selection.exit().each(function(d) {
+        console.log("exit: "+ d);
+      });
+    }
+
+  };
+
+  obj.controller = {
+
+    reset: function() {
+      obj.data.reset();
+      obj.view.draw();
+    },
+
+    log: function(text) {
+      obj.view.updateReadout(text);
+      console.log(text);
+    },
+    prune: function() {
+      var newdata = obj.data.prune();
+      // this.log(obj.data.dataAsString); // can't use 'this' since when a button calls this, 'this' is set to the button not the object
+      obj.controller.log(obj.data.dataAsString);
+      obj.view.draw();
+    }
+
+  };
+
+  obj.init = function() {
+    obj.data.init();
+    obj.view.init();
+    obj.controller.reset();
+  };
+
+  obj.init();
+// }());
+// a = (function() main{
+
+</script>
+
+
+
+
+
+
+
+
+
+

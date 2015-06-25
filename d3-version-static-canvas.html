@@ -44,7 +44,6 @@ path {
 <script src="js/d3.geo.tile.v0.min.js"></script>
 
   <a class="button" id='testbutton'>test</a>
-
 <script>
 
 var globalDataStore = {
@@ -77,30 +76,43 @@ var projection = d3.geo.mercator()
 var path = d3.geo.path()
     .projection(projection);
 
+var visContainer = d3.select("body").append("div")
+  .classed('vis');
 
-
-// var canvas = d3.select("body").append("canvas")
-//     .attr("width", width)
-//     .attr("height", height);
-
-// var context = canvas.node().getContext("2d");
-
-// var pathCanvas = d3.geo.path()
-//     .projection(projection)
-//     .context(context);
-
-// d3.json("/mbostock/raw/4090846/us.json", function(error, us) {
-//   if (error) throw error;
-
-//   path(topojson.feature(us, us.objects.counties));
-//   context.stroke();
-// });
-
-
-
-var svg = d3.select("body").append("svg")
+var canvas = visContainer.append("canvas")
     .attr("width", width)
     .attr("height", height);
+
+var dataContainer = visContainer.append("custom");
+
+var context = canvas.node().getContext("2d");
+
+var pathCanvas = d3.geo.path()
+    .projection(projection)
+    .context(context);
+
+
+function updateCanvas(data) {
+  // in-memory container for data, so d3 can scan and see what's changed (everything is contained in the DOM)
+  var dataBinding = dataContainer.selectAll("custom.line")
+    .data(data, function(d) { return d; });
+
+  // update existing element to have width 3
+  dataBinding
+    .attr("width", 3);
+
+  // for new elements, create a 'custom' DOM node, of class line
+  // with the appropriate attributes
+  dataBinding.enter()
+      .append("custom")
+      .classed("line", true)
+      .attr("width", "10");
+
+  // for exiting elements, remove them
+  dataBinding.exit()
+    .remove();
+}
+
 
 
 // initial load of data
@@ -114,6 +126,12 @@ svg.selectAll("g")  // select all groups. eg. we want to create/modify groups
       var g = d3.select(this);  // not sure why this is necessary
       var tileserver = ["a", "b", "c"][(d[0] * 31 + d[1]) % 3] + ".tile.openstreetmap.us"; // distribute our tile requests across the servers
       d3.json("http://" + tileserver + "/vectiles-highroad/" + d[2] + "/" + d[0] + "/" + d[1] + ".json", function(error, json) {  // callback for the retrieved json
+        if (error) throw error;
+
+        debugger;
+        // pathCanvas(topojson.feature(us, us.objects.counties));
+        // context.stroke();
+
         g.selectAll("path")
             .data(json.features.sort(function(a, b) { return a.properties.sort_key - b.properties.sort_key; })) // sort the our paths by key
           .enter().append("path")  // for new paths, create svg entries

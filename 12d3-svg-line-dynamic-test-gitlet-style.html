@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+body {
+  margin: 0;
+}
+
+.button {
+  outline: none;
+  display: block;
+  width: 100px;
+  padding: 6px 0;
+  text-align: center;
+  border: 1px solid #ddd;
+  border-bottom: 1px solid #aaa;
+  border-right: 1px solid #aaa;
+  background-color: #ccc;
+  background-repeat: repeat-x;
+  background-position: left top;
+  font-size: 14px;
+  text-shadow: 1px 1px 1px #fff;
+  font-weight: bold;
+  height: 22px;
+  line-height: 1.5em;
+  margin-bottom: 6px;
+}
+
+
+</style>
+<body>
+  <div class='readout'></div><br>
+  <a class="button" id='prunebutton'>prune</a>
+  <a class="button" id='resetbutton'>reset</a>
+  <a class="button" id='drawbutton'>draw</a>
+<script src="js/d3.v3.min.js"></script>
+<script src="js/d3.geo.tile.v0.min.js"></script>
+<script>
+
+
+
+
+illumap = function (context) {
+  // Global vars
+  var svgElement = "bob",
+      width = function width() {
+        Math.max(960, window.innerWidth);
+      },
+      height = function height() {
+       Math.max(500, window.innerHeight);
+      };
+
+  var width = Math.max(960, window.innerWidth),
+      height = Math.max(500, window.innerHeight);
+
+  // Tool to determine what tiles are in the view based on scale, size, projection, and translation
+  var d3tiler = d3.geo.tile()
+      .size([width, height]);
+
+  var d3projection = d3.geo.mercator()
+      .center([6.148,53.483])
+      // .center([-122.4183, 37.7750])
+      .scale((1 << 22) / 2 / Math.PI)
+      .translate([width / 2, height / 2]);
+
+  // Given a geometry or feature object, d3.geo.path generates the path data string suitable for the "d" attribute of an SVG path element
+  var d3path = d3.geo.path()
+      .projection(d3projection);
+
+  // d3 line generator
+  var d3line = d3.svg.line()
+            .x(function(d) { return d[0] * 10; })
+            .y(function(d) { return d[1] * 10; })
+            .interpolate("linear");
+
+
+
+  // Module to store map data, a graph from it, and do all the manipulations
+  var data = function data() {
+    //Phase1: input, storage of original tiles and vectors, output, simple modification
+    //Phase2: more complex modification, action history for repetition
+
+    // raw tiles
+    // agregated geojson
+    var rawTiles = [],
+        rawDataContainer, // DOM container for raw elements
+        rawData,
+        mutatedData = [],
+        mutationSequence = [];  // list of changes performed on data
+
+
+    // update data based on current view
+    function updateTiles() {
+      var selection = rawDataContainer.selectAll("custom.line")
+          .data(d3tiler
+            .scale(d3projection.scale() * 2 * Math.PI)
+            .translate(d3projection([0, 0])));
+
+      selection.enter().append("custom")
+          .each(function(d) {
+// see what exactly d is. can we generate a UID from it?
+            var g = d3.select(this);
+            d3.json("http://" + ["a", "b", "c"][(d[0] * 31 + d[1]) % 3] + ".tile.openstreetmap.us/vectiles-highroad/" + d[2] + "/" + d[0] + "/" + d[1] + ".json", function(error, json) {
+              g.selectAll("path")
+                  .data(json.features.sort(function(a, b) { return a.properties.sort_key - b.properties.sort_key; }))
+                .enter().append("path")
+                  .attr("class", function(d) { return d.properties.kind; })
+                  .attr("d", d3path);
+            });
+          });
+
+        }
+
+
+
+
+
+
+
+
+
+    return {
+      init: function init() {
+        rawDataContainer = d3.select('body').append("custom");
+        return "inited";
+      },
+
+      debug: function () {
+        debugger;
+      },
+
+      // merges tile with existing data
+      saveTile: function(tile) {
+
+        // store the tile with some uid (need to figure out)
+        debugger;
+        rawTiles[tile.something] = tile;
+
+        // in-memory container for data, so d3 can scan and see what's changed (everything is contained in the DOM)
+        var dataBinding = rawDataContainer.selectAll("custom.line")
+          .data(data, function(d) { return d; });
+
+        // update existing element to have width 3
+        dataBinding
+          .attr("width", 3);
+
+        // for new elements, create a 'custom' DOM node, of class line
+        // with the appropriate attributes
+        dataBinding.enter()
+            .append("custom")
+            .classed("line", true)
+            .attr("width", "10");
+
+        // for exiting elements, remove them
+        dataBinding.exit()
+          .remove();
+      },
+
+      loadRawData: function loadRawData(data) {
+        rawData = clone(data);
+        mutatedData = clone(data); // same obj! argh
+        return rawData;
+      },
+
+      getRawData: function getRawData() {
+        // maybe need to convert raw data into something drawable?
+        return rawData;
+      },
+
+      getData: function getData() {
+        // maybe need to convert raw data into something drawable?
+        return mutatedData;
+      },
+
+      prune: function prune() {
+        // debugger;
+        var p = mutatedData.pop();
+        var action = {
+          pruned: p
+        };
+        mutationSequence.concat(action);
+        console.log('pruned ' + p);
+        console.log('remaining ' + mutatedData);
+        console.log('rawData ' + rawData);
+      },
+
+      reset: function reset() {
+        mutationSequence = [];
+        mutatedData = rawData;
+        console.log('reset data to ' + rawData);
+      }
+
+    };
+
+  }();
+
+
+  // Module to fetch new map data. Somehow needs to pass it to the map data module
+  var retriever = function retriever() {
+
+
+
+
+
+  }();
+
+
+
+
+
+
+  // Module to draw svg based on data being passed in
+  var graphics = function graphics() {
+    // Phase1: retrieve the tiles in the view, pass them to the data object
+    // Phase1: draw the data from the data object
+    // Phase2: add event handling for scrolling and zooming, retrieve new data (and pass it to the data module), and update the display area with modified data from the data module
+
+    var svg = null;
+
+    return {
+    // init: store passed in svg element.
+    // draw: take data and draw it, using module parameters
+    init: function init(svgArg) {
+      if (svgArg === undefined) {
+       svg = d3.select("body").append("svg")
+            .attr("width", width)
+            .attr("height", height);
+      } else {
+        svg = svgArg;  // hopefully this copies and doesn't just use a ref
+      }
+      return svg;
+    },
+
+    debug: function () {
+      debugger;
+    },
+
+    draw: function draw(dataArg) {
+// debugger;
+      if (dataArg === undefined) {
+        console.log('no data passed to draw. defaulting to mutated data (data.getData)');
+        dataArg = illumap.data.getData();
+      }
+      // console.log('drawing data array: ' + nestedArrayToString(data));
+      var selection = svg.selectAll("path")
+            .data([dataArg])
+            // .data([data], function(d) { return ''+d; })
+            .attr('d',d3line)
+            .each(function(d) {
+              console.log('update: ' + d );
+            });
+
+      selection.enter().append('path')
+            .attr("stroke", "black")
+            .attr("fill", "none")
+            .attr("stroke-width",2)
+            .attr('d',d3line)
+            .each(function(d) {
+              console.log('enter: ' + d);
+            });
+      // selection.exit().remove();
+      selection.exit().each(function(d) {
+        console.log("exit: "+ d);
+      });
+    }
+
+
+
+    }; // end return
+  }(); // end graphics
+
+
+
+  // Module to run tests
+  var test = function test() {
+    var tempdata = [[1,1],[2,2],[2,3],[3,3],[3,4]];
+
+    var tempmapdata =
+    .data(d3tiler
+      .scale(d3projection.scale() * 2 * Math.PI)
+      .translate(d3projection([0, 0])))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    // init: store passed in svg element.
+    var init = function init() {
+      // debugger;
+      illumap.data.init();
+      illumap.data.loadRawData(tempdata);
+      illumap.graphics.init();
+      illumap.graphics.draw(illumap.data.getRawData());
+    };
+
+    return {
+      init: init
+    }; // end return
+  }(); // end test
+
+// debugger;
+  window.addEventListener('load', test);
+
+
+  // API
+  return {
+    data: data,
+    graphics: graphics,
+    test: test
+  };
+
+  function clone(obj) {
+    if(obj === null || typeof(obj) !== 'object' || 'isActiveClone' in obj)
+        return obj;
+
+    var temp = obj.constructor(); // changed
+
+    for(var key in obj) {
+        if(Object.prototype.hasOwnProperty.call(obj, key)) {
+            obj['isActiveClone'] = null;
+            temp[key] = clone(obj[key]);
+            delete obj['isActiveClone'];
+        }
+    }
+
+    return temp;
+}
+}(this);
+
+
+var testbutton = d3.select('#prunebutton')
+  .on('click', illumap.data.prune);
+d3.select('#resetbutton')
+  .on('click', illumap.data.reset);
+d3.select('#drawbutton')
+  .on('click', illumap.graphics.draw);
+
+</script>
+
+</body>
+</html>
