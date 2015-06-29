@@ -104,7 +104,7 @@ var svg = d3.select("body").append("svg")
 
 
 // initial load of data
-svg.selectAll("g")  // select all groups. eg. we want to create/modify groups
+svg.selectAll("g")  // select all groups. eg. we want to create/modify groups. the groups represent tiles (i think)
     .data(tiler   // join tiler data with previous selection data
       .scale(projection.scale() * 2 * Math.PI)
       .translate(projection([0, 0])))

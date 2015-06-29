@@ -26,6 +26,18 @@ body {
   margin-bottom: 6px;
 }
 
+path {
+  fill: none;
+  stroke: #000;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.major_road { stroke: #776; }
+.minor_road { stroke: #ccb; }
+.highway { stroke: #f39; stroke-width: 1.5px; }
+.rail { stroke: #7de; }
+
 
 </style>
 <body>
@@ -37,11 +49,10 @@ body {
 <script src="js/d3.geo.tile.v0.min.js"></script>
 <script>
 
-// has problems due to svg coords being set relative to tile locations
-
 
 illumap = function (context) {
   // Global vars
+
   var svgElement = "bob",
       tileCache = {},
       newFeatures = false, // flag for testing whether we have to re-mutate our raw features
@@ -55,131 +66,24 @@ illumap = function (context) {
       .size([width, height]);
 
   var d3projection = d3.geo.mercator()
-      .center([6.148,53.483])
-      // .center([-122.4183, 37.7750])
-      .scale((1 << 22) / 2 / Math.PI)
+      .center([6.17,53.475])
+      .scale((1 << 23) / 2 / Math.PI)
       .translate([width / 2, height / 2]);
 
-  var d3tileProjection = d3.geo.mercator();
-
   // Given a geometry or feature object, d3.geo.path generates the path data string suitable for the "d" attribute of an SVG path element
-  var d3tilePath = d3.geo.path()
-      .projection(d3tileProjection);
+  var d3path = d3.geo.path()
+      .projection(d3projection);
 
+  var d3line = d3.svg.line();
 
-
-  // d3 line generator
-  var d3line = d3.svg.line()
-            .x(function(d) { return d[0] * 10; })
-            .y(function(d) { return d[1] * 10; })
-            .interpolate("linear");
-
-  var d3linelog = function() {
-    console.log('in line generator');
-    debugger;
-        return d3.svg.line()
-            .x(function(d) { return d[0] * 10; })
-            .y(function(d) { return d[1] * 10; })
-            .interpolate("linear");
-          };
+  var svg = d3.select("body").append("svg")
+      .attr("width", width)
+      .attr("height", height);
 
   // produces a UID for tile coordinates
   var tileId = function tileId(t) {
     return t.join('.');
   };
-
-
-  // update data based on current view, probably run on start, move, or zoom
-  function updateTiles() {
-    var selection = rawDataContainer.selectAll("custom.tiles")
-        .data(d3tiler
-          .scale(d3projection.scale() * 2 * Math.PI)
-          .translate(d3projection([0, 0])), tileId);  // loads tile coordinates in current view
-
-    selection.enter().append("custom")
-        .attr("class", "tile")
-        .each(function(t) {   // for each set of tile-coordinates that we don't already have in the rawDataContainer
-          console.log('need to get tile ' + t);
-          var tid = tileId(t);
-
-          // load tile if it's not already in the cache
-          if (tileCache[tid] === undefined) {
-            // old: download a tile and add it to the DOM
-            // new: download and add to geojsonBucket, rerun mutations, render
-            // returns a FeatureCollection object containing geojson FeatureCollection objects
-            var tileserver = "http://" + ["a", "b", "c"][(t[0] * 31 + t[1]) % 3] + ".tile.openstreetmap.us";
-            var tileurlpath = "/vectiles-highroad/" + t[2] + "/" + t[0] + "/" + t[1] + ".json";
-            d3.json( tileserver + tileurlpath , function(error, json) {  // this is asynchronous
-              console.log('retrieved tile ' + tid + ', features: ' + json.features.length);
-debugger;
-              tileCache[tid] = json;
-              saveTile(tid);
-            });
-          } else {
-            saveTile(tid);
-          }
-        });
-
-
-
-      selection.exit()
-        .each(function(d) {
-          var tile = tileCache[tileId(d)];
-          tile.features.forEach(function(d) {
-            geojsonBucket.remove(d);
-          });
-        })
-        .remove();
-
-    }
-
-
-    // merges tile with existing data
-    var saveTile = function(tid) {
-      console.log('saving tile ' + tid + '. cached: ' + tileCache[tid]);
-      // add all new features (from server or cache) to the geojsonBucket
-      if (tileCache[tid].features.length > 0) {
-        // debugger;
-        tileCache[tid].features.forEach(function(f) {
-          console.log('adding feature ' +f.id+ 'from tile '+tid);
-          newFeatures = true;  // set the dirty bit, indicating that we have new data to mutate
-          data.geojsonBucket.add(f);
-        });
-      }
-
-
-      // // in-memory container for data, so d3 can scan and see what's changed (everything is contained in the DOM)
-      // var dataBinding = rawDataContainer.selectAll("custom.line")
-      //   .data(data, function(d) { return d; });
-
-      // // update existing element to have width 3
-      // dataBinding
-      //   .attr("width", 3);
-
-      // // for new elements, create a 'custom' DOM node, of class line
-      // // with the appropriate attributes
-      // dataBinding.enter()
-      //     .append("custom")
-      //     .classed("line", true)
-      //     .attr("width", "10");
-
-      // // for exiting elements, remove them
-      // dataBinding.exit()
-      //   .remove();
-    };
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -201,30 +105,32 @@ debugger;
       var json = {};
       var length = 0;
       return {
+        length: function() {
+          return length;
+        },
         add: function add(d) {
           console.log('adding ' + d.id);
           json[d.id] = d;
           length += 1;
         },
         remove: function remove(d) {
-          json.delete(d.id);
+          delete json[d.id];
           length -= 1;
+        },
+        reset: function reset() {
+          json = {};
         },
         // sorted array
         array: function array() {
           var arr = Object.keys(json).map(function (key) {return json[key];});
           return arr.sort(function(a, b) { return a.properties.sort_key - b.properties.sort_key; });
         },
-        sorted: function sorted() {
-          json.sort(function(a, b) { return a.properties.sort_key - b.properties.sort_key; });
-        },
-        mutate: function mutate() { // should return mutated data
-          console.log("not sure how to how to mutate raw json yet. for now renturning raw data.");
-          var a = this.get();
-          return this.get();
-        },
+        // mutate: function mutate() { // should return mutated data
+        //   console.log("not sure how to how to mutate raw json yet. for now renturning raw data.");
+        //   var a = this.get();
+        //   return this.get();
+        // },
         get: function() {
-// debugger;
           return this.array();
         }
       };
@@ -247,20 +153,25 @@ debugger;
 
       loadRawData: function loadRawData(data) {
         rawData = clone(data);
-        mutatedData = clone(data); // same obj! argh
+        mutatedData = clone(data); // same object without clone! argh
         return rawData;
       },
 
       // returns geojsonBucket as array
       getRawData: function getRawData() {
-        return geojsonBucket.get();
+        return geojsonBucket.array();
       },
 
       getData: function getData() {
-        if (newFeatures) {
-          geojsonBucket.mutate();
-        }
+        geojsonBucket.mutate();
         return mutatedData;
+      },
+
+      mutate: function mutate() {
+        var arr = geojsonBucket.array();
+        var del = arr[getRandomInt(0, arr.length)];
+        geojsonBucket.remove(del);
+        console.log('mutated by removing ' + del.id + '. ' + geojsonBucket.length() + ' paths remain');
       },
 
       prune: function prune() {
@@ -306,23 +217,60 @@ debugger;
     // Phase1: draw the data from the data object
     // Phase2: add event handling for scrolling and zooming, retrieve new data (and pass it to the data module), and update the display area with modified data from the data module
 
-    var svg;
+  var svgClear = function svgClear() {
+    svg.selectAll("*").remove();
+  }
 
-    return {
+  var svgLoadFresh = function svgLoadFresh() {
+    svgClear();
+    svg.selectAll("g") // select all tile groupings
+        .data(d3tiler    // join with tiles that should be shown in the current view. Generates tile coordinates in current view
+          .scale(d3projection.scale() * 2 * Math.PI)
+          .translate(d3projection([0, 0])), tileId)
+      .enter().append("g")    // for all tiles not already shown, make new svg groupings...
+        .attr("class", "tilegroup")
+        .each(function(t) {   // download and display each vector tile
+          var tid = tileId(t);
+          console.log('need to get tile ' + tid);
+          var g = d3.select(this);
+          var tileserver = "http://" + ["a", "b", "c"][(t[0] * 31 + t[1]) % 3] + ".tile.openstreetmap.us";
+          var tileurlpath = "/vectiles-highroad/" + t[2] + "/" + t[0] + "/" + t[1] + ".json";
+          d3.json( tileserver + tileurlpath , function(error, json) {  // this is asynchronous
+            // 'json' is a FeatureCollection object containing an array of Feature objects
+            g.selectAll("path")  // get all the svg paths from this svg grouping
+                .data(json.features.sort(function(a, b) { return a.properties.sort_key - b.properties.sort_key; })) // sort it so our join-by-index is consistent
+              .enter().append("path")
+                .attr("class", function(d) { return d.properties.kind; })
+                .attr("d", d3path)
+                .each(function(f) { // for each feature
+                  data.geojsonBucket.add(f);
+                  // console.log('retrieved tile ' + tid + ', features: ' + json.features.length);
+                });
+          });
+        });
+  }
+
+  var svgLoadMutated = function svgLoadMutated() {
+    svgClear();
+    svg.selectAll("path")  // get all the svg paths from this svg grouping
+        .data(data.getData())
+      .enter().append("path")
+        .attr("class", function(d) { return d.properties.kind; })
+        .attr("d", d3line)
+        .each(function(f) { // for each feature
+          console.log('drawing path with features: ' + json.features.length);
+        });
+  }
+
+
+  return {
+    svgLoadFresh: svgLoadFresh,
+    svgLoadMutated: svgLoadMutated,
+    svgClear: svgClear,
+
     // init: store passed in svg element.
     // draw: take data and draw it, using module parameters
-    init: function init(svgArg) {
-      if (svgArg === undefined) {
-        if (svg === undefined) {
-          svg = d3.select("body").append("svg")
-              .attr("width", width)
-              .attr("height", height);
-          } else {
-            console.log('svg already defined, so not creating it');
-          }
-      } else {
-        svg = svgArg;  // hopefully this copies and doesn't just use a ref
-      }
+    init: function init() {
       console.log('graphics inited');
       return svg;
     },
@@ -331,16 +279,10 @@ debugger;
       debugger;
     },
 
+
+
+
     draw: function draw(dataArg) {
-// debugger;
-
-
-      // var k = Math.pow(2, t[2]) * 256; // size of the world in pixels, based on tile's zoom level
-
-      // d3tilePath.projection()  // configure the tile path generator with the current zoom and offset
-      //     .translate([k / 2 - t[0] * 256, k / 2 - t[1] * 256]) // [0°,0°] in pixels
-      //     .scale(k / 2 / Math.PI);
-
 
       if (dataArg === undefined) {
         console.log('no data passed to draw. defaulting to mutated data (data.getData)');
@@ -352,7 +294,7 @@ debugger;
       var selection = svg.selectAll("path")
             .data(dataArg)
             // .data([data], function(d) { return ''+d; })
-            .attr('d', d3tilePath)
+            .attr('d', d3path)
             .each(function(d) {
               console.log('update: ' + d );
             });
@@ -369,7 +311,7 @@ debugger;
             .attr("stroke", "black")
             .attr("fill", "none")
             .attr("stroke-width",2)
-            .attr('d',d3tilePath)
+            .attr('d',d3path)
             .each(function(d) {
               console.log('enter: ' + d);
             });
@@ -400,10 +342,12 @@ debugger;
       // debugger;
       illumap.data.init();
       // illumap.data.loadRawData(tempdata);
-      illumap.updateTiles();
+      // illumap.updateTiles();
       illumap.graphics.init();
-      illumap.graphics.draw(illumap.data.getRawData());
-debugger;
+      // illumap.graphics.draw(illumap.data.getRawData());
+      illumap.graphics.svgClear();
+      illumap.graphics.svgLoadFresh();
+// debugger;
     };
 
     return {
@@ -412,22 +356,26 @@ debugger;
   }(); // end test
 
 // debugger;
-  // window.addEventListener('load', test.init);
+  window.addEventListener('load', test.init);
 
+  var debug = function() {
+    debugger;
+  };
 
   // API
   return {
     data: data,
     graphics: graphics,
     test: test,
-    updateTiles: updateTiles,
-    debug: function () {
-        debugger;
-    }
+    debug: debug
 
   };
 
-
+// Returns a random integer between min (included) and max (excluded)
+// Using Math.round() will give you a non-uniform distribution!
+function getRandomInt(min, max) {
+  return Math.floor(Math.random() * (max - min)) + min;
+}
 
 
   // function clone(obj) {
@@ -450,7 +398,7 @@ debugger;
 
 
 var testbutton = d3.select('#prunebutton')
-  .on('click', illumap.data.prune);
+  .on('click', illumap.data.mutate);
 d3.select('#resetbutton')
   .on('click', illumap.data.reset);
 d3.select('#drawbutton')

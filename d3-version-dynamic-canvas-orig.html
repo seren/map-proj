@@ -1,10 +1,4 @@
 <!DOCTYPE html>
-<html>
-<head>
-  <title></title>
-</head>
-
-
 <meta charset="utf-8">
 <style>
 
@@ -45,16 +39,10 @@ body {
   left: 10px;
 }
 
-.infozoom {
-  position: absolute;
-  bottom: 10px;
-  right: 80px;
-}
-
 </style>
 <body>
-<script src="js/d3.v3.min.js"></script>
-<script src="js/d3.geo.tile.v0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js"></script>
+<script src="d3.geo.tile.min.js"></script>
 <script>
 
 var width = Math.max(960, window.innerWidth),
@@ -65,7 +53,7 @@ var tile = d3.geo.tile()
     .size([width, height]);
 
 var projection = d3.geo.mercator()
-    .scale((1 << 22) / 2 / Math.PI)
+    .scale((1 << 21) / 2 / Math.PI)
     .translate([-width / 2, -height / 2]); // just temporary
 
 var tileProjection = d3.geo.mercator();
@@ -73,18 +61,17 @@ var tileProjection = d3.geo.mercator();
 var tilePath = d3.geo.path()
     .projection(tileProjection);
 
-// Zoom behavior. Can be applied to selections
 var zoom = d3.behavior.zoom()
     .scale(projection.scale() * 2 * Math.PI)
     .scaleExtent([1 << 20, 1 << 23])
-    .translate(projection([6.148,53.483]).map(function(x) { return -x; }))
-    .on("zoom", zoomed); // when the view changes, run the zoomed function as a listener
+    .translate(projection([-74.0064, 40.7142]).map(function(x) { return -x; }))
+    .on("zoom", zoomed);
 
 var map = d3.select("body").append("div")
     .attr("class", "map")
     .style("width", width + "px")
     .style("height", height + "px")
-    .call(zoom)  // attach a zoom handler to the map div
+    .call(zoom)
     .on("mousemove", mousemoved);
 
 var layer = map.append("div")
@@ -93,13 +80,10 @@ var layer = map.append("div")
 var info = map.append("div")
     .attr("class", "info");
 
-var infozoomed = map.append("div")
-    .attr("class", "infozoomed");
-
 zoomed();
 
 function zoomed() {
-  var tiles = tile  // runs a d3.geo.tile object which returns the tiles that are in the current view
+  var tiles = tile
       .scale(zoom.scale())
       .translate(zoom.translate())
       ();
@@ -111,32 +95,25 @@ function zoomed() {
   var image = layer
       .style(prefix + "transform", matrix3d(tiles.scale, tiles.translate))
     .selectAll(".tile")
-      .data(tiles, function(d) {
-        // console.log('tile: '+d); // gets called every time there's dragging or zooming
-        return d; });
+      .data(tiles, function(d) { return d; });
 
   image.exit()
-      .each(function(d) { this._xhr.abort(); })  // cancel each tile loading
-      .remove(); // and remove it
+      .each(function(d) { this._xhr.abort(); })
+      .remove();
 
   image.enter().append("svg")
-  // called when we need to load new tiles, once for each new tile
       .attr("class", "tile")
       .style("left", function(d) { return d[0] * 256 + "px"; })
       .style("top", function(d) { return d[1] * 256 + "px"; })
       .each(function(d) {
-        var svg = d3.select(this); // make svg match the svg we're creating?
-        var tileserver = ["a", "b", "c"][(d[0] * 31 + d[1]) % 3] + ".tile.openstreetmap.us"; // distribute our tile requests across the servers
-        // console.log(tileserver);
-        this._xhr = d3.json("http://" + tileserver + "/vectiles-highroad/" + d[2] + "/" + d[0] + "/" + d[1] + ".json", function(error, json) {
+        var svg = d3.select(this);
+        this._xhr = d3.json("http://" + ["a", "b", "c"][(d[0] * 31 + d[1]) % 3] + ".tile.openstreetmap.us/vectiles-highroad/" + d[2] + "/" + d[0] + "/" + d[1] + ".json", function(error, json) {
           var k = Math.pow(2, d[2]) * 256; // size of the world in pixels
 
-          // not sure. maybe sets translation and scale of the vector data to match the current view, with origin at 0 degrees?
           tilePath.projection()
               .translate([k / 2 - d[0] * 256, k / 2 - d[1] * 256]) // [0°,0°] in pixels
               .scale(k / 2 / Math.PI);
-debugger;
-          // union existing paths and new ones from the retrieved json (sorted), and append them to the svg
+
           svg.selectAll("path")
               .data(json.features.sort(function(a, b) { return a.properties.sort_key - b.properties.sort_key; }))
             .enter().append("path")
@@ -144,9 +121,6 @@ debugger;
               .attr("d", tilePath);
         });
       });
-
-  infozoomed.text('Zoom level: ' + parseInt(zoom.scale()/100000));
-
 }
 
 function mousemoved() {
@@ -171,5 +145,3 @@ function formatLocation(p, k) {
 }
 
 </script>
-</body>
-</html>
