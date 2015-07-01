@@ -45,7 +45,7 @@ path {
   <a class="button" id='prunebutton'>prune</a>
   <a class="button" id='resetbutton'>reset</a>
   <a class="button" id='drawbutton'>draw</a>
-<script src="js/d3.v3.min.js"></script>
+<script src="js/d3.v3.js"></script>
 <script src="js/d3.geo.tile.v0.min.js"></script>
 <script src="js/graphlib.js"></script>
 <script>
@@ -56,6 +56,8 @@ illumap = function (context) {
 var holder = {};
 
   var svgElement = "bob",
+      mapCenter = [6.17,53.475],
+      mapZoomLevel = 23,
       tileCache = {},
       newFeatures = false, // flag for testing whether we have to re-mutate our raw features
       rawDataContainer = d3.select('body').append("custom"); // DOM container for raw elements
@@ -68,8 +70,8 @@ var holder = {};
       .size([width, height]);
 
   var d3projection = d3.geo.mercator()
-      .center([6.17,53.475])
-      .scale((1 << 23) / 2 / Math.PI)
+      .center(mapCenter)
+      .scale((1 << mapZoomLevel) / 2 / Math.PI)
       .translate([width / 2, height / 2]);
 
   // Given a geometry or feature object, d3.geo.path generates the path data string suitable for the "d" attribute of an SVG path element
@@ -82,10 +84,62 @@ var holder = {};
       .attr("width", width)
       .attr("height", height);
 
+
+  /////////////////////
+  // Utility functions
+
   // produces a UID for tile coordinates
   var tileId = function tileId(t) {
     return t.join('.');
   };
+
+  function clone(obj) {
+    if(obj === null || typeof(obj) !== 'object' || 'isActiveClone' in obj)
+        return obj;
+    var temp = obj.constructor(); // changed
+    for(var key in obj) {
+        if(Object.prototype.hasOwnProperty.call(obj, key)) {
+            obj.isActiveClone = null;
+            temp[key] = clone(obj[key]);
+            delete obj.isActiveClone;
+        }
+    }
+    return temp;
+  }
+
+  function merge() {
+    var obj = {},
+        i = 0,
+        il = arguments.length,
+        key;
+    for (; i < il; i++) {
+        for (key in arguments[i]) {
+            if (arguments[i].hasOwnProperty(key)) {
+                obj[key] = arguments[i][key];
+            }
+        }
+    }
+    return obj;
+  }
+
+  // Extend localStorage
+  Storage.prototype.setObject = function(key, value) {
+      this.setItem(key, JSON.stringify(value));
+  };
+
+  Storage.prototype.getObject = function(key) {
+      var value = this.getItem(key);
+      try {
+          JSON.parse(value);
+      }
+      catch(e) {
+          console.log('data stored locally in "mapdata" is invalid JSON:');
+          console.log(value);
+          return false;
+      }
+      return value && JSON.parse(value);
+  };
+
 
 
 
@@ -105,53 +159,97 @@ var holder = {};
 
     var g = new graphlib.Graph();
 
+    // loads tiles in current view and adds the geojson to our data store
+    var loadGeojsonFromServer = function loadGeojsonFromServer() {
+        d3tiler    // Generates tile coordinates in current view
+          .scale(d3projection.scale() * 2 * Math.PI)
+          .translate(d3projection([0, 0]))()
+          .forEach(function(t) {   // download and display each vector tile
+            var tid = tileId(t);
+            console.log('need to get tile ' + tid);
+            var tileserver = "http://" + ["a", "b", "c"][(t[0] * 31 + t[1]) % 3] + ".tile.openstreetmap.us";
+            var tileurlpath = "/vectiles-highroad/" + t[2] + "/" + t[0] + "/" + t[1] + ".json";
+            d3.json( tileserver + tileurlpath , function(error, json) {  // this is asynchronous
+              // 'json' is a FeatureCollection object containing an array of Feature objects
+              json.features.sort(function(a, b) { return a.properties.sort_key - b.properties.sort_key; }) // sort it so our join-by-index is consistent
+                .forEach(function(f) { // for each feature
+                  geojsonBucket.add(f);
+                  console.log('retrieved tile ' + tid + ', features: ' + json.features.length);
+                });
+           });
+          });
+    };
+
+
+
+
 
     geojsonBucket = (function geojsonBucket() {
+      var uid = 'mapdata'; // used when storing and retrieving locally
       var json = {};
       var length = 0;
       var jsonToJoin = {};
 
-    function compareCoordinates(a,b) {
-      return ((a[0] === b[0]) && (a[1] === b[1]));
-    }
-
-    // if (!Array.prototype.last){
-    //     Array.prototype.last = function(){
-    //         return this[this.length - 1];
-    //     };
-    // };
-
-    // if (!Array.prototype.first){
-    //     Array.prototype.first = function(){
-    //         return this[0];
-    //     };
-    // };
-
-    // joins two arrays of coordinates
-    function joinCoordinateArrays(a,b,      j,d) {
-
-      if (compareCoordinates(a[0], b[b.length - 1]) === true) {
-// console.log('a: '+a+' b: '+b+' joined: ' + b.splice.apply(a,[0,1].concat(a)));
-// debugger
-        // return b.splice.apply(a,[0,1].concat(a));
-        return b.splice(0,1).concat(a);
-      } else if (compareCoordinates(b[0], a[a.length - 1]) === true) {
-// console.log('a: '+a+' b: '+b+' joined: ' + a.splice.apply(b,[0,1].concat(b)));
-// debugger
-        // return a.splice.apply(b,[0,1].concat(b));
-        return a.splice(0,1).concat(b);
-      } else {
-        // console.log("couldn't join arrays. no matching heads and tails. there must be an intermediate array coming.");
-        return false;
+      function compareCoordinates(a,b) {
+        return ((a[0] === b[0]) && (a[1] === b[1]));
       }
-    }
 
+      // if (!Array.prototype.last){
+      //     Array.prototype.last = function(){
+      //         return this[this.length - 1];
+      //     };
+      // };
+
+      // if (!Array.prototype.first){
+      //     Array.prototype.first = function(){
+      //         return this[0];
+      //     };
+      // };
+
+      // joins two arrays of coordinates, as long as one has a head that matches the other's tail
+      function joinCoordinateArrays(a,b,      j,d) {
+
+        if (compareCoordinates(a[0], b[b.length - 1]) === true) {
+  // console.log('a: '+a+' b: '+b+' joined: ' + b.splice.apply(a,[0,1].concat(a)));
+  // debugger
+          // return b.splice.apply(a,[0,1].concat(a));
+          return b.splice(0,1).concat(a);
+        } else if (compareCoordinates(b[0], a[a.length - 1]) === true) {
+  // console.log('a: '+a+' b: '+b+' joined: ' + a.splice.apply(b,[0,1].concat(b)));
+  // debugger
+          // return a.splice.apply(b,[0,1].concat(b));
+          return a.splice(0,1).concat(b);
+        } else {
+          // console.log("couldn't join arrays. no matching heads and tails. there must be an intermediate array coming.");
+          return false;
+        }
+      }
 
 
       return {
+        init: function(j) {
+          console.log('initing geojsonBucket');
+          if (j === undefined) {
+            console.log('initing geojsonBucket. no json given, so loading from disk');
+            load();
+          } else {
+            json = j;
+          }
+          length = Object.keys(json).length;
+          console.log('done initing geojsonBucket');
+        },
         length: function() {
           return length;
         },
+        save: function() {
+          localStorage.setObject(uid, json);
+        },
+        load: function() {
+          json = localStorage.getObject(uid);
+          // should do some sanity checks on data returned
+        },
+
+
         add: function add(d) {
           var id = d.id;
           console.log('adding ' + id);
@@ -165,36 +263,38 @@ var holder = {};
             } else {
               jsonToJoin[id].push(d);
             }
-var x=jsonToJoin[id].length;
+    var x=jsonToJoin[id].length;
         // need to join ways together that have been split over multiple tiles
             // console.log('id already stored (coords ' + json[id].geometry.coordinates.length + '). additional coords: ' + d.geometry.coordinates.length + '. total arrays to join: ' + (1 + jsonToJoin[id].length));
             var arrayJoined = true;
             // we want to loop over our jsonToJoin repeatedly while joins are successful, because the last join may enable the next
             while ((jsonToJoin[id].length > 0) && (arrayJoined === true)) {
-// console.log('in while, jsonToJoin[id].length = '+jsonToJoin[id].length);
+    // console.log('in while, jsonToJoin[id].length = '+jsonToJoin[id].length);
               arrayJoined = false;
               for (var i=0,  tot=jsonToJoin[id].length; i < tot; i++) {
-// console.log('in for, tot='+tot+' i='+i);
-// debugger;
+    // console.log('in for, tot='+tot+' i='+i);
+    // debugger;
                 var joined = joinCoordinateArrays(json[id].geometry.coordinates, jsonToJoin[id][i].geometry.coordinates,       json[id], d);
                 if (joined.constructor === Array) { // if our join succeeded
-// console.log('woohoo ' + joined + ' totallen = ' + json[id].geometry.coordinates.length);
+    // console.log('woohoo ' + joined + ' totallen = ' + json[id].geometry.coordinates.length);
                   arrayJoined = true;
                   json[id].geometry.coordinates = joined;
-console.log('jsonToJoin[id] len: '+jsonToJoin[id].length+' before');
+    console.log('jsonToJoin[id] len: '+jsonToJoin[id].length+' before');
                   jsonToJoin[id] = jsonToJoin[id].splice(i,1); // remove original copy of the now-joined array
-console.log('jsonToJoin[id] len: '+jsonToJoin[id].length+' after');
-// console.log('woohoo ' + joined + ' totallen = ' + json[id].geometry.coordinates.length);
+    console.log('jsonToJoin[id] len: '+jsonToJoin[id].length+' after');
+    // console.log('woohoo ' + joined + ' totallen = ' + json[id].geometry.coordinates.length);
                 // } else {
         // debugger
       }
 
               }
             }
-console.log('old coords: '+x+' new coords: ' + json[id].geometry.coordinates.length);
-// if (x > 1) debugger
+    console.log('old coords: '+x+' new coords: ' + json[id].geometry.coordinates.length);
+    // if (x > 1) debugger
           }
           length += 1;
+// debugger;
+          this.save();
         },
         remove: function remove(d) {
           delete json[d.id];
@@ -220,9 +320,13 @@ console.log('old coords: '+x+' new coords: ' + json[id].geometry.coordinates.len
           debugger;
         }
       };
-    }());
+    }());  // end geojsonBucket function
 
 
+
+
+
+    // 'data' return
     return {
       rawData: rawData,
       geojsonBucket: geojsonBucket,  // module that holds features in current view (should we directly modify contents, or feed into something else?)
@@ -230,7 +334,19 @@ console.log('old coords: '+x+' new coords: ' + json[id].geometry.coordinates.len
       mutationSequence: mutationSequence,  // list of changes performed on data
 
       init: function init() {
-       return "data inited";
+        console.log('initing data');
+        var defaults = {
+          source: 'local'
+        };
+        var opts = merge(defaults, (arguments[0] || {}));
+// debugger;
+        if (opts.source == 'server') {
+          loadGeojsonFromServer();
+        } else {
+          loadGeojsonFromLocal();
+        }
+        console.log("data inited. loaded from " + opts.source);
+        return "data inited. loaded from " + opts.source;
       },
 
       debug: function () {
@@ -248,12 +364,13 @@ console.log('old coords: '+x+' new coords: ' + json[id].geometry.coordinates.len
         return geojsonBucket.array();
       },
 
-      getData: function getData() {
-        geojsonBucket.mutate();
+      getMutatedData: function getMutatedData() {
+        geojsonBucket.mutate();  // should actually load data from graph object
         return mutatedData;
       },
 
       mutate: function mutate() {
+
         var arr = geojsonBucket.array();
         var del = arr[getRandomInt(0, arr.length)];
         geojsonBucket.remove(del);
@@ -283,16 +400,6 @@ console.log('old coords: '+x+' new coords: ' + json[id].geometry.coordinates.len
   }();
 
 
-  // Module to fetch new map data. Somehow needs to pass it to the map data module
-  var retriever = function retriever() {
-
-
-
-
-
-  }();
-
-
 
 
 
@@ -303,112 +410,104 @@ console.log('old coords: '+x+' new coords: ' + json[id].geometry.coordinates.len
     // Phase1: draw the data from the data object
     // Phase2: add event handling for scrolling and zooming, retrieve new data (and pass it to the data module), and update the display area with modified data from the data module
 
-  var svgClear = function svgClear() {
-    svg.selectAll("*").remove();
-  }
+    var svgClear = function svgClear() {
+      svg.selectAll("*").remove();
+    };
 
-  var svgLoadFresh = function svgLoadFresh() {
-    svgClear();
-    svg.selectAll("g") // select all tile groupings
-        .data(d3tiler    // join with tiles that should be shown in the current view. Generates tile coordinates in current view
-          .scale(d3projection.scale() * 2 * Math.PI)
-          .translate(d3projection([0, 0])), tileId)
-      .enter().append("g")    // for all tiles not already shown, make new svg groupings...
-        .attr("class", "tilegroup")
-        .each(function(t) {   // download and display each vector tile
-          var tid = tileId(t);
-          console.log('need to get tile ' + tid);
-          var g = d3.select(this);
-          var tileserver = "http://" + ["a", "b", "c"][(t[0] * 31 + t[1]) % 3] + ".tile.openstreetmap.us";
-          var tileurlpath = "/vectiles-highroad/" + t[2] + "/" + t[0] + "/" + t[1] + ".json";
-          d3.json( tileserver + tileurlpath , function(error, json) {  // this is asynchronous
-// if (json.features.length > 0) {
-//   debugger;
-// }
-            // 'json' is a FeatureCollection object containing an array of Feature objects
-            g.selectAll("path")  // get all the svg paths from this svg grouping
-                .data(json.features.sort(function(a, b) { return a.properties.sort_key - b.properties.sort_key; })) // sort it so our join-by-index is consistent
-              .enter().append("path")
-                .attr("class", function(d) { return d.properties.kind; })
-                .attr("d", d3path)
-                .each(function(f) { // for each feature
-                  data.geojsonBucket.add(f);
-                  // console.log('retrieved tile ' + tid + ', features: ' + json.features.length);
-                });
+    var svgDraw = function svgDraw(data) {
+      svgClear();
+      svg.selectAll("path")  // get all the svg paths from this svg grouping
+          .data(data.getRawData())
+        .enter().append("path")
+          .attr("class", function(d) { return d.properties.kind; })
+          .attr("d", d3line)
+          .each(function(f) { // for each feature
+            console.log('drawing path with features: ' + json.features.length);
           });
+    };
+    var svgDrawRaw = function svgDrawRaw() {
+      svgClear();
+      svg.selectAll("path")  // get all the svg paths from this svg grouping
+          .data(data.getRawData())
+        .enter().append("path")
+          .attr("class", function(d) { return d.properties.kind; })
+          .attr("d", d3line)
+          .each(function(f) { // for each feature
+            console.log('drawing path with features: ' + json.features.length);
+          });
+    };
+
+
+    var svgDrawMutated = function svgDrawMutated() {
+      svgClear();
+      svg.selectAll("path")  // get all the svg paths from this svg grouping
+          .data(data.getMutatedData())
+        .enter().append("path")
+          .attr("class", function(d) { return d.properties.kind; })
+          .attr("d", d3line)
+          .each(function(f) { // for each feature
+            console.log('drawing path with features: ' + json.features.length);
+          });
+    };
+
+
+    return {
+      svgDrawRaw: svgDrawRaw,
+      svgDrawMutated: svgDrawMutated,
+      svgClear: svgClear,
+
+      // init: store passed in svg element.
+      // draw: take data and draw it, using module parameters
+      init: function init() {
+        console.log('graphics inited');
+        return svg;
+      },
+
+      debug: function () {
+        debugger;
+      },
+
+
+
+
+      draw: function draw(dataArg) {
+
+        if (dataArg === undefined) {
+          console.log('no data passed to draw. defaulting to mutated data (data.getMutatedData)');
+          dataArg = illumap.data.getRawData();
+        }
+  // debugger;
+
+        // console.log('drawing data array: ' + nestedArrayToString(data));
+        var selection = svg.selectAll("path")
+              .data(dataArg)
+              // .data([data], function(d) { return ''+d; })
+              .attr('d', d3path)
+              .each(function(d) {
+                console.log('update: ' + d );
+              });
+
+  //       var selection = svg.selectAll("path")
+  //           .data([dataArg]);
+  // var b = selection.attr('d',d3line);
+  // var c = b.each(function(d) {
+  //               console.log('update: ' + d );
+  //             });
+
+
+        selection.enter().append('path')
+              .attr("stroke", "black")
+              .attr("fill", "none")
+              .attr("stroke-width",2)
+              .attr('d',d3path)
+              .each(function(d) {
+                console.log('enter: ' + d);
+              });
+        // selection.exit().remove();
+        selection.exit().each(function(d) {
+          console.log("exit: "+ d);
         });
-  }
-
-  var svgLoadMutated = function svgLoadMutated() {
-    svgClear();
-    svg.selectAll("path")  // get all the svg paths from this svg grouping
-        .data(data.getData())
-      .enter().append("path")
-        .attr("class", function(d) { return d.properties.kind; })
-        .attr("d", d3line)
-        .each(function(f) { // for each feature
-          console.log('drawing path with features: ' + json.features.length);
-        });
-  }
-
-
-  return {
-    svgLoadFresh: svgLoadFresh,
-    svgLoadMutated: svgLoadMutated,
-    svgClear: svgClear,
-
-    // init: store passed in svg element.
-    // draw: take data and draw it, using module parameters
-    init: function init() {
-      console.log('graphics inited');
-      return svg;
-    },
-
-    debug: function () {
-      debugger;
-    },
-
-
-
-
-    draw: function draw(dataArg) {
-
-      if (dataArg === undefined) {
-        console.log('no data passed to draw. defaulting to mutated data (data.getData)');
-        dataArg = illumap.data.getRawData();
       }
-debugger;
-
-      // console.log('drawing data array: ' + nestedArrayToString(data));
-      var selection = svg.selectAll("path")
-            .data(dataArg)
-            // .data([data], function(d) { return ''+d; })
-            .attr('d', d3path)
-            .each(function(d) {
-              console.log('update: ' + d );
-            });
-
-//       var selection = svg.selectAll("path")
-//           .data([dataArg]);
-// var b = selection.attr('d',d3line);
-// var c = b.each(function(d) {
-//               console.log('update: ' + d );
-//             });
-
-
-      selection.enter().append('path')
-            .attr("stroke", "black")
-            .attr("fill", "none")
-            .attr("stroke-width",2)
-            .attr('d',d3path)
-            .each(function(d) {
-              console.log('enter: ' + d);
-            });
-      // selection.exit().remove();
-      selection.exit().each(function(d) {
-        console.log("exit: "+ d);
-      });
-    }
 
 
 
@@ -429,13 +528,15 @@ debugger;
     // init: store passed in svg element.
     var init = function init() {
       // debugger;
-      illumap.data.init();
-      // illumap.data.loadRawData(tempdata);
+      illumap.data.init({source: 'server'});
+      // illumap.data.init({source: 'local'});
+      // illumap.data.init();
+      // illumap.data.loadRawData();
       // illumap.updateTiles();
       illumap.graphics.init();
       // illumap.graphics.draw(illumap.data.getRawData());
       illumap.graphics.svgClear();
-      illumap.graphics.svgLoadFresh();
+      illumap.graphics.svgDrawRaw();
 // debugger;
     };
 
@@ -460,28 +561,7 @@ debugger;
 
   };
 
-// Returns a random integer between min (included) and max (excluded)
-// Using Math.round() will give you a non-uniform distribution!
-function getRandomInt(min, max) {
-  return Math.floor(Math.random() * (max - min)) + min;
-}
 
-
-  // function clone(obj) {
-  //   if(obj === null || typeof(obj) !== 'object' || 'isActiveClone' in obj)
-  //       return obj;
-
-  //   var temp = obj.constructor(); // changed
-
-  //   for(var key in obj) {
-  //       if(Object.prototype.hasOwnProperty.call(obj, key)) {
-  //           obj.isActiveClone = null;
-  //           temp[key] = clone(obj[key]);
-  //           delete obj.isActiveClone;
-  //       }
-  //   }
-  //   return temp;
-  // }
 
 }(this);
 
