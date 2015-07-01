@@ -78,7 +78,7 @@ var holder = {};
   var d3path = d3.geo.path()
       .projection(d3projection);
 
-  var d3line = d3.svg.line();
+  // var d3line = d3.svg.line();
 
   var svg = d3.select("body").append("svg")
       .attr("width", width)
@@ -180,11 +180,13 @@ var holder = {};
           });
     };
 
+    var loadGeojsonFromLocal = function loadGeojsonFromLocal() {
+      geojsonBucket.load();
+    };
 
 
 
-
-    geojsonBucket = (function geojsonBucket() {
+    var geojsonBucket = (function geojsonBucket() {
       var uid = 'mapdata'; // used when storing and retrieving locally
       var json = {};
       var length = 0;
@@ -414,44 +416,65 @@ var holder = {};
       svg.selectAll("*").remove();
     };
 
-    var svgDraw = function svgDraw(data) {
+    var svgDraw = function svgDraw(paths) {
+      console.log('drawing ' + paths.length + ' paths');
       svgClear();
       svg.selectAll("path")  // get all the svg paths from this svg grouping
-          .data(data.getRawData())
+          .data(paths)
         .enter().append("path")
           .attr("class", function(d) { return d.properties.kind; })
-          .attr("d", d3line)
+          .attr("d", d3path)
           .each(function(f) { // for each feature
-            console.log('drawing path with features: ' + json.features.length);
-          });
+            console.log('drawing path with ' + f.geometry.coordinates.length + ' nodes');
+          })
+          ;
     };
+
     var svgDrawRaw = function svgDrawRaw() {
-      svgClear();
-      svg.selectAll("path")  // get all the svg paths from this svg grouping
-          .data(data.getRawData())
-        .enter().append("path")
-          .attr("class", function(d) { return d.properties.kind; })
-          .attr("d", d3line)
-          .each(function(f) { // for each feature
-            console.log('drawing path with features: ' + json.features.length);
-          });
+      var paths = data.getRawData();
+      console.log('drawing ' + paths.length + ' paths from raw data');
+      svgDraw(paths);
     };
 
 
     var svgDrawMutated = function svgDrawMutated() {
-      svgClear();
-      svg.selectAll("path")  // get all the svg paths from this svg grouping
-          .data(data.getMutatedData())
-        .enter().append("path")
-          .attr("class", function(d) { return d.properties.kind; })
-          .attr("d", d3line)
-          .each(function(f) { // for each feature
-            console.log('drawing path with features: ' + json.features.length);
-          });
+      var paths = data.getMutatedData();
+      console.log('drawing ' + paths.length + ' paths from mutated data');
+      svgDraw(paths);
     };
+
+    function draw(dataArg) {
+        if (dataArg === undefined) {
+          console.log('no data passed to draw. defaulting to mutated data (data.getMutatedData)');
+          dataArg = illumap.data.getRawData();
+        }
+        var selection = svg.selectAll("path")
+              .data(dataArg)
+              // .data([data], function(d) { return ''+d; })
+              .attr('d', d3path)
+              .each(function(d) {
+                console.log('update: ' + d );
+              });
+        selection.enter().append('path')
+              .attr("stroke", "black")
+              .attr("fill", "none")
+              .attr("stroke-width",2)
+              .attr('d',d3path)
+              .each(function(d) {
+                console.log('enter: ' + d);
+              });
+        selection.exit().each(function(d) {
+          console.log("exit: "+ d);
+        });
+      }
+
+
+
+
 
 
     return {
+      draw: draw,
       svgDrawRaw: svgDrawRaw,
       svgDrawMutated: svgDrawMutated,
       svgClear: svgClear,
@@ -466,50 +489,6 @@ var holder = {};
       debug: function () {
         debugger;
       },
-
-
-
-
-      draw: function draw(dataArg) {
-
-        if (dataArg === undefined) {
-          console.log('no data passed to draw. defaulting to mutated data (data.getMutatedData)');
-          dataArg = illumap.data.getRawData();
-        }
-  // debugger;
-
-        // console.log('drawing data array: ' + nestedArrayToString(data));
-        var selection = svg.selectAll("path")
-              .data(dataArg)
-              // .data([data], function(d) { return ''+d; })
-              .attr('d', d3path)
-              .each(function(d) {
-                console.log('update: ' + d );
-              });
-
-  //       var selection = svg.selectAll("path")
-  //           .data([dataArg]);
-  // var b = selection.attr('d',d3line);
-  // var c = b.each(function(d) {
-  //               console.log('update: ' + d );
-  //             });
-
-
-        selection.enter().append('path')
-              .attr("stroke", "black")
-              .attr("fill", "none")
-              .attr("stroke-width",2)
-              .attr('d',d3path)
-              .each(function(d) {
-                console.log('enter: ' + d);
-              });
-        // selection.exit().remove();
-        selection.exit().each(function(d) {
-          console.log("exit: "+ d);
-        });
-      }
-
-
 
     }; // end return
   }(); // end graphics
@@ -528,7 +507,7 @@ var holder = {};
     // init: store passed in svg element.
     var init = function init() {
       // debugger;
-      illumap.data.init({source: 'server'});
+      illumap.data.init({source: 'local'});
       // illumap.data.init({source: 'local'});
       // illumap.data.init();
       // illumap.data.loadRawData();
