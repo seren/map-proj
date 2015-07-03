@@ -7,6 +7,33 @@ var illumap = (function() {
       mutatedData = [],
       mutationSequence = [],  // list of changes performed on data
       mapg = new graphlib.Graph({ directed: false, multigraph: true });
+
+    function nodeId(coordinate) {
+      return coordinate[0] + ',' + coordinate[1];
+    }
+
+    function addNode(coordinate) {
+      var id = nodeId(coordinate);
+      if (!mapg.hasNode(id)) {
+        mapg.setNode(id, coordinate);
+      }
+    }
+
+    // do we need to label nodes and/or edges?
+    var buildGraph = function buildGraph() {
+      var features = geojsonBucket.getFeatures();
+      features.forEach( function(feature) {
+        var coordinates = feature.geometry.coordinates;
+        addNode(coordinates[0]);
+        for (var i = 0, len = coordinates.length; i < len - 1 ; i++) {
+          addNode(coordinates[i+1]);
+          mapg.setEdge(coordinates[i], coordinates[i+1], {way: feature.id, length: len});
+          console.log('graph: added edge, wayid: ' + feature.id + ' c1: ' + coordinates[i] + ' c2: ' + coordinates[i+1]);
+        }
+      });
+    };
+
+
     // loads tiles in current view and adds the geojson to our data store
     var loadGeojsonFromServer = function loadGeojsonFromServer() {
         geojsonBucket.reset();
@@ -41,10 +68,12 @@ var illumap = (function() {
 
     // 'data' return
     return {
+      buildGraph: buildGraph,
       rawData: rawData,
       geojsonBucket: geojsonBucket,  // module that holds features in current view (should we directly modify contents, or feed into something else?)
       mutatedData: mutatedData,
       mutationSequence: mutationSequence,  // list of changes performed on data
+      mapg, mapg,
 
       init: function init() {
         console.log('initing data');
@@ -80,7 +109,7 @@ var illumap = (function() {
 
       // returns geojsonBucket as array
       getRawData: function getRawData() {
-        return geojsonBucket.array();
+        return geojsonBucket.getFeatures();
       },
 
       getMutatedData: function getMutatedData() {

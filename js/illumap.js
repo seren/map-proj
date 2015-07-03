@@ -84,11 +84,16 @@ function Illumap() {
       // illumap.data.loadRawData();
       // illumap.updateTiles();
       illumap.graphics.init( {width: illumap.width, height: illumap.height} );
-      illumap.data.init({source: 'server'});
+      // illumap.data.init({source: 'server'});
+      illumap.data.init({source: 'local'});
       // illumap.graphics.draw(illumap.data.getRawData());
       illumap.svgDrawRaw();
       // illumap.graphics.svgClear();
       // svgDrawRaw();
+
+illumap.data.buildGraph();
+var m = new Mutators();
+m.relax(illumap.data.mapg)
 // debugger;
     };
 

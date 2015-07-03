@@ -93,7 +93,7 @@ console.log('this.featuresToJoin[id] len: '+this.featuresToJoin[id].length+' bef
             this.featuresToJoin[id] = this.featuresToJoin[id].splice(i,1); // remove original copy of the now-joined array
 
 console.log('this.featuresToJoin[id] len: '+this.featuresToJoin[id].length+' after');
-console.log('json entries: '+ Object.keys(this.json).length + ', length: '+this.length)+' (numbers should match)';
+console.log('json entries: '+ Object.keys(this.json).length + ', length: '+this.length+' (numbers should match)');
 // console.log('woohoo ' + joined + ' totallen = ' + this.json[id].geometry.coordinates.length);
           // } else {
   // debugger
@@ -124,20 +124,25 @@ GeojsonBucket.prototype.reset = function reset() {
   this.featuresToJoin = {};
   this.length = 0;
 };
-// sorted array
-GeojsonBucket.prototype.array = function array() {
-  var arr = Object.keys(this.json).map( function (key) {
-    return this.json[key];
-  }.bind(this));
-  return arr.sort(function(a, b) { return a.properties.sort_key - b.properties.sort_key; });
-};
 // mutate: function mutate() { // should return mutated data
 //   console.log("not sure how to how to mutate raw json yet. for now renturning raw data.");
 //   var a = this.get();
 //   return this.get();
 // },
-GeojsonBucket.prototype.get = function() {
-  return this.array();
+// sorted array of features
+GeojsonBucket.prototype.getFeatures = function() {
+  var arr = Object.keys(this.json).map( function (key) {
+    return this.json[key];
+  }.bind(this));
+  return arr.sort(function(a, b) { return a.properties.sort_key - b.properties.sort_key; });
+};
+// sorted array (features) of arrays (coordinates) of arrays (lat, long)
+GeojsonBucket.prototype.getCoordinates = function() {
+  var arr = Object.keys(this.json).map( function (featureId) {
+debugger
+    return this.json[featureId].geometry.coordinates;
+  }.bind(this));
+  return arr.sort(function(a, b) { return a.properties.sort_key - b.properties.sort_key; });
 };
 GeojsonBucket.prototype.debug = function() {
   debugger;
