@@ -10,16 +10,17 @@ var illumap = (function() {
     // loads tiles in current view and adds the geojson to our data store
     var loadGeojsonFromServer = function loadGeojsonFromServer() {
         geojsonBucket.reset();
-        d3tiler    // Generates tile coordinates in current view
-          .scale(d3projection.scale() * 2 * Math.PI)
-          .translate(d3projection([0, 0]))()
+        // debugger
+        illumap.d3tiler    // Generates tile coordinates in current view
+          .scale(illumap.d3projection.scale() * 2 * Math.PI)
+          .translate(illumap.d3projection([0, 0]))()
           .forEach(function(t) {   // download and display each vector tile
-            var tid = tileId(t);
+            var tid = illumap.tileId(t);
             console.log('need to get tile ' + tid);
             var tileserver = "http://" + ["a", "b", "c"][(t[0] * 31 + t[1]) % 3] + ".tile.openstreetmap.us";
             var tileurlpath = "/vectiles-highroad/" + t[2] + "/" + t[0] + "/" + t[1] + ".json";
             d3.json( tileserver + tileurlpath , function(error, json) {  // this is asynchronous
-              tileCache[tid] = json;
+              illumap.tileCache[tid] = json;
               // 'json' is a FeatureCollection object containing an array of Feature objects
               json.features.sort(function(a, b) { return a.properties.sort_key - b.properties.sort_key; }) // sort it so our join-by-index is consistent
                 .forEach(function(f) { // for each feature
@@ -49,8 +50,7 @@ var illumap = (function() {
         console.log('initing data');
         // var defaults = {source: 'local'};
         var defaults = {};
-debugger
-        var opts = merge(defaults, (arguments[0] || {}));
+        var opts = illumap.utility.merge(defaults, (arguments[0] || {}));
         switch (opts.source) {
           case "server":
             loadGeojsonFromServer();
@@ -73,8 +73,8 @@ debugger
       },
 
       loadRawData: function loadRawData(data) {
-        rawData = clone(data);
-        mutatedData = clone(data); // same object without clone! argh
+        rawData = illumap.utility.clone(data);
+        mutatedData = illumap.utility.clone(data); // same object without clone! argh
         return rawData;
       },
 
@@ -109,8 +109,8 @@ debugger
 
       reset: function reset() {
         mutationSequence = [];
-        rawData = clone(geojsonBucket.json);
-        mutatedData = clone(geojsonBucket.json);
+        rawData = illumap.utility.clone(geojsonBucket.json);
+        mutatedData = illumap.utility.clone(geojsonBucket.json);
         console.log('reset data to ' + rawData);
       }
 

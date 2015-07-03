@@ -54,17 +54,17 @@ function Illumap() {
   };
 
 
-  function svgDrawRaw() {
-    var paths = data.getRawData();
+  this.svgDrawRaw = function svgDrawRaw() {
+    var paths = illumap.data.getRawData();
     console.log('drawing ' + paths.length + ' paths from raw data');
-    graphics.svgDraw(paths);
+    illumap.graphics.svgDraw(paths);
   };
 
 
-  function svgDrawMutated() {
-    var paths = data.getMutatedData();
+  this.svgDrawMutated = function svgDrawMutated() {
+    var paths = illumap.data.getMutatedData();
     console.log('drawing ' + paths.length + ' paths from mutated data');
-    svgDraw(paths);
+    illumap.graphics.svgDraw(paths);
   };
 
 
@@ -81,14 +81,14 @@ function Illumap() {
     // init: store passed in svg element.
     var init = function init() {
       // debugger;
-      // illumap.data.init({source: 'local'});
-      this.illumap.data.init();
       // illumap.data.loadRawData();
       // illumap.updateTiles();
-      this.illumap.graphics.init( {width: this.width, height: this.height} );
+      illumap.graphics.init( {width: illumap.width, height: illumap.height} );
+      illumap.data.init({source: 'server'});
       // illumap.graphics.draw(illumap.data.getRawData());
-      this.illumap.graphics.svgClear();
-      this.svgDrawRaw();
+      illumap.svgDrawRaw();
+      // illumap.graphics.svgClear();
+      // svgDrawRaw();
 // debugger;
     };
 

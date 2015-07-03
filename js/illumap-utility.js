@@ -1,3 +1,4 @@
+// utility functions
 var illumap = (function() {
 
   this.utility = {

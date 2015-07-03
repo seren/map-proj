@@ -8,7 +8,7 @@ var illumap = (function() {
     var svg;
 
     var svgClear = function svgClear() {
-debugger
+// debugger
       svg.selectAll("*").remove();
     };
 
@@ -19,7 +19,7 @@ debugger
           .data(paths)
         .enter().append("path")
           .attr("class", function(d) { return d.properties.kind; })
-          .attr("d", d3path)
+          .attr("d", illumap.d3path)
           // .each(function(f) { // for each feature
           //   console.log('drawing path with ' + f.geometry.coordinates.length + ' nodes');
           // })
@@ -34,7 +34,7 @@ debugger
         var selection = svg.selectAll("path")
               .data(dataArg)
               // .data([data], function(d) { return ''+d; })
-              .attr('d', d3path)
+              .attr('d', illumap.d3path)
               .each(function(d) {
                 console.log('update: ' + d );
               });
@@ -42,7 +42,7 @@ debugger
               .attr("stroke", "black")
               .attr("fill", "none")
               .attr("stroke-width",2)
-              .attr('d',d3path)
+              .attr('d',illumap.d3path)
               .each(function(d) {
                 console.log('enter: ' + d);
               });
@@ -64,12 +64,12 @@ debugger
           width: Math.max(960, window.innerWidth),
           height: Math.max(500, window.innerHeight)
         };
-        var opts = merge(defaults, (arguments[0] || {}));
+        var opts = illumap.utility.merge(defaults, (arguments[0] || {}));
         this.width = opts.width;
         this.height = opts.height;
 
         console.log('graphics inited');
-        debugger
+        // debugger
         if (svg === undefined) {
           svg = d3.select("body").append("svg")
               .attr("width", this.width)
