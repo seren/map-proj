@@ -8,9 +8,9 @@ body {
 
 .button {
   outline: none;
-  display: block;
-  width: 100px;
-  padding: 6px 0;
+/*  display: block;
+*/  width: 100px;
+  padding: 6px 10px;
   text-align: center;
   border: 1px solid #ddd;
   border-bottom: 1px solid #aaa;
@@ -44,10 +44,10 @@ path {
 </style>
 <body>
   <div class='readout'></div><br>
-  <a class="button" id='relaxbutton'>mutate: relax</a>
-  <a class="button" id='resetbutton'>reset</a>
   <a class="button" id='drawrawbutton'>draw raw</a>
   <a class="button" id='drawrawmutatedbutton'>draw mutated</a>
+  <a class="button" id='relaxbutton'>mutate: relax</a>
+  <a class="button" id='resetbutton'>reset</a>
 <script src="js/d3.v3.js"></script>
 <script src="js/d3.geo.tile.v0.min.js"></script>
 <script src="js/graphlib.js"></script>
@@ -61,7 +61,7 @@ path {
 var testbutton = d3.select('#relaxbutton')
   .on('click', illumap.mutateRelax);
 d3.select('#resetbutton')
-  .on('click', illumap.data.reset);
+  .on('click', illumap.reset);
 d3.select('#drawrawbutton')
   .on('click', illumap.svgDrawRaw);
 d3.select('#drawrawmutatedbutton')

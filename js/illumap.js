@@ -67,6 +67,7 @@ function Illumap() {
 
 
   this.svgDrawRaw = function svgDrawRaw() {
+// debugger
     var paths = illumap.data.getRawData();
     console.log('drawing ' + paths.length + ' paths from raw data');
     illumap.graphics.svgDraw(paths);
@@ -83,6 +84,11 @@ function Illumap() {
   this.mutateRelax = function mutateRelax() {
     illumap.data.mutateRelax();
     illumap.drawMutated();
+  };
+
+  this.reset = function reset() {
+    illumap.data.reset();
+    illumap.svgDrawRaw();
   };
 
   // Module to run tests
