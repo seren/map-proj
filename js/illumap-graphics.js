@@ -19,6 +19,7 @@ var illumap = (function() {
           .data(paths)
         .enter().append("path")
           .attr("class", function(d) { return d.properties.kind; })
+          .attr("wayid", function(d) { return d.id; })
           .attr("d", illumap.d3path)
           // .each(function(f) { // for each feature
           //   console.log('drawing path with ' + f.geometry.coordinates.length + ' nodes');
@@ -27,6 +28,7 @@ var illumap = (function() {
     };
 
     function draw(dataArg) {
+      svgClear();
         if (dataArg === undefined) {
           console.log('no data passed to draw. defaulting to mutated data (data.getMutatedData)');
           dataArg = illumap.data.getRawData();
@@ -39,13 +41,15 @@ var illumap = (function() {
                 console.log('update: ' + d );
               });
         selection.enter().append('path')
-              .attr("stroke", "black")
-              .attr("fill", "none")
-              .attr("stroke-width",2)
+              .attr("class", 'generic')
+              // .attr("fill", "none")
+              // .attr("stroke-width",2)
+              .attr("wayid", function(d) { return d.id; })
               .attr('d',illumap.d3path)
-              .each(function(d) {
-                console.log('enter: ' + d);
-              });
+              // .each(function(d) {
+              //   console.log('enter: ' + d);
+              // })
+              ;
         selection.exit().each(function(d) {
           console.log("exit: "+ d);
         });

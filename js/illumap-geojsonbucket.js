@@ -55,6 +55,7 @@ GeojsonBucket.prototype.loadFromDisk = function() {
 GeojsonBucket.prototype.add = function add(f) {
     var id = f.id;
     console.log('adding ' + id);
+// if (id === '6530010') { debugger; };
 // debugger;
     // if the new feature is a continuation of a feature we already have, join them
     if (this.json[id] === undefined) {
@@ -134,6 +135,7 @@ GeojsonBucket.prototype.getFeatures = function() {
   var arr = Object.keys(this.json).map( function (key) {
     return this.json[key];
   }.bind(this));
+
   return arr.sort(function(a, b) { return a.properties.sort_key - b.properties.sort_key; });
 };
 // sorted array (features) of arrays (coordinates) of arrays (lat, long)
@@ -146,6 +148,9 @@ debugger
 };
 GeojsonBucket.prototype.debug = function() {
   debugger;
+};
+GeojsonBucket.prototype.getFeaturesClone = function() {
+  return illumap.utility.deepClone(this.getFeatures());
 };
 GeojsonBucket.prototype.print = function() {
   var j = this.json;

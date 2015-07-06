@@ -2,9 +2,12 @@ function Illumap() {
   // Global vars
   // this.mapCenter = [6.17,53.475];
   // this.mapZoomLevel = 23;;
-  this.mapCenter = [6.17,53.475];
-  this.mapZoomLevel = 26;
-  this.tileCache = {};
+  // this.mapCenter = [6.17,53.475];
+  // this.mapZoomLevel = 26;
+
+  this.mapCenter = [6.148,53.483];
+  this.mapZoomLevel = 22;
+
   this.newFeatures = false; // flag for testing whether we have to re-mutate our raw features
   this.rawDataContainer = d3.select('body').append("custom"); // DOM container for raw elements
 
@@ -26,6 +29,15 @@ function Illumap() {
 
   // var d3line = d3.svg.line();
 
+  this.tileCache = {};
+  this.loadTileCache = function() {
+    var tc = localStorage.getObject('tileCache');
+    if (!(tc === null)) {
+      illumap.tileCache = tc;
+    }
+  };
+
+
   /////////////////////
   // Utility functions
 
@@ -46,7 +58,7 @@ function Illumap() {
           JSON.parse(value);
       }
       catch(e) {
-          console.log('data stored locally in "mapdata" is invalid JSON:');
+          console.log('data stored locally in "'+key+'" is invalid JSON:');
           console.log(value);
           return false;
       }
@@ -61,13 +73,17 @@ function Illumap() {
   };
 
 
-  this.svgDrawMutated = function svgDrawMutated() {
+  this.drawMutated = function drawMutated() {
+// debugger
     var paths = illumap.data.getMutatedData();
     console.log('drawing ' + paths.length + ' paths from mutated data');
-    illumap.graphics.svgDraw(paths);
+    illumap.graphics.draw(paths);
   };
 
-
+  this.mutateRelax = function mutateRelax() {
+    illumap.data.mutateRelax();
+    illumap.drawMutated();
+  };
 
   // Module to run tests
   this.test = function test() {
@@ -81,19 +97,19 @@ function Illumap() {
     // init: store passed in svg element.
     var init = function init() {
       // debugger;
-      // illumap.data.loadRawData();
-      // illumap.updateTiles();
       illumap.graphics.init( {width: illumap.width, height: illumap.height} );
       // illumap.data.init({source: 'server'});
       illumap.data.init({source: 'local'});
       // illumap.graphics.draw(illumap.data.getRawData());
-      illumap.svgDrawRaw();
+      // illumap.svgDrawRaw();
       // illumap.graphics.svgClear();
       // svgDrawRaw();
 
-illumap.data.buildGraph();
-var m = new Mutators();
-m.relax(illumap.data.mapg)
+// m.relax(illumap.data.mapg)
+
+      // illumap.data.mutateRelax();
+      // illumap.drawMutated();
+
 // debugger;
     };
 
@@ -103,7 +119,7 @@ m.relax(illumap.data.mapg)
   }(); // end test
 
 // debugger;
-  // window.addEventListener('load', test.init);
+  window.addEventListener('load', this.test.init);
 
   this.debug = function() {
     debugger;
