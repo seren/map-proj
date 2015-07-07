@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+body {
+  margin: 0;
+}
+
+.button {
+  outline: none;
+/*  display: block;
+*/  width: 100px;
+  padding: 6px 10px;
+  text-align: center;
+  border: 1px solid #ddd;
+  border-bottom: 1px solid #aaa;
+  border-right: 1px solid #aaa;
+  background-color: #ccc;
+  background-repeat: repeat-x;
+  background-position: left top;
+  font-size: 14px;
+  text-shadow: 1px 1px 1px #fff;
+  font-weight: bold;
+  height: 22px;
+  line-height: 1.5em;
+  margin-bottom: 6px;
+}
+
+path {
+  fill: none;
+  stroke: #000;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.major_road { stroke: #776; }
+.minor_road { stroke: #ccb; }
+.highway { stroke: #f39; stroke-width: 1.5px; }
+.rail { stroke: #7de; }
+
+.generic { stroke: #000; stroke-width: 2px; }
+
+
+</style>
+<body>
+  <div class='readout'></div><br>
+  <a class="button" id='drawrawbutton'>draw raw</a>
+  <a class="button" id='drawrawmutatedbutton'>draw mutated</a>
+  <a class="button" id='relaxbutton'>mutate: relax</a>
+  <a class="button" id='resetbutton'>reset</a>
+<script src="js/d3.v3.js"></script>
+<script src="js/d3.geo.tile.v0.min.js"></script>
+<script src="js/graphlib.js"></script>
+<script src="js/illumap.js"></script>
+<script src="js/illumap-geojsonbucket.js"></script>
+<script src="js/illumap-data.js"></script>
+<script src="js/illumap-graphics.js"></script>
+<script src="js/illumap-utility.js"></script>
+<script src="js/illumap-mutators.js"></script>
+<script type="text/javascript">
+var testbutton = d3.select('#relaxbutton')
+  .on('click', illumap.mutateRelax);
+d3.select('#resetbutton')
+  .on('click', illumap.reset);
+d3.select('#drawrawbutton')
+  .on('click', illumap.svgDrawRaw);
+d3.select('#drawrawmutatedbutton')
+  .on('click', illumap.drawMutated);
+
+</script>
+
+</body>
+</html>
