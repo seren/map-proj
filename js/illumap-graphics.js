@@ -40,6 +40,15 @@ var illumap = (function() {
               .each(function(d) {
                 console.log('update: ' + d );
               });
+
+        // selection.enter().call( function(s) {
+        //   s[0].forEach( function(f,i) {
+        //     console.log(i);
+        //     console.log(illumap.d3path(f.__data__));
+        //   });
+        //   debugger;
+        // });
+
         selection.enter().append('path')
               .attr("class", 'generic')
               // .attr("fill", "none")

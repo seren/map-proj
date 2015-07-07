@@ -1,12 +1,12 @@
 function Illumap() {
   // Global vars
   // this.mapCenter = [6.17,53.475];
-  // this.mapZoomLevel = 23;;
-  // this.mapCenter = [6.17,53.475];
+  this.mapZoomLevel = 23;;
+  this.mapCenter = [6.17,53.475];
   // this.mapZoomLevel = 26;
 
-  this.mapCenter = [6.148,53.483];
-  this.mapZoomLevel = 22;
+  // this.mapCenter = [6.148,53.483];
+  // this.mapZoomLevel = 22;
 
   this.newFeatures = false; // flag for testing whether we have to re-mutate our raw features
   this.rawDataContainer = d3.select('body').append("custom"); // DOM container for raw elements
@@ -102,10 +102,10 @@ function Illumap() {
 
     // init: store passed in svg element.
     var init = function init() {
+      var source = illumap.utility.runningInDevelopment() ? 'local' : 'server';
       // debugger;
       illumap.graphics.init( {width: illumap.width, height: illumap.height} );
-      // illumap.data.init({source: 'server'});
-      illumap.data.init({source: 'local'});
+      illumap.data.init({source: source});
       // illumap.graphics.draw(illumap.data.getRawData());
       // illumap.svgDrawRaw();
       // illumap.graphics.svgClear();

@@ -32,12 +32,17 @@ console.log(id);
       // debugger
       var features = geojsonBucket.getFeaturesClone();
       features.forEach( function(feature) {
-        var coordinates = feature.geometry.coordinates;
-        addNode(feature, 0);
-        for (var i = 0, len = coordinates.length; i < len - 1 ; i++) {
-          addNode(feature, i+1);
-          mapg.setEdge(nodeId(feature, i), nodeId(feature, i+1), {way: feature.id, length: len});
-          console.log('graph: added edge, wayid:index: ' + feature.id + ':' + i + ' c1: ' + nodeId(feature, i) + ' c2: ' + nodeId(feature, i+1));
+        var geometryType = feature.geometry.type;
+        if (geometryType === 'LineString') {
+          var coordinates = feature.geometry.coordinates;
+          addNode(feature, 0);
+          for (var i = 0, len = coordinates.length; i < len - 1 ; i++) {
+            addNode(feature, i+1);
+            mapg.setEdge(nodeId(feature, i), nodeId(feature, i+1), {way: feature.id, length: len});
+            console.log('graph: added edge, wayid:index: ' + feature.id + ':' + i + ' c1: ' + nodeId(feature, i) + ' c2: ' + nodeId(feature, i+1));
+          }
+        } else {
+          console.log("skipping feature " + feature.id + ". Can't handle geometry type: " + feature.geometry.type);
         }
       });
       graphStale = false;

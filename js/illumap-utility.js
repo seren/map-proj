@@ -31,6 +31,10 @@ var illumap = (function() {
 
   this.utility = {
 
+    runningInDevelopment: function runningInDevelopment() {
+      return (window.location.href.split(/[/:]+/)[1] === 'localhost');
+    },
+
     clone: function clone(obj) {
       if(obj === null || typeof(obj) !== 'object' || 'isActiveClone' in obj)
           return obj;
