@@ -5,6 +5,9 @@ var Mutators = function() {
 // force directed algorithm
 Mutators.prototype.relax = function(g) {
 // debugger
+
+  var springForce = 0.1;
+
   var newCoord0 = {};
   var newCoord1 = {};
   // var nodeVal; // value of the node
@@ -18,8 +21,8 @@ Mutators.prototype.relax = function(g) {
     g.neighbors(nd).forEach( function(nbr) {
       nbrVal = g.node(nbr);
 // debugger
-      offset0 = offset0 + ((nbrVal.coordinates[0] - nodeVal.coordinates[0]) / 2);
-      offset1 = offset1 + ((nbrVal.coordinates[1] - nodeVal.coordinates[1]) / 2);
+      offset0 = offset0 + ((nbrVal.coordinates[0] - nodeVal.coordinates[0]) * springForce);
+      offset1 = offset1 + ((nbrVal.coordinates[1] - nodeVal.coordinates[1]) * springForce);
     });
     newCoord0[nd] = nodeVal.coordinates[0] + offset0;
     newCoord1[nd] = nodeVal.coordinates[1] + offset1;
