@@ -34,7 +34,7 @@ var nodeVal = g.node(nd);
 var index = nodeVal.coordinateIndex;
 var oldcoord = nodeVal.coordinates.slice();
 var oldcoorddeep = nodeVal.feature.geometry.coordinates[index].slice();
-var wayId = nodeVal.feature.id;
+var featureID = nodeVal.feature.id;
     // g.node(nd).coordinates = [newCoord0[nd], newCoord1[nd]];  // this creates a new array, when we actually want to update the existing one
                                                                  //  since it's a reference to the feature coordinate array
     g.node(nd).coordinates[0] = newCoord0[nd];
@@ -42,7 +42,7 @@ var wayId = nodeVal.feature.id;
 var newcoord = nodeVal.coordinates.slice();  //g.node(nd)
 var newcoorddeep = nodeVal.feature.geometry.coordinates[index].slice();
 
-console.log('changed node '+nd+' way '+wayId+' from ' + oldcoord + '(' + oldcoorddeep +') to ' + newcoord + '(' + newcoorddeep + ')');
+console.log('changed node '+nd+' way '+featureID+' from ' + oldcoord + '(' + oldcoorddeep +') to ' + newcoord + '(' + newcoorddeep + ')');
   });
   return g;
 };

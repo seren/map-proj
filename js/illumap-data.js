@@ -15,7 +15,7 @@ var illumap = (function() {
     }
 
     function addNode(feature, coordinateIndex) {
-      var wayid = feature.id;
+      var featureId = feature.id;
       var id = nodeId(feature, coordinateIndex);
 console.log(id);
       if (!mapg.hasNode(id)) {
@@ -39,7 +39,7 @@ console.log(id);
           for (var i = 0, len = coordinates.length; i < len - 1 ; i++) {
             addNode(feature, i+1);
             mapg.setEdge(nodeId(feature, i), nodeId(feature, i+1), {way: feature.id, length: len});
-            console.log('graph: added edge, wayid:index: ' + feature.id + ':' + i + ' c1: ' + nodeId(feature, i) + ' c2: ' + nodeId(feature, i+1));
+            console.log('graph: added edge, featureId:index: ' + feature.id + ':' + i + ' c1: ' + nodeId(feature, i) + ' c2: ' + nodeId(feature, i+1));
           }
         } else {
           console.log("skipping feature " + feature.id + ". Can't handle geometry type: " + feature.geometry.type);
