@@ -45,6 +45,140 @@ console.log(id);
           console.log("skipping feature " + feature.id + ". Can't handle geometry type: " + feature.geometry.type);
         }
       });
+      // given an edge, return all the edges between endpoints
+// find endpoint
+//  if starting point is endpoint, pick the first neighbor
+//  if starting point in midpoint, run in both directions, then reverse one and concat
+// track all points in order until one is an endpoint
+
+      function findWayFromNode(n) {
+        var nodesInWay = [n]
+        var pointsToFollow = [n];
+        var endpoints = [];
+        var neighbors, p;
+        var enqueueNode = function(n) {
+          (mapg.node(n).endpoint) ? pointsToFollow.push(n) : endpoints.push(n);
+        }
+        var addWayToNode = function(way, n) {
+          mapg.node(n)[ways].push(way);
+        }
+        // if we start on an intersection, choose just one path
+        var nbrs = mapg.neighbors(n);
+        if (nbrs.length > 2) {
+          console.log('findWayFromNode: we started on an intersection. just exploring the edge to '+nbrs[0]);
+          pointsToFollow = [];  // remove so that we don't try to process all the connected points
+          endpoints.push(n)
+          enqueueNode(nbrs[0]);
+        }
+        while (pointsToFollow.length > 0) {
+          p = pointsToFollow.pop;
+          mapg.neighbors(n).forEach( function(nbr) {
+            enqueueNode(nbr);
+            nodesInWay.push(nbr);
+          });
+        }
+        // sanity checks
+        if (endpoints.length !== 2) {
+          throw('WTF. Should have 2 endpoints when done searching connected edges');
+        };
+        if (pointsToFollow.length !== 0) {
+          throw('WTF. We should have zero points left to follow');
+        }
+
+        // add way reference to all edges and nodes, and add nodes and edges to global registry
+        var wayId = ways.length;
+        ways[wayId] = {nodes: []};
+        nodesInWay.forEach( function(n) {
+          mapg.node(n).wayIds.push(wayId);
+          ways[wayId].nodes.push(n);
+        });
+
+        return wayId;
+      }
+
+
+
+
+      // given an edge, return all the edges between endpoints
+      function findConnectedEdges(e) {
+        var pointsToFollow = [e.v,e.w];
+        var edgesInWay = [[e.v,e.w]];
+        var nodesInWay = []
+        var endpoints = [];
+        var neighbors, p;
+        var enqueueNode = function(n) {
+          (mapg.node(n).endpoint) ? pointsToFollow.push(n) : endpoints.push(n);
+        }
+        var addWayToEdge = function(way, v, w) {
+          mapg.edge(v,w)[way]=way;
+        }
+        var addWayToNode = function(way, n) {
+          mapg.node(n)[ways].push(way);
+        }
+        enqueueNode(e.v);
+        enqueueNode(e.w);
+        while (pointsToFollow.length > 0) {
+          p = pointsToFollow.pop;
+          mapg.neighbors(n).forEach( function(nbr) {
+            enqueueNode(nbr);
+            nodesInWay.push(nbr);
+            edgesInWay.push([p,nbr]);
+          });
+        }
+        // sanity checks
+        if (endpoints.length !== 2) {
+          throw('WTF. Should have 2 endpoints when done searching connected edges');
+        };
+        if (pointsToFollow.length !== 0) {
+          throw('WTF. We should have zero points left to follow');
+        }
+        // check that the edges are all the same format
+        console.log(edgesInWay);
+        debugger;
+
+        // add way reference to all edges and nodes, and add nodes and edges to global registry
+        var wayId = ways.length;
+        ways[wayId] = {edges: [], nodes: []};
+        edgesInWay.forEach( function(e) {
+          mapg.edge(e[0],e[1]) = {wayId: wayId, length: edgesInWay.length};
+          ways[wayId].edges.push([e[0],e[1]]);
+        });
+        nodesInWay.forEach( function(n) {
+          mapg.node(n).wayIds.push(wayId);
+          ways[wayId].nodes.push(n);
+        });
+
+        return wayId;
+      }
+
+
+      // we can traverse each connect set of nodes and find the ways
+      graphlib.alg.components(mapg).forEach( function(connectedNodes) {
+        // run through the edges, labeling them with a way #
+        var firstEdge = mapg.nodeEdges(connectedNodes[0]);
+        var n;
+        while (connectedNodes.length > 0) {
+          n = connectedNodes[0]; // grab the first node
+          // explore all the attached edges
+          // We don't cover the edge case where there is a cycle of immediately connected intersection points. In this case, we will miss one of the edges
+          var newWayId = findConnectedNodes(n);
+          // Remove the nodes we've already found to be part of a way. If a node is part of multiple ways,
+          //  we'll find it during traversal, so it's ok to remove it from the pending list.
+          ways[newWayId].nodes.forEach(function(n) {
+            connectedNodes
+        connectedEdges.forEach( function(e) {
+
+
+      for each connected component
+        for each edge
+          for each node
+            if 1 node, no other edges to pull a way id from
+            if 2 node,
+          check adjacent edges
+
+
+
+
       graphStale = false;
     };
 
