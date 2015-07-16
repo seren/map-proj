@@ -44,11 +44,15 @@ GeojsonBucket.prototype.loadFromDisk = function() {
   if (tempJson === null) {
     console.log("Couldn't read data from local storage with key '" + this.uid +"'");
   } else {
-    this.json = tempJson;
-    this.length = Object.keys(tempJson).length;
-    console.log('loading uid: "' + this.uid + '", json size: ' + Object.keys(this.json).length);
+    this.load(tempJson);
   }
   // should do some sanity checks on data returned
+};
+GeojsonBucket.prototype.load = function load(tempJson) {
+  this.reset();
+  this.json = tempJson;
+  this.length = Object.keys(tempJson).length;
+  console.log('loading uid: "' + this.uid + '", json size: ' + Object.keys(this.json).length);
 };
 
 // adds a new feature to the json, checking to see if it can be appended to an existing path

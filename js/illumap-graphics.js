@@ -30,13 +30,14 @@ var illumap = (function() {
     function draw(dataArg) {
       svgClear();
         if (dataArg === undefined) {
-          console.log('no data passed to draw. defaulting to mutated data (data.getMutatedData)');
+          console.log('no data passed to draw. defaulting to raw data (data.getRawData)');
           dataArg = illumap.data.getRawData();
         }
         var selection = svg.selectAll("path")
               .data(dataArg)
               // .data([data], function(d) { return ''+d; })
               .attr('d', illumap.d3path)
+              .attr("wayid", function(d) { return d.id; })
               .each(function(d) {
                 console.log('update: ' + d );
               });

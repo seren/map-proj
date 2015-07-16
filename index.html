@@ -48,6 +48,7 @@ path {
   <a class="button" id='drawrawmutatedbutton'>draw mutated</a>
   <a class="button" id='relaxbutton'>mutate: relax</a>
   <a class="button" id='resetbutton'>reset</a>
+  <a class="button" id='reloadbutton'>reload</a>
 <script src="js/d3.v3.js"></script>
 <script src="js/d3.geo.tile.v0.min.js"></script>
 <script src="js/graphlib.js"></script>
@@ -66,6 +67,8 @@ d3.select('#drawrawbutton')
   .on('click', illumap.svgDrawRaw);
 d3.select('#drawrawmutatedbutton')
   .on('click', illumap.drawMutated);
+d3.select('#reloadbutton')
+  .on('click', illumap.reload);
 
 </script>
 

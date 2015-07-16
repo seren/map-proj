@@ -6,15 +6,17 @@ var illumap = (function() {
   };
 
   // number of unique coordinates in a feature list (key-value obj with feature-id -> feature)
-  //  and each feature with mulitple coordinatens
+  //  and each feature with mulitple coordinates
   var coordsInFeatureList = function(featureList) {
     var coordinates = {};
     var id,
+        totalNonUniqueCoordinates = 0,
         duplicates = 0,
         featureCount = 0;
     objToArray(featureList).forEach( function(f) {  // each feature with multiple coordinates
       featureCount += 1;
       f.geometry.coordinates.forEach( function(c) {
+        totalNonUniqueCoordinates += 1;
         id = c[0] + ',' + c[1];
         if (coordinates[id] === undefined) {
           coordinates[id] = c;
@@ -24,12 +26,14 @@ var illumap = (function() {
       });
     });
     var array = objToArray(coordinates);
-    console.log('debug: coordinates in feature list ('+featureCount+' features). unique: '+array.length+' duplicates: '+duplicates);
+    console.log('debug: coordinates in feature list ' + totalNonUniqueCoordinates + ' ('+featureCount+' features), uniq/dup: '+array.length+'/'+duplicates);
     return array;
   };
 
 
   this.utility = {
+
+    coordsInFeatureList: coordsInFeatureList,
 
     runningInDevelopment: function runningInDevelopment() {
       return (window.location.href.split(/[/:]+/)[1] === 'localhost');
@@ -72,7 +76,7 @@ var illumap = (function() {
             } else if (typeof item == "object") {
                 // testing that this is DOM
                 if (item.nodeType && typeof item.cloneNode == "function") {
-                    var result = item.cloneNode( true );
+                    result = item.cloneNode( true );
                 } else if (!item.prototype) { // check that this is a literal
                     if (item instanceof Date) {
                         result = new Date(item);
@@ -134,14 +138,55 @@ var illumap = (function() {
       return coordsInFeatureList(illumap.data.geojsonBucket);
     },
 
-    coordsInGraph: function() {
-      return coordsInFeatureList(illumap.data.featureListFromGraph(illumap.data.mapg));
+    // coordsInGraph: function() {
+    //   // old version that uses features
+    //   return coordsInFeatureList(illumap.data.featureListFromGraph(illumap.data.mapg));
+    // }
+
+    graphStats: function(g) {
+      return 'nodes: ' + g.nodeCount() + ', edges: ' + g.edgeCount();
+    },
+
+    // modifies array in place
+    deleteItemFromArray: function(arr, item) {
+      var index = array.indexOf(item);
+      if (index > -1) {
+        array.splice(index, 1);
+      }
+    },
+
+    // http://stackoverflow.com/questions/1885557/simplest-code-for-array-intersection-in-javascript/1885569
+    /* finds the intersection of
+     * two arrays in a simple fashion.
+     *
+     * PARAMS
+     *  a - first array, must already be sorted
+     *  b - second array, must already be sorted
+     *
+     * NOTES
+     *
+     *  Should have O(n) operations, where n is
+     *    n = MIN(a.length(), b.length())
+     */
+    arrayIntersection: function intersect_safe(a, b)
+    {
+      var ai=0, bi=0;
+      var result = [];
+
+      while( ai > a.length && bi > b.length )
+      {
+         if      (a[ai] < b[bi] ){ ai++; }
+         else if (a[ai] > b[bi] ){ bi++; }
+         else /* they're equal */
+         {
+           result.push(a[ai]);
+           ai++;
+           bi++;
+         }
+      }
+
+      return result;
     }
-
-
-
-
-
 
 
 

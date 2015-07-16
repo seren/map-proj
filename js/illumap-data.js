@@ -6,188 +6,186 @@ var illumap = (function() {
       // mutatedData = [],
       mutationSequence = [],  // list of changes performed on data
       mapg = new graphlib.Graph({ directed: false, multigraph: true }),
-      graphStale = true;
+      graphStale = true,
+      mutatedFeatureList = {}, // we build our own geojson features list so that d3 can generate geo paths from it
+      graphNodes = [],  // holds all nodes. node = {coordinates: [lat,lon], wayIds: [], features: [], coordinateIndices, endpoint}
+      ways = [], // holds objects: {edges: [], nodes: []}
+      coordinatesAdded = []; // temp variable for spotting duplicate coordinates
+    // function coordinatesSame(a, b) {
+    //   return ((a[0] === b[0]) && (a[1] === b[1]));
+    // }
+var featureNodes={}; //temp
 
-    function nodeId(feature, coordinateIndex) {
-// debugger
-      var coordinate = feature.geometry.coordinates[coordinateIndex];
-      return feature.id + ':' + coordinateIndex + ':' + coordinate[0] + ',' + coordinate[1];
-    }
-
+    // id = coordinate array, value = custom hash with useful data
     function addNode(feature, coordinateIndex) {
+      var coordinates = feature.geometry.coordinates[coordinateIndex];
+      var coordUid = coordinates[0] + ',' + coordinates[1];
       var featureId = feature.id;
-      var id = nodeId(feature, coordinateIndex);
-console.log(id);
-      if (!mapg.hasNode(id)) {
-        mapg.setNode(id, {feature: feature, coordinateIndex: coordinateIndex, coordinates: feature.geometry.coordinates[coordinateIndex]});
+      var id = coordinatesAdded.indexOf(coordUid);
+      if (id === -1) {
+        id = graphNodes.length;
+        coordinatesAdded.push(coordUid);
+        console.log(coordUid);
+        graphNodes[id] = {
+          coordinates: coordinates.slice(),
+          features: [feature],
+          coordinateIndices: [coordinateIndex],
+          endpoint: false,
+          intersection: false,
+          wayIds: []
+        };
+        mapg.setNode(id);
+      } else {
+console.log('addNode id:'+id);
+        graphNodes[id].features.push(feature);
+        graphNodes[id].coordinateIndices.push(coordinateIndex);
       }
+// temp debugging
+if (featureNodes[feature.id] === undefined) {
+  featureNodes[feature.id] = [id];
+} else {
+  featureNodes[feature.id].push(id);
+}
+      return id;
     }
 
     // graph nodes: id:(lat-lon) val:(ref to feature coordinates and feature)
     // have to copy features, since we'll be modifying the contents and don't want to affect the original
+    // ignore feature/way ids; make our own ids. combine all overlapping points and create ways at junctions of degree >2
     var buildGraph = function buildGraph() {
       if (graphStale === true) {
         console.log('graph is out of date. rebuilding from geojson');
       }
-      // debugger
+      // is this scope correct? will ways and graphNodes ref global or function vars?
+      ways = []; // lines of coordinates between endpoints or intersections
+      graphNodes = [];
+      coordinatesAdded = [];
+
+      var nodeId;
       var features = geojsonBucket.getFeaturesClone();
       features.forEach( function(feature) {
         var geometryType = feature.geometry.type;
         if (geometryType === 'LineString') {
-          var coordinates = feature.geometry.coordinates;
-          addNode(feature, 0);
-          for (var i = 0, len = coordinates.length; i < len - 1 ; i++) {
-            addNode(feature, i+1);
-            mapg.setEdge(nodeId(feature, i), nodeId(feature, i+1), {way: feature.id, length: len});
-            console.log('graph: added edge, featureId:index: ' + feature.id + ':' + i + ' c1: ' + nodeId(feature, i) + ' c2: ' + nodeId(feature, i+1));
+          var featureCoordinates = feature.geometry.coordinates;
+          prevNodeId = addNode(feature, 0);
+          for (var i = 0, len = featureCoordinates.length; i < len - 1 ; i++) {
+            currNodeId = addNode(feature, i+1);
+            mapg.setEdge(prevNodeId, currNodeId, {}); // way-finding builds: {way: feature.id, length: len});
+            console.log('graph: added edge from featureId:index: ' + feature.id + ':' + i + ' c1: ' + prevNodeId + ' c2: ' + currNodeId);
+            prevNodeId = currNodeId;
           }
         } else {
           console.log("skipping feature " + feature.id + ". Can't handle geometry type: " + feature.geometry.type);
         }
       });
-      // given an edge, return all the edges between endpoints
-// find endpoint
-//  if starting point is endpoint, pick the first neighbor
-//  if starting point in midpoint, run in both directions, then reverse one and concat
-// track all points in order until one is an endpoint
 
-      function findWayFromNode(n) {
-        var nodesInWay = [n]
-        var pointsToFollow = [n];
-        var endpoints = [];
-        var neighbors, p;
-        var enqueueNode = function(n) {
-          (mapg.node(n).endpoint) ? pointsToFollow.push(n) : endpoints.push(n);
+      // build way list and find the end-nodes, itersection nodes, etc
+
+      var markEndpoint = function markEndpoint(n) {
+        console.log('marking endpoint: ' + n);
+        graphNodes[n].endpoint = true;
+        // mapg.node(n)['endpoint'] = true;
+      };
+      var markIntersection = function markIntersection(n) {
+        console.log('marking intersection: ' + n);
+        graphNodes[n].intersection = true;
+        // mapg.node(n)['intersection'] = true;
+      };
+
+      // remove orphan nodes, and mark the intersection and endpoints
+      console.log('marking endpoints and removing orphans');
+      mapg.nodes().forEach( function(n) {
+        switch (mapg.nodeEdges(n).length) {
+          case 0:
+            console.log('deleting orphan node ' + n);
+            mapg.removeNode(n);
+            break;
+          case 1:
+            markEndpoint(n);
+            break;
+          case 2:
+            // skip
+            break;
+          default:
+            markEndpoint(n);
+            markIntersection(n);
+            break;
         }
-        var addWayToNode = function(way, n) {
-          mapg.node(n)[ways].push(way);
-        }
-        // if we start on an intersection, choose just one path
-        var nbrs = mapg.neighbors(n);
-        if (nbrs.length > 2) {
-          console.log('findWayFromNode: we started on an intersection. just exploring the edge to '+nbrs[0]);
-          pointsToFollow = [];  // remove so that we don't try to process all the connected points
-          endpoints.push(n)
-          enqueueNode(nbrs[0]);
-        }
-        while (pointsToFollow.length > 0) {
-          p = pointsToFollow.pop;
-          mapg.neighbors(n).forEach( function(nbr) {
-            enqueueNode(nbr);
-            nodesInWay.push(nbr);
-          });
-        }
-        // sanity checks
-        if (endpoints.length !== 2) {
-          throw('WTF. Should have 2 endpoints when done searching connected edges');
-        };
-        if (pointsToFollow.length !== 0) {
-          throw('WTF. We should have zero points left to follow');
-        }
+      });
+// debugger
+      buildAllWays();
 
-        // add way reference to all edges and nodes, and add nodes and edges to global registry
-        var wayId = ways.length;
-        ways[wayId] = {nodes: []};
-        nodesInWay.forEach( function(n) {
-          mapg.node(n).wayIds.push(wayId);
-          ways[wayId].nodes.push(n);
-        });
-
-        return wayId;
-      }
-
-
-
-
-      // given an edge, return all the edges between endpoints
-      function findConnectedEdges(e) {
-        var pointsToFollow = [e.v,e.w];
-        var edgesInWay = [[e.v,e.w]];
-        var nodesInWay = []
-        var endpoints = [];
-        var neighbors, p;
-        var enqueueNode = function(n) {
-          (mapg.node(n).endpoint) ? pointsToFollow.push(n) : endpoints.push(n);
-        }
-        var addWayToEdge = function(way, v, w) {
-          mapg.edge(v,w)[way]=way;
-        }
-        var addWayToNode = function(way, n) {
-          mapg.node(n)[ways].push(way);
-        }
-        enqueueNode(e.v);
-        enqueueNode(e.w);
-        while (pointsToFollow.length > 0) {
-          p = pointsToFollow.pop;
-          mapg.neighbors(n).forEach( function(nbr) {
-            enqueueNode(nbr);
-            nodesInWay.push(nbr);
-            edgesInWay.push([p,nbr]);
-          });
-        }
-        // sanity checks
-        if (endpoints.length !== 2) {
-          throw('WTF. Should have 2 endpoints when done searching connected edges');
-        };
-        if (pointsToFollow.length !== 0) {
-          throw('WTF. We should have zero points left to follow');
-        }
-        // check that the edges are all the same format
-        console.log(edgesInWay);
-        debugger;
-
-        // add way reference to all edges and nodes, and add nodes and edges to global registry
-        var wayId = ways.length;
-        ways[wayId] = {edges: [], nodes: []};
-        edgesInWay.forEach( function(e) {
-          mapg.edge(e[0],e[1]) = {wayId: wayId, length: edgesInWay.length};
-          ways[wayId].edges.push([e[0],e[1]]);
-        });
-        nodesInWay.forEach( function(n) {
-          mapg.node(n).wayIds.push(wayId);
-          ways[wayId].nodes.push(n);
-        });
-
-        return wayId;
-      }
-
-
-      // we can traverse each connect set of nodes and find the ways
-      graphlib.alg.components(mapg).forEach( function(connectedNodes) {
-        // run through the edges, labeling them with a way #
-        var firstEdge = mapg.nodeEdges(connectedNodes[0]);
-        var n;
-        while (connectedNodes.length > 0) {
-          n = connectedNodes[0]; // grab the first node
-          // explore all the attached edges
-          // We don't cover the edge case where there is a cycle of immediately connected intersection points. In this case, we will miss one of the edges
-          var newWayId = findConnectedNodes(n);
-          // Remove the nodes we've already found to be part of a way. If a node is part of multiple ways,
-          //  we'll find it during traversal, so it's ok to remove it from the pending list.
-          ways[newWayId].nodes.forEach(function(n) {
-            connectedNodes
-        connectedEdges.forEach( function(e) {
-
-
-      for each connected component
-        for each edge
-          for each node
-            if 1 node, no other edges to pull a way id from
-            if 2 node,
-          check adjacent edges
-
-
-
-
-      graphStale = false;
     };
+
+    function findWayFromNode(n) {
+      // not including the starting node
+      function getNodesUntilEndpoint(startNode, currNode) {
+console.log('about to traverse, startNode='+startNode+' currNode='+currNode);
+// debugger
+        var path=[currNode];
+        var prevNode = startNode;
+        var nextNode;
+        while (graphNodes[currNode].endpoint === false) {
+          // get the 2 (because it's not an endpoint) neighbors, remove the visited-node, and get the remaining node
+          nextNode = mapg.neighbors(currNode).removeByValue(prevNode)[0];
+console.log('traversing path ['+path+']. prevNode:'+prevNode+' currNode:'+currNode+' nextNode:'+nextNode+'(this is added to the path)');
+          path.push(nextNode);
+          prevNode = currNode;
+          currNode = nextNode;
+        }
+console.log('returning path: ['+path+']');
+        return path;
+      }
+
+
+      var path=[n];
+      var reversePath=[];
+      var forwardPath=[];
+      if (graphNodes[n].endpoint) {
+// debugger
+        path = path.concat(getNodesUntilEndpoint(n, mapg.neighbors(n)[0]));
+      } else {
+// debugger
+        reversePath = getNodesUntilEndpoint(n, mapg.neighbors(n)[1]).reverse();
+        forwardPath = getNodesUntilEndpoint(n, mapg.neighbors(n)[0]);
+// debugger
+        path = reversePath.concat(path, forwardPath);
+      }
+
+      return path;
+    }
+
+    // take a node, get its ways, remove the points from the global list, repeat
+    function buildAllWays() {
+      var n, wayPath, newWayId;
+
+      // build the way list and add way-membership to each node
+      var nodesToExplore = mapg.nodes();
+      while (nodesToExplore.length > 0) {
+        newWayId = ways.length;
+        n = nodesToExplore[0]; // grab the first node
+        wayPath = findWayFromNode(n);
+        ways[newWayId] = wayPath.slice();
+        // add the way id to each node, and remove the node from the search list
+        wayPath.forEach( function(n) {
+          graphNodes[n].wayIds.push(newWayId);
+          nodesToExplore.removeByValue(n);
+        });
+
+      }
+// debugger
+      graphStale = false;
+    }
+
+
+
 
     var mutateGeneric = function mutateGeneric(mutationType) {
       if (mapg.nodeCount < 1) {
         buildGraph();
       }
       var m = new Mutators();
-      mapg = m[mutationType](mapg);
+      mapg = m[mutationType](mapg, graphNodes);
     };
 
     var mutateRelax = function mutateRelax() {
@@ -199,7 +197,6 @@ console.log(id);
     // loads tiles in current view and adds the geojson to our data store
     var loadGeojsonFromServer = function loadGeojsonFromServer() {
       geojsonBucket.reset();
-      // debugger
       illumap.d3tiler    // Generates tile coordinates in current view
         .scale(illumap.d3projection.scale() * 2 * Math.PI)
         .translate(illumap.d3projection([0, 0]))()
@@ -232,14 +229,15 @@ console.log(id);
       buildGraph();
     };
 
-    // returns a feature list (key-values: feature-id -> feature)
+// out-dated and wrong. shouldn't use features any more
+    // returns a list of all unique features (key-values: feature-id -> feature)
     var featureListFromGraph = function featureListFromGraph(g) {
       var features = {};
       var feature;
       mapg.nodes().forEach( function (n) {
-// debugger
 console.log(n);
-        feature = mapg.node(n).feature;
+        feature = graphNodes[n].features[0];
+        // feature = mapg.node(n).feature;
         if (features[feature.id] === undefined) {
           features[feature.id] = feature;
         }
@@ -247,6 +245,20 @@ console.log(n);
       console.log('nodes: '+mapg.nodes().length+', unique feature-count: '+illumap.utility.objToArray(features).length);
       return features;
     };
+
+
+    var loadTestGeojsonData = function loadTestGeojsonData() {
+      // pretty print: http://jsonformatter.curiousconcept.com/
+      var json;
+      // 2 features (2 & 3 points) with connected ends (one duplicate point), so 1 way
+      // json = '{"6530017":{"geometry":{"type":"LineString", "coordinates":[[6.1671293, 53.4758415 ], [6.1668354, 53.4766041 ] ] }, "type":"Feature", "id":"6530017", "clipped":true, "properties":{"kind":"minor_road", "sort_key":-6, "is_link":"no", "is_tunnel":"no", "is_bridge":"no", "railway":null, "highway":"unclassified"} }, "6530069":{"geometry":{"type":"LineString", "coordinates":[[6.1671293, 53.4758415 ], [6.1674498, 53.4758629 ], [6.1688231, 53.4759547 ] ] }, "type":"Feature", "id":"6530069", "clipped":true, "properties":{"kind":"major_road", "sort_key":-4, "is_link":"no", "is_tunnel":"no", "is_bridge":"no", "railway":null, "highway":"tertiary"} } }';
+      // 2 features (2, 2 & 3 points), 2 connected at ends (one duplicate point), one free standing, so 2 ways
+      json = '{"6530017":{"geometry":{"type":"LineString", "coordinates":[[6.1671293, 53.4758415 ], [6.1668354, 53.4766041 ] ] }, "type":"Feature", "id":"6530017", "clipped":true, "properties":{"kind":"minor_road", "sort_key":-6, "is_link":"no", "is_tunnel":"no", "is_bridge":"no", "railway":null, "highway":"unclassified"} }, "6530069":{"geometry":{"type":"LineString", "coordinates":[[6.1671293, 53.4758415 ], [6.1674498, 53.4759629 ], [6.1688231, 53.4759547 ] ] }, "type":"Feature", "id":"6530069", "clipped":true, "properties":{"kind":"major_road", "sort_key":-4, "is_link":"no", "is_tunnel":"no", "is_bridge":"no", "railway":null, "highway":"tertiary"} }, "6530000":{"geometry":{"type":"LineString", "coordinates":[[6.1671293, 53.4757415 ], [6.1674498, 53.4756629 ] ] }, "type":"Feature", "id":"6530000", "clipped":true, "properties":{"kind":"major_road", "sort_key":-4, "is_link":"no", "is_tunnel":"no", "is_bridge":"no", "railway":null, "highway":"tertiary"} } }';
+      geojsonBucket.reset();
+      geojsonBucket.load(JSON.parse(json));
+      buildGraph();
+    };
+
 
 
     // 'data' return
@@ -257,6 +269,9 @@ console.log(n);
       mapg: mapg,
       mutateRelax: mutateRelax,
       featureListFromGraph: featureListFromGraph,
+      graphNodes: function() { return graphNodes; },
+      ways: function() { return ways; },
+featureNodes: function() { return featureNodes; },
 
       init: function init() {
         console.log('initing data');
@@ -269,6 +284,9 @@ console.log(n);
             break;
           case "local":
             loadGeojsonFromLocal();
+            break;
+          case "test":
+            loadTestGeojsonData();
             break;
           default:
             loadGeojsonFromLocal();
@@ -289,6 +307,26 @@ console.log(n);
         return geojsonBucket.getFeatures();
       },
 
+      // returns graph data in a collection of feature-geometry-style objects: {coordinates: ['10','20','30'], type: "LineString"}
+      getMutatedPaths: function getMutatedPaths() {
+        function geometryFromWay(w, i) {
+          // debugger
+          var coordinates = w.map( function(n) {
+            return graphNodes[n].coordinates;
+          });
+          return {coordinates: coordinates, type: "LineString", id: i};
+        }
+
+        console.log('loading mutated paths from graph');
+        if (graphStale === true) { buildGraph(); }
+        var paths = [];
+        //todo
+        // fix ways
+        //return paths
+        return ways.map(geometryFromWay);
+      },
+
+// old and should be removed
       getMutatedData: function getMutatedData() {
         console.log('loading mutated data from graph');
         if (graphStale === true) { buildGraph(); }
@@ -309,7 +347,6 @@ console.log(n);
       },
 
       prune: function prune() {
-        // debugger;
         var p = mutatedData.pop();
         var action = {
           pruned: p
@@ -324,9 +361,19 @@ console.log(n);
         mapg = new graphlib.Graph({ directed: false, multigraph: true });
         graphStale = true;
         console.log('reset data');
+      },
+
+      reload: function reload() {
+        loadGeojsonFromServer();
+        console.log('Reloading data from server');
       }
 
-    };
+
+
+
+    }; //  end return
+
+
   }();
   return this;
 

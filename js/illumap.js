@@ -1,8 +1,18 @@
+// outstanding bugs: some lines don't get put into the graph...
+
 function Illumap() {
   // Global vars
+
+  // good crowded space
+  // this.mapZoomLevel = 23;
   // this.mapCenter = [6.17,53.475];
-  this.mapZoomLevel = 23;;
-  this.mapCenter = [6.17,53.475];
+
+  // good crowded space with missing bits
+  this.mapZoomLevel = 25;
+  this.mapCenter = [6.171,53.477];  // +=right,+=down
+
+  // good minimal space
+  // this.mapCenter = [6.17,53.475];
   // this.mapZoomLevel = 26;
 
   // this.mapCenter = [6.148,53.483];
@@ -24,6 +34,7 @@ function Illumap() {
       .translate([this.width / 2, this.height / 2]);
 
   // Given a geometry or feature object, d3.geo.path generates the path data string suitable for the "d" attribute of an SVG path element
+  // Can also be used: this.d3path({coordinates: ['10','20','30'], type: "LineString"})
   this.d3path = d3.geo.path()
       .projection(this.d3projection);
 
@@ -32,7 +43,7 @@ function Illumap() {
   this.tileCache = {};
   this.loadTileCache = function() {
     var tc = localStorage.getObject('tileCache');
-    if (!(tc === null)) {
+    if (tc !== null) {
       illumap.tileCache = tc;
     }
   };
@@ -89,7 +100,8 @@ function Illumap() {
 
   this.drawMutated = function drawMutated() {
 // debugger
-    var paths = illumap.data.getMutatedData();
+    var paths = illumap.data.getMutatedPaths();
+    // var paths = illumap.data.getMutatedData();
     console.log('drawing ' + paths.length + ' paths from mutated data');
     illumap.graphics.draw(paths);
   };
@@ -101,6 +113,11 @@ function Illumap() {
 
   this.reset = function reset() {
     illumap.data.reset();
+    illumap.svgDrawRaw();
+  };
+
+  this.reload = function reload() {
+    illumap.data.reload();
     illumap.svgDrawRaw();
   };
 
@@ -116,6 +133,7 @@ function Illumap() {
     // init: store passed in svg element.
     var init = function init() {
       var source = illumap.utility.runningInDevelopment() ? 'local' : 'server';
+      source = 'server';
       // debugger;
       illumap.graphics.init( {width: illumap.width, height: illumap.height} );
       illumap.data.init({source: source});
