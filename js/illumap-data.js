@@ -10,11 +10,13 @@ var illumap = (function() {
       mutatedFeatureList = {}, // we build our own geojson features list so that d3 can generate geo paths from it
       graphNodes = [],  // holds all nodes. node = {coordinates: [lat,lon], wayIds: [], features: [], coordinateIndices, endpoint}
       ways = [], // holds objects: {edges: [], nodes: []}
+      nodesToExplore = [], // used to record visited nodes when building ways
       coordinatesAdded = []; // temp variable for spotting duplicate coordinates
     // function coordinatesSame(a, b) {
     //   return ((a[0] === b[0]) && (a[1] === b[1]));
     // }
 var featureNodes={}; //temp
+
 
     // id = coordinate array, value = custom hash with useful data
     function addNode(feature, coordinateIndex) {
@@ -40,6 +42,7 @@ console.log('addNode id:'+id);
         graphNodes[id].features.push(feature);
         graphNodes[id].coordinateIndices.push(coordinateIndex);
       }
+
 // temp debugging
 if (featureNodes[feature.id] === undefined) {
   featureNodes[feature.id] = [id];
@@ -47,7 +50,9 @@ if (featureNodes[feature.id] === undefined) {
   featureNodes[feature.id].push(id);
 }
       return id;
-    }
+    }  // end addNode
+
+
 
     // graph nodes: id:(lat-lon) val:(ref to feature coordinates and feature)
     // have to copy features, since we'll be modifying the contents and don't want to affect the original
@@ -94,7 +99,7 @@ if (featureNodes[feature.id] === undefined) {
 
       // remove orphan nodes, and mark the intersection and endpoints
       console.log('marking endpoints and removing orphans');
-      mapg.nodes().forEach( function(n) {
+      mapg.nodes().toInt().forEach( function(n) {
         switch (mapg.nodeEdges(n).length) {
           case 0:
             console.log('deleting orphan node ' + n);
@@ -112,22 +117,23 @@ if (featureNodes[feature.id] === undefined) {
             break;
         }
       });
-// debugger
       buildAllWays();
 
     };
 
     function findWayFromNode(n) {
-      // not including the starting node
+
+
+      // Return nodes, not including the starting node, between start and closest endpoint in one direction
       function getNodesUntilEndpoint(startNode, currNode) {
 console.log('about to traverse, startNode='+startNode+' currNode='+currNode);
-// debugger
         var path=[currNode];
         var prevNode = startNode;
         var nextNode;
+        var direction;
         while (graphNodes[currNode].endpoint === false) {
           // get the 2 (because it's not an endpoint) neighbors, remove the visited-node, and get the remaining node
-          nextNode = mapg.neighbors(currNode).removeByValue(prevNode)[0];
+          nextNode = mapg.neighbors(currNode).toInt().removeByValue(prevNode)[0];
 console.log('traversing path ['+path+']. prevNode:'+prevNode+' currNode:'+currNode+' nextNode:'+nextNode+'(this is added to the path)');
           path.push(nextNode);
           prevNode = currNode;
@@ -141,14 +147,24 @@ console.log('returning path: ['+path+']');
       var path=[n];
       var reversePath=[];
       var forwardPath=[];
+      var chosenNeighborIndex = 0;
       if (graphNodes[n].endpoint) {
-// debugger
-        path = path.concat(getNodesUntilEndpoint(n, mapg.neighbors(n)[0]));
+        // paths from intersections need to be specifically chosen
+        if (graphNodes[n].intersection) {
+          var possibleNeighbors = mapg.neighbors(n).toInt();
+          while (nodesToExplore.indexOf(possibleNeighbors[chosenNeighborIndex]) === -1) {  // if the neighbor has been visited
+            chosenNeighborIndex += 1;
+            // sanity check
+            if (chosenNeighborIndex === possibleNeighbors.length) {
+              debugger
+              throw('While looking for a pathway from intersection node '+n+', I ran out of possible paths');
+            }
+          }
+        }
+        path = path.concat(getNodesUntilEndpoint(n, parseInt(mapg.neighbors(n)[chosenNeighborIndex])));
       } else {
-// debugger
-        reversePath = getNodesUntilEndpoint(n, mapg.neighbors(n)[1]).reverse();
-        forwardPath = getNodesUntilEndpoint(n, mapg.neighbors(n)[0]);
-// debugger
+        reversePath = getNodesUntilEndpoint(n, parseInt(mapg.neighbors(n)[1])).reverse();
+        forwardPath = getNodesUntilEndpoint(n, parseInt(mapg.neighbors(n)[0]));
         path = reversePath.concat(path, forwardPath);
       }
 
@@ -160,20 +176,29 @@ console.log('returning path: ['+path+']');
       var n, wayPath, newWayId;
 
       // build the way list and add way-membership to each node
-      var nodesToExplore = mapg.nodes();
+      nodesToExplore = mapg.nodes().toInt();
+      // we need to add duplicates for intersection nodes so that single-edge ways between intersection nodes aren't skipped
+      for (var i = 0, len = nodesToExplore.length; i < len - 1 ; i++) {
+        if (graphNodes[i].intersection) {
+          for (var j = 1, dups = mapg.neighbors(i).length; j < dups; j++) {
+            nodesToExplore.push(i);
+          }
+        }
+      }
+
       while (nodesToExplore.length > 0) {
         newWayId = ways.length;
         n = nodesToExplore[0]; // grab the first node
         wayPath = findWayFromNode(n);
         ways[newWayId] = wayPath.slice();
         // add the way id to each node, and remove the node from the search list
-        wayPath.forEach( function(n) {
+        var wayPathAddAndNodePrune = function (n) {
           graphNodes[n].wayIds.push(newWayId);
           nodesToExplore.removeByValue(n);
-        });
+        };
+        wayPath.forEach(wayPathAddAndNodePrune);
 
       }
-// debugger
       graphStale = false;
     }
 
@@ -234,7 +259,7 @@ console.log('returning path: ['+path+']');
     var featureListFromGraph = function featureListFromGraph(g) {
       var features = {};
       var feature;
-      mapg.nodes().forEach( function (n) {
+      mapg.nodes().toInt().forEach( function (n) {
 console.log(n);
         feature = graphNodes[n].features[0];
         // feature = mapg.node(n).feature;
@@ -310,7 +335,6 @@ featureNodes: function() { return featureNodes; },
       // returns graph data in a collection of feature-geometry-style objects: {coordinates: ['10','20','30'], type: "LineString"}
       getMutatedPaths: function getMutatedPaths() {
         function geometryFromWay(w, i) {
-          // debugger
           var coordinates = w.map( function(n) {
             return graphNodes[n].coordinates;
           });

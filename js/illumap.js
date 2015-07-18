@@ -78,7 +78,27 @@ function Illumap() {
 
 
   // Add useful array function
+  Array.prototype.toInt = function() {
+    return this.map( function(x) {
+      return parseInt(x,10);
+    });
+  };
+
+  // Add useful array function
   Array.prototype.removeByValue = function() {
+    var what, a = arguments, L = a.length, ax;
+    while (L && this.length) {
+        what = a[--L];
+        ax = this.indexOf(what);
+        if (ax !== -1) {
+          this.splice(ax, 1);
+        }
+    }
+    return this;
+  };
+
+  // Add useful array function
+  Array.prototype.removeAllByValue = function() {
     var what, a = arguments, L = a.length, ax;
     while (L && this.length) {
         what = a[--L];
