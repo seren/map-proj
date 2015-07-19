@@ -88,6 +88,7 @@ if (featureNodes[feature.id] === undefined) {
 
       var markEndpoint = function markEndpoint(n) {
         console.log('marking endpoint: ' + n);
+if (graphNodes[n] === undefined) { debugger };
         graphNodes[n].endpoint = true;
         // mapg.node(n)['endpoint'] = true;
       };
@@ -121,7 +122,7 @@ if (featureNodes[feature.id] === undefined) {
 
     };
 
-    function findWayFromNode(n) {
+    function findWayFromEdge(e) {
 
 
       // Return nodes, not including the starting node, between start and closest endpoint in one direction
@@ -143,73 +144,65 @@ console.log('returning path: ['+path.join(',')+']');
         return path;
       }
 
-
-      var path=[n];
+      var v = parseInt(e.v);
+      var w = parseInt(e.w);
+      var path=[v];
       var reversePath=[];
       var forwardPath=[];
-      var chosenNeighborIndex = 0;
-      if (graphNodes[n].endpoint) {
-        // paths from intersections need to be specifically chosen
-        if (graphNodes[n].intersection) {
-          var possibleNeighbors = mapg.neighbors(n).toInt();
-          while (nodesToExplore.indexOf(possibleNeighbors[chosenNeighborIndex]) === -1) {  // if the neighbor has been visited
-            chosenNeighborIndex += 1;
-            // If none of the neighbors are in the nodesToExplore list, we're at an intersection that has already been visited from everywhere. Shouldn't happen. Return.
-            if (chosenNeighborIndex === possibleNeighbors.length) {
-              debugger
-              return path;
-              throw('While looking for a pathway from intersection node '+n+', I ran out of possible paths');
-            }
-          }
-        }
-        path = path.concat(getNodesUntilEndpoint(n, parseInt(mapg.neighbors(n)[chosenNeighborIndex]),'from-end: '));
+      if (graphNodes[v].endpoint) {
+        path = path.concat(getNodesUntilEndpoint(v, w,'from-end: '));
       } else {
-        reversePath = getNodesUntilEndpoint(n, parseInt(mapg.neighbors(n)[1]),'forward: ').reverse();
-        forwardPath = getNodesUntilEndpoint(n, parseInt(mapg.neighbors(n)[0]),'backward: ');
+        forwardPath = getNodesUntilEndpoint(v, parseInt(mapg.neighbors(v)[0]),'forward: ');
+        reversePath = getNodesUntilEndpoint(v, parseInt(mapg.neighbors(v)[1]),'backward: ').reverse();
         path = reversePath.concat(path, forwardPath);
       }
-console.log('full path: '+path.join(','));
+console.log('full path: ['+path.join(',') +']');
       return path;
     }
 
+
+
     // take a node, get its ways, remove the points from the global list, repeat
     function buildAllWays() {
-      var n, wayPath, newWayId;
+      var n, wayPath, newWayId, oldEdgeCount;
+      // create temporary copy of graph for us to keep track of what edges we've visited
+      var g = graphlib.json.read(graphlib.json.write(mapg));
 
-      // build the way list and add way-membership to each node
-      nodesToExplore = mapg.nodes().toInt();
-      // we need to add duplicates for intersection nodes so that single-edge ways between intersection nodes aren't skipped
-      for (var i = 0, len = nodesToExplore.length; i < len - 1 ; i++) {
-        if (graphNodes[i].intersection) {
-          for (var j = 1, nbrs = mapg.neighbors(i).length; j < nbrs; j++) {
-            nodesToExplore.push(i);
-          }
-        }
-      }
-console.log('nodesToExploreOrig before being pruned');
-console.log(nodesToExplore);
-nodesToExploreOrig = illumap.utility.clone(nodesToExplore);
-
-      while (nodesToExplore.length > 0) {
+oldEdgeCount = g.edgeCount();
+      while (g.edgeCount() > 0) {
         newWayId = ways.length;
-        n = nodesToExplore[0]; // grab the first node
-        wayPath = findWayFromNode(n);
+        e = g.edges()[0];
+        wayPath = findWayFromEdge(e);
         ways[newWayId] = wayPath.slice();
+
         // add the way id to each node, and remove the node from the search list
-        var wayPathAddAndNodePrune = function (n) {
+        wayPath.forEach( function wayPathAddAndNodePrune(n,i) {
           graphNodes[n].wayIds.push(newWayId);
-// if (n === 41) {
-console.log('removing:'+n+' at:'+nodesToExplore.indexOf(n)+' Remaining: '+nodesToExplore.join(','));
-// }
-          nodesToExplore.removeByValue(n);
-        };
-        wayPath.forEach(wayPathAddAndNodePrune);
+          if (i > 0) {  // skip the first node since we have one fewer edges than nodes/way-points
+            console.log('removing edge: ['+[wayPath[i-1],n].join(',')+']');
+
+            // debugging
+            if (g.hasEdge(wayPath[i-1],n) === false) {
+              console.log('no edge: ['+[wayPath[i-1],n].join(',')+']');
+              debugger;
+            }
+
+            // we use toString because hasEdge doesn't handle integer IDs consistently. https://github.com/cpettitt/graphlib/issues/47
+            // g.removeEdge(wayPath[i-1].toString(),n.toString());
+            g.removeEdge(wayPath[i-1],n);
+          }
+        });
 console.log('----');
+// sanity check to prevent an infinite loop
+if (oldEdgeCount === g.edgeCount()) {
+  console.log('infinite loop detected');
+  debugger
+}
+oldEdgeCount = g.edgeCount();
       }
       graphStale = false;
+
     }
-
-
 
 
     var mutateGeneric = function mutateGeneric(mutationType) {
@@ -249,7 +242,7 @@ console.log('----');
               });
          });
         });
-      buildGraph();
+      // buildGraph();
     };
 
 
