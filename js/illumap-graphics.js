@@ -13,12 +13,17 @@ var illumap = (function() {
     };
 
     var svgDraw = function svgDraw(paths) {
+      if (paths === undefined) {
+        console.log('no data passed to draw.');
+        debugger;
+        fullstop();
+      }
       console.log('drawing ' + paths.length + ' paths');
       svgClear();
       svg.selectAll("path")  // get all the svg paths from this svg grouping
           .data(paths)
         .enter().append("path")
-          .attr("class", function(d) { return d.properties.kind; })
+          .attr("class", function(d) { return ((d && d.properties && d.properties.kind) || 'generic'); })
           .attr("wayid", function(d) { return d.id; })
           .attr("d", illumap.d3path)
           // .each(function(f) { // for each feature
@@ -27,47 +32,7 @@ var illumap = (function() {
           ;
     };
 
-    function draw(dataArg) {
-      svgClear();
-        if (dataArg === undefined) {
-          console.log('no data passed to draw. defaulting to raw data (data.getRawData)');
-          dataArg = illumap.data.getRawData();
-        }
-        var selection = svg.selectAll("path")
-              .data(dataArg)
-              // .data([data], function(d) { return ''+d; })
-              .attr('d', illumap.d3path)
-              .attr("wayid", function(d) { return d.id; })
-              .each(function(d) {
-                console.log('update: ' + d );
-              });
-
-        // selection.enter().call( function(s) {
-        //   s[0].forEach( function(f,i) {
-        //     console.log(i);
-        //     console.log(illumap.d3path(f.__data__));
-        //   });
-        //   debugger;
-        // });
-
-        selection.enter().append('path')
-              .attr("class", 'generic')
-              // .attr("fill", "none")
-              // .attr("stroke-width",2)
-              .attr("wayid", function(d) { return d.id; })
-              .attr('d',illumap.d3path)
-              // .each(function(d) {
-              //   console.log('enter: ' + d);
-              // })
-              ;
-        selection.exit().each(function(d) {
-          console.log("exit: "+ d);
-        });
-      }
-
-
     return {
-      draw: draw,
       svgDraw: svgDraw,
       svgClear: svgClear,
 

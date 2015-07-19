@@ -123,7 +123,7 @@ function Illumap() {
     var paths = illumap.data.getMutatedPaths();
     // var paths = illumap.data.getMutatedData();
     console.log('drawing ' + paths.length + ' paths from mutated data');
-    illumap.graphics.draw(paths);
+    illumap.graphics.svgDraw(paths);
   };
 
   this.mutateRelax = function mutateRelax() {
