@@ -219,6 +219,12 @@ oldEdgeCount = g.edgeCount();
       mutationSequence.push('relax');
     };
 
+    var mutateMondrianize = function mutateMondrianize() {
+      if (graphStale === true) { buildGraph(); }
+      mutateGeneric('mondrianize');
+      mutationSequence.push('mondrianize');
+    };
+
     // loads tiles in current view and adds the geojson to our data store
     var loadGeojsonFromServer = function loadGeojsonFromServer() {
       geojsonBucket.reset();
@@ -293,6 +299,7 @@ console.log(n);
       mutationSequence: mutationSequence,  // list of changes performed on data
       mapg: mapg,
       mutateRelax: mutateRelax,
+      mutateMondrianize: mutateMondrianize,
       featureListFromGraph: featureListFromGraph,
       graphNodes: function() { return graphNodes; },
       ways: function() { return ways; },

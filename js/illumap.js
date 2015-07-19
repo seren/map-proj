@@ -131,6 +131,11 @@ function Illumap() {
     illumap.drawMutated();
   };
 
+  this.mutateMondrianize = function mutateMondrianize() {
+    illumap.data.mutateMondrianize();
+    illumap.drawMutated();
+  };
+
   this.reset = function reset() {
     illumap.data.reset();
     illumap.svgDrawRaw();
