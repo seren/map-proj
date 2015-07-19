@@ -125,8 +125,8 @@ if (featureNodes[feature.id] === undefined) {
 
 
       // Return nodes, not including the starting node, between start and closest endpoint in one direction
-      function getNodesUntilEndpoint(startNode, currNode) {
-console.log('about to traverse, startNode='+startNode+' currNode='+currNode);
+      function getNodesUntilEndpoint(startNode, currNode, debugDirection) {
+console.log(debugDirection +'about to traverse, startNode='+startNode+' currNode='+currNode);
         var path=[currNode];
         var prevNode = startNode;
         var nextNode;
@@ -139,7 +139,7 @@ console.log('traversing path ['+path+']. prevNode:'+prevNode+' currNode:'+currNo
           prevNode = currNode;
           currNode = nextNode;
         }
-console.log('returning path: ['+path+']');
+console.log('returning path: ['+path.join(',')+']');
         return path;
       }
 
@@ -154,20 +154,21 @@ console.log('returning path: ['+path+']');
           var possibleNeighbors = mapg.neighbors(n).toInt();
           while (nodesToExplore.indexOf(possibleNeighbors[chosenNeighborIndex]) === -1) {  // if the neighbor has been visited
             chosenNeighborIndex += 1;
-            // sanity check
+            // If none of the neighbors are in the nodesToExplore list, we're at an intersection that has already been visited from everywhere. Shouldn't happen. Return.
             if (chosenNeighborIndex === possibleNeighbors.length) {
               debugger
+              return path;
               throw('While looking for a pathway from intersection node '+n+', I ran out of possible paths');
             }
           }
         }
-        path = path.concat(getNodesUntilEndpoint(n, parseInt(mapg.neighbors(n)[chosenNeighborIndex])));
+        path = path.concat(getNodesUntilEndpoint(n, parseInt(mapg.neighbors(n)[chosenNeighborIndex]),'from-end: '));
       } else {
-        reversePath = getNodesUntilEndpoint(n, parseInt(mapg.neighbors(n)[1])).reverse();
-        forwardPath = getNodesUntilEndpoint(n, parseInt(mapg.neighbors(n)[0]));
+        reversePath = getNodesUntilEndpoint(n, parseInt(mapg.neighbors(n)[1]),'forward: ').reverse();
+        forwardPath = getNodesUntilEndpoint(n, parseInt(mapg.neighbors(n)[0]),'backward: ');
         path = reversePath.concat(path, forwardPath);
       }
-
+console.log('full path: '+path.join(','));
       return path;
     }
 
@@ -180,11 +181,14 @@ console.log('returning path: ['+path+']');
       // we need to add duplicates for intersection nodes so that single-edge ways between intersection nodes aren't skipped
       for (var i = 0, len = nodesToExplore.length; i < len - 1 ; i++) {
         if (graphNodes[i].intersection) {
-          for (var j = 1, dups = mapg.neighbors(i).length; j < dups; j++) {
+          for (var j = 1, nbrs = mapg.neighbors(i).length; j < nbrs; j++) {
             nodesToExplore.push(i);
           }
         }
       }
+console.log('nodesToExploreOrig before being pruned');
+console.log(nodesToExplore);
+nodesToExploreOrig = illumap.utility.clone(nodesToExplore);
 
       while (nodesToExplore.length > 0) {
         newWayId = ways.length;
@@ -194,10 +198,13 @@ console.log('returning path: ['+path+']');
         // add the way id to each node, and remove the node from the search list
         var wayPathAddAndNodePrune = function (n) {
           graphNodes[n].wayIds.push(newWayId);
+// if (n === 41) {
+console.log('removing:'+n+' at:'+nodesToExplore.indexOf(n)+' Remaining: '+nodesToExplore.join(','));
+// }
           nodesToExplore.removeByValue(n);
         };
         wayPath.forEach(wayPathAddAndNodePrune);
-
+console.log('----');
       }
       graphStale = false;
     }

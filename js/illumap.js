@@ -153,7 +153,7 @@ function Illumap() {
     // init: store passed in svg element.
     var init = function init() {
       var source = illumap.utility.runningInDevelopment() ? 'local' : 'server';
-      source = 'server';
+      // source = 'server';
       // debugger;
       illumap.graphics.init( {width: illumap.width, height: illumap.height} );
       illumap.data.init({source: source});
