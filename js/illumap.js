@@ -18,6 +18,11 @@ function Illumap() {
   // this.mapCenter = [6.148,53.483];
   // this.mapZoomLevel = 22;
 
+  this.frozen = {
+    wayEnd: false,
+    intersection: false,
+    endpoint: false
+  };
   this.newFeatures = false; // flag for testing whether we have to re-mutate our raw features
   this.rawDataContainer = d3.select('body').append("custom"); // DOM container for raw elements
 
