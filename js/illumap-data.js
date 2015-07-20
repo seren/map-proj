@@ -5,11 +5,13 @@ var illumap = (function() {
   var geojsonBucket = new GeojsonBucket('rawdata'),  // module that holds raw data
       // mutatedData = [],
       mutationSequence = [],  // list of changes performed on data
+      mutators,
       mapg = new graphlib.Graph({ directed: false, multigraph: true }),
       graphStale = true,
       mutatedFeatureList = {}, // we build our own geojson features list so that d3 can generate geo paths from it
       graphNodes = [],  // holds all nodes. node = {coordinates: [lat,lon], wayIds: [], features: [], coordinateIndices, endpoint}
       ways = [], // holds objects: {edges: [], nodes: []}
+      highestWayId = 0,
       nodesToExplore = [], // used to record visited nodes when building ways
       coordinatesAdded = []; // temp variable for spotting duplicate coordinates
     // function coordinatesSame(a, b) {
@@ -34,6 +36,7 @@ var featureNodes={}; //temp
           coordinateIndices: [coordinateIndex],
           endpoint: false,
           intersection: false,
+          wayEnd: false,
           wayIds: []
         };
         mapg.setNode(id);
@@ -62,9 +65,9 @@ if (featureNodes[feature.id] === undefined) {
         console.log('graph is out of date. rebuilding from geojson');
       }
       // is this scope correct? will ways and graphNodes ref global or function vars?
-      ways = []; // lines of coordinates between endpoints or intersections
-      graphNodes = [];
-      coordinatesAdded = [];
+      ways.length = 0; // reset ways (lines of coordinates between endpoints or intersections)
+      graphNodes.length = 0;
+      coordinatesAdded.length = 0;
 
       var nodeId;
       var features = geojsonBucket.getFeaturesClone();
@@ -88,7 +91,7 @@ if (featureNodes[feature.id] === undefined) {
 
       var markEndpoint = function markEndpoint(n) {
         console.log('marking endpoint: ' + n);
-if (graphNodes[n] === undefined) { debugger };
+if (graphNodes[n] === undefined) { debugger; }
         graphNodes[n].endpoint = true;
         // mapg.node(n)['endpoint'] = true;
       };
@@ -170,33 +173,37 @@ console.log('full path: ['+path.join(',') +']');
 
 oldEdgeCount = g.edgeCount();
       while (g.edgeCount() > 0) {
-        newWayId = ways.length;
+        newWayId = highestWayId;
+        highestWayId += 1;
         e = g.edges()[0];
         wayPath = findWayFromEdge(e);
         ways[newWayId] = wayPath.slice();
-
+// if ( newWayId === 218 ) { debugger; }
         // add the way id to each node, and remove the node from the search list
         wayPath.forEach( function wayPathAddAndNodePrune(n,i) {
           graphNodes[n].wayIds.push(newWayId);
           if (i > 0) {  // skip the first node since we have one fewer edges than nodes/way-points
+            // record way in path
+            mapg.setEdge(wayPath[i-1], n, {wayId: newWayId});
+
             console.log('removing edge: ['+[wayPath[i-1],n].join(',')+']');
 
             // debugging
-            if (g.hasEdge(wayPath[i-1],n) === false) {
-              console.log('no edge: ['+[wayPath[i-1],n].join(',')+']');
+            if (g.hasEdge(wayPath[i-1], n) === false) {
+              console.log('no edge: ['+[wayPath[i-1], n].join(',')+']');
               debugger;
             }
 
             // we use toString because hasEdge doesn't handle integer IDs consistently. https://github.com/cpettitt/graphlib/issues/47
             // g.removeEdge(wayPath[i-1].toString(),n.toString());
-            g.removeEdge(wayPath[i-1],n);
+            g.removeEdge(wayPath[i-1], n);
           }
         });
 console.log('----');
 // sanity check to prevent an infinite loop
 if (oldEdgeCount === g.edgeCount()) {
   console.log('infinite loop detected');
-  debugger
+  debugger;
 }
 oldEdgeCount = g.edgeCount();
       }
@@ -206,23 +213,18 @@ oldEdgeCount = g.edgeCount();
 
 
     var mutateGeneric = function mutateGeneric(mutationType) {
-      if (mapg.nodeCount < 1) {
+      if (graphStale || (mapg.nodeCount < 1)) {
         buildGraph();
       }
-      var m = new Mutators();
-      mapg = m[mutationType](mapg, graphNodes);
-    };
-
-    var mutateRelax = function mutateRelax() {
-      if (graphStale === true) { buildGraph(); }
-      mutateGeneric('relax');
-      mutationSequence.push('relax');
-    };
-
-    var mutateMondrianize = function mutateMondrianize() {
-      if (graphStale === true) { buildGraph(); }
-      mutateGeneric('mondrianize');
-      mutationSequence.push('mondrianize');
+      if (mutators === undefined) {
+        mutators = new Mutators();
+      }
+      if (mutators[mutationType] === undefined) {
+        throw('there is no mutation type "'+mutationType);
+      }
+      log('mutateGeneric: '+mutationType);
+      mapg = mutators[mutationType](mapg, graphNodes, ways);
+      mutationSequence.push(mutationType);
     };
 
     // loads tiles in current view and adds the geojson to our data store
@@ -298,11 +300,12 @@ console.log(n);
       geojsonBucket: geojsonBucket,  // module that holds features in current view (should we directly modify contents, or feed into something else?)
       mutationSequence: mutationSequence,  // list of changes performed on data
       mapg: mapg,
-      mutateRelax: mutateRelax,
-      mutateMondrianize: mutateMondrianize,
+      mutateGeneric: mutateGeneric,
       featureListFromGraph: featureListFromGraph,
-      graphNodes: function() { return graphNodes; },
-      ways: function() { return ways; },
+      // graphNodes: function() { return graphNodes; },
+      // ways: function() { return ways; },
+      graphNodes: graphNodes,
+      ways: ways,
 featureNodes: function() { return featureNodes; },
 
       init: function init() {

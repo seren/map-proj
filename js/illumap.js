@@ -4,14 +4,14 @@ function Illumap() {
   // Global vars
 
   // good crowded space
-  // this.mapZoomLevel = 23;
-  // this.mapCenter = [6.17,53.475];
+  this.mapZoomLevel = 23;
+  this.mapCenter = [6.17,53.475];
 
   // good crowded space with missing bits
-  this.mapZoomLevel = 25;
-  this.mapCenter = [6.171,53.477];  // +=right,+=down
+  // this.mapZoomLevel = 25;
+  // this.mapCenter = [6.171,53.477];  // +=right,+=down
 
-  // good minimal space
+  // good minimal space (test data fits here)
   // this.mapCenter = [6.17,53.475];
   // this.mapZoomLevel = 26;
 
@@ -23,6 +23,25 @@ function Illumap() {
     intersection: false,
     endpoint: false
   };
+
+  this.globalLoglevel = 'DEBUG';
+
+  log = function log (str, msgLevel) {
+    var gll = illumap.globalLoglevel;
+    // loglevels
+    lls = {
+      DEBUG: 1,
+      WARN: 2,
+      INFO: 3,
+      ERROR: 4,
+      NONE: 10
+    };
+    if ((lls[msgLevel] || lls.DEBUG) >= gll) {
+      console.log(str);
+    }
+  };
+
+
   this.newFeatures = false; // flag for testing whether we have to re-mutate our raw features
   this.rawDataContainer = d3.select('body').append("custom"); // DOM container for raw elements
 
@@ -132,12 +151,19 @@ function Illumap() {
   };
 
   this.mutateRelax = function mutateRelax() {
-    illumap.data.mutateRelax();
+    illumap.data.mutateGeneric('relax');
     illumap.drawMutated();
   };
 
   this.mutateMondrianize = function mutateMondrianize() {
-    illumap.data.mutateMondrianize();
+    illumap.data.mutateGeneric('mondrianize');
+    illumap.drawMutated();
+  };
+
+  this.mutateProgressiveMesh = function mutateProgressiveMesh() {
+    for (var i=0; i < 10; i++) {
+      illumap.data.mutateGeneric('progressiveMesh');
+    }
     illumap.drawMutated();
   };
 
@@ -163,7 +189,8 @@ function Illumap() {
     // init: store passed in svg element.
     var init = function init() {
       var source = illumap.utility.runningInDevelopment() ? 'local' : 'server';
-      // source = 'server';
+      source = 'server';
+      // source = 'test';
       // debugger;
       illumap.graphics.init( {width: illumap.width, height: illumap.height} );
       illumap.data.init({source: source});

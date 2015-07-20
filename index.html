@@ -48,6 +48,7 @@ path {
   <a class="button" id='drawrawmutatedbutton'>draw mutated</a>
   <a class="button" id='relaxbutton'>mutate: relax</a>
   <a class="button" id='mondrianizebutton'>mutate: mondrian</a>
+  <a class="button" id='pmeshbutton'>mutate: progressive mesh</a>
   <a class="button" id='resetbutton'>reset</a>
   <a class="button" id='reloadbutton'>reload</a>
 <script src="js/d3.v3.js"></script>
@@ -64,6 +65,8 @@ d3.select('#relaxbutton')
   .on('click', illumap.mutateRelax);
 d3.select('#mondrianizebutton')
   .on('click', illumap.mutateMondrianize);
+d3.select('#pmeshbutton')
+  .on('click', illumap.mutateProgressiveMesh);
 d3.select('#resetbutton')
   .on('click', illumap.reset);
 d3.select('#drawrawbutton')
