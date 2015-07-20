@@ -388,8 +388,13 @@ featureNodes: function() { return featureNodes; },
       },
 
       reset: function reset() {
-        mutationSequence = [];
-        mapg = new graphlib.Graph({ directed: false, multigraph: true });
+        mutators = new Mutators();
+        mutationSequence.length = 0;
+        highestWayId = 0;
+        ways.length = 0;
+        graphNodes.length = 0;
+        coordinatesAdded.length = 0;
+        mapg.nodes().forEach(function (n) {mapg.removeNode(n); }); // reset graph without recreating
         graphStale = true;
         console.log('reset data');
       },
