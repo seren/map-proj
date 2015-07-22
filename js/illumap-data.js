@@ -121,7 +121,7 @@ if (graphNodes[n] === undefined) { debugger; }
             break;
         }
       });
-debugger
+// debugger
       buildAllWays();
 
     };
