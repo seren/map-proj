@@ -18,8 +18,9 @@ function Illumap() {
   // this.mapCenter = [6.148,53.483];
   // this.mapZoomLevel = 22;
 
-  this.mapCenter = [6.166667,53.483333];
-  this.mapZoomLevel = 21;
+  // original illumap location, but not zoom
+  // this.mapCenter = [6.166667,53.483333];
+  // this.mapZoomLevel = 21;
 
 
   this.frozen = {
