@@ -75,15 +75,15 @@ if (featureNodes[feature.id] === undefined) {
         var geometryType = feature.geometry.type;
         if (geometryType === 'LineString') {
           var featureCoordinates = feature.geometry.coordinates;
-          prevNodeId = addNode(feature, 0);
-          for (var i = 0, len = featureCoordinates.length; i < len - 1 ; i++) {
-            currNodeId = addNode(feature, i+1);
-            mapg.setEdge(prevNodeId, currNodeId, {}); // way-finding builds: {way: feature.id, length: len});
-            console.log('graph: added edge from featureId:index: ' + feature.id + ':' + i + ' c1: ' + prevNodeId + ' c2: ' + currNodeId);
-            prevNodeId = currNodeId;
-          }
+            prevNodeId = addNode(feature, 0);
+            for (var i = 0, len = featureCoordinates.length; i < len - 1 ; i++) {
+              currNodeId = addNode(feature, i+1);
+              mapg.setEdge(prevNodeId, currNodeId, {}); // way-finding builds: {way: feature.id, length: len});
+              console.log('graph: added edge from featureId:index: ' + feature.id + ':' + i + ' c1: ' + prevNodeId + ' c2: ' + currNodeId);
+              prevNodeId = currNodeId;
+            }
         } else {
-          console.log("skipping feature " + feature.id + ". Can't handle geometry type: " + feature.geometry.type);
+            console.log("skipping feature " + feature.id + ". Can't handle geometry type: " + feature.geometry.type);
         }
       });
 
@@ -121,6 +121,7 @@ if (graphNodes[n] === undefined) { debugger; }
             break;
         }
       });
+debugger
       buildAllWays();
 
     };
@@ -237,18 +238,21 @@ oldEdgeCount = g.edgeCount();
           var tid = illumap.tileId(t);
           console.log('need to get tile ' + tid);
           var tileserver = "http://" + ["a", "b", "c"][(t[0] * 31 + t[1]) % 3] + ".tile.openstreetmap.us";
-          var tileurlpath = "/vectiles-highroad/" + t[2] + "/" + t[0] + "/" + t[1] + ".json";
-          d3.json( tileserver + tileurlpath , function(error, json) {  // this is asynchronous
-            illumap.tileCache[tid] = json;
-            localStorage.setObject('tileCache', illumap.tileCache);
-            // 'json' is a FeatureCollection object containing an array of Feature objects
-            json.features.sort(function(a, b) { return a.properties.sort_key - b.properties.sort_key; }) // sort it so our join-by-index is consistent
-              .forEach(function(f) { // for each feature
-                geojsonBucket.add(f);
-                console.log('retrieved tile ' + tid + ', features: ' + json.features.length);
-                graphStale = true;
-              });
-         });
+          var tileurlpaths = ["/vectiles-highroad/" + t[2] + "/" + t[0] + "/" + t[1] + ".json",
+                           "/vectiles-water-areas/" + t[2] + "/" + t[0] + "/" + t[1] + ".json"];
+          tileurlpaths.forEach(function(tileurlpath) {
+            d3.json( tileserver + tileurlpath , function(error, json) {  // this is asynchronous
+              illumap.tileCache[tid] = json;
+              localStorage.setObject('tileCache', illumap.tileCache);
+              // 'json' is a FeatureCollection object containing an array of Feature objects
+              json.features.sort(function(a, b) { return a.properties.sort_key - b.properties.sort_key; }) // sort it so our join-by-index is consistent
+                .forEach(function(f) { // for each feature
+                  geojsonBucket.add(f);
+                  console.log('retrieved tile ' + tid + ', features: ' + json.features.length);
+                  graphStale = true;
+                });
+            });
+          });
         });
       // buildGraph();
     };

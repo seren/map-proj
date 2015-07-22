@@ -18,6 +18,10 @@ function Illumap() {
   // this.mapCenter = [6.148,53.483];
   // this.mapZoomLevel = 22;
 
+  this.mapCenter = [6.166667,53.483333];
+  this.mapZoomLevel = 21;
+
+
   this.frozen = {
     wayEnd: false,
     intersection: false,
@@ -161,9 +165,12 @@ function Illumap() {
   };
 
   this.mutateProgressiveMesh = function mutateProgressiveMesh() {
-    for (var i=0; i < 10; i++) {
+// debugger
+    var stepSize = Math.round(Math.log(illumap.data.mapg.edgeCount()));
+    for (var i=0; i < stepSize; i++) {
       illumap.data.mutateGeneric('progressiveMesh');
     }
+    console.log('stepSize:'+stepSize);
     illumap.drawMutated();
   };
 
