@@ -8,6 +8,7 @@ var illumap = (function() {
       mutators,
       mapg = new graphlib.Graph({ directed: false, multigraph: true }),
       graphStale = true,
+      tangentsStale = true,  // used to trigger a pre-calculation of all tangents of edges (for decoration)
       mutatedFeatureList = {}, // we build our own geojson features list so that d3 can generate geo paths from it
       graphNodes = [],  // holds all nodes. node = {coordinates: [lat,lon], wayIds: [], features: [], coordinateIndices, endpoint}
       ways = [], // holds objects: {edges: [], nodes: []}
@@ -37,8 +38,10 @@ var featureNodes={}; //temp
           endpoint: false,
           intersection: false,
           wayEnd: false,
-          wayIds: []
         };
+          wayIds: [],
+          tangentVector: [],
+          tangentStale: true
         mapg.setNode(id);
       } else {
 console.log('addNode id:'+id);

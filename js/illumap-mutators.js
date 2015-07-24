@@ -23,11 +23,11 @@ Mutators.prototype.relax = function(g, graphNodes) {
     // get the neighbors and calc the offset
     g.neighbors(nd).forEach( function(nbr) {
       nbrCoord = graphNodes[nbr].coordinates;
-      offset0 += ((nbrCoord[0] - nodeCoord[0]) * springForce);
-      offset1 += ((nbrCoord[1] - nodeCoord[1]) * springForce);
+      offset0 += (nbrCoord[0] - nodeCoord[0]);
+      offset1 += (nbrCoord[1] - nodeCoord[1]);
     });
-    newCoord0[nd] = nodeCoord[0] + offset0;
-    newCoord1[nd] = nodeCoord[1] + offset1;
+    newCoord0[nd] = nodeCoord[0] + (offset0 * springForce);
+    newCoord1[nd] = nodeCoord[1] + (offset1 * springForce);
   });
     // now update the nodes
   g.nodes().forEach( function(nd) {
@@ -75,15 +75,16 @@ log('mondrianizing');
 
       // check if edge is approximately horizontal or vertical
       if (absLongCorrected < absLat) {
-        offset0 += 0.35 * delta0;
+        offset0 += 0.25 * delta0;
       } else {
-        offset1 += 0.35 * delta1;
+        offset1 += 0.25 * delta1;
       }
 
       // check if edge is close to diagonal
       if (absLongCorrected > 0.01) {
         var angle = Math.acos(absLat / absLongCorrected);
         if (angle < 1) {
+console.log('angle is close to diagonal');
           offset0 += Math.random() * angle * delta0;
           offset1 += Math.random() * angle * delta1;
         }
@@ -158,7 +159,7 @@ Mutators.prototype.progressiveMesh = function(g, graphNodes, ways) {
       if ((nbr !== n1) && (n1Neighbors.indexOf(nbr) == -1)) {
 // debugger;
         nbrVal = g.edge(n2, nbr);
-        console.log('creating edge ['+n1+','+nbr+'] from old edge ['+n2+','+nbr+'], wantayid '+g.edge(n2, nbr));
+        console.log('creating edge ['+n1+','+nbr+'] from old edge ['+n2+','+nbr+'], wantayid '+g.edge(n2, nbr).wayId);
         // create new edge, preserving the old edge's value
         g.setEdge(n1, nbr, nbrVal);
         // add any new wayIds to n1

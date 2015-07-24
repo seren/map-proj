@@ -200,6 +200,25 @@ var illumap = (function() {
         }
       });
       return false;
+    },
+
+    currier: function currier (fn) {
+      var args = Array.prototype.slice.call(arguments, 1);
+      return function() {
+        return fn.apply(this, args.concat(
+          Array.prototype.slice.call(arguments, 0)));
+      };
+    },
+
+    unitVector: function unitVector (v) {
+      return Math.sqrt(v[0] * v[0] + v[1] * v[1]);
+    },
+
+    tangentVectors: function tangentVectors (p1,p2) {
+      // if we define dx=x2-x1 and dy=y2-y1, then the normals are (-dy, dx) and (dy, -dx)
+      var dx = p2[0] - p1[0];
+      var dy = p2[1] - p1[1];
+      return [[-dy, dx, dy, -dx]];
     }
 
   };

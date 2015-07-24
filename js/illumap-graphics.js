@@ -8,7 +8,6 @@ var illumap = (function() {
     var svg;
 
     var svgClear = function svgClear() {
-// debugger
       svg.selectAll("*").remove();
     };
 
@@ -32,6 +31,10 @@ var illumap = (function() {
           ;
     };
 
+    var addDecoration = function addDecoration (edges) {
+//todo
+    }
+
     return {
       svgDraw: svgDraw,
       svgClear: svgClear,
@@ -48,7 +51,6 @@ var illumap = (function() {
         this.height = opts.height;
 
         console.log('graphics inited');
-        // debugger
         if (svg === undefined) {
           svg = d3.select("body").append("svg")
               .attr("width", this.width)
