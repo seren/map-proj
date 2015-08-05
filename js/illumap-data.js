@@ -260,7 +260,21 @@ oldEdgeCount = g.edgeCount();
       // buildGraph();
     };
 
+    function edgeNodesCoordinates(e) {
+      return [graphNodes[e.v].getCoordinates(), graphNodes[e.w].getCoordinates()];
+    }
 
+
+    var pathsFromEdges = function pathsFromEdges() {
+      var linestring = function(e) {
+        return {
+          coordinates: edgeNodesCoordinates(e),
+          type: "LineString",
+          id: mapg.edge(e).wayId
+        };
+      };
+      return mapg.edges().map(linestring);
+    };
 
     var loadGeojsonFromLocal = function loadGeojsonFromLocal() {
       illumap.loadTileCache();
@@ -307,6 +321,7 @@ console.log(n);
       geojsonBucket: geojsonBucket,  // module that holds features in current view (should we directly modify contents, or feed into something else?)
       mutationSequence: mutationSequence,  // list of changes performed on data
       mapg: mapg,
+      pathsFromEdges: pathsFromEdges,
       mutateGeneric: mutateGeneric,
       featureListFromGraph: featureListFromGraph,
       // graphNodes: function() { return graphNodes; },
