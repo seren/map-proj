@@ -31,17 +31,17 @@ var featureNodes={}; //temp
         id = graphNodes.length;
         coordinatesAdded.push(coordUid);
         console.log(coordUid);
-        graphNodes[id] = {
+        graphNodes[id] = new Node ({
           coordinates: coordinates.slice(),
           features: [feature],
           coordinateIndices: [coordinateIndex],
           endpoint: false,
           intersection: false,
           wayEnd: false,
-        };
           wayIds: [],
           tangentVector: [],
           tangentStale: true
+        });
         mapg.setNode(id);
       } else {
 console.log('addNode id:'+id);
@@ -353,7 +353,7 @@ featureNodes: function() { return featureNodes; },
       getMutatedPaths: function getMutatedPaths() {
         function geometryFromWay(w, i) {
           var coordinates = w.map( function(n) {
-            return graphNodes[n].coordinates;
+            return graphNodes[n].getCoordinates();
           });
           return {coordinates: coordinates, type: "LineString", id: i};
         }

@@ -17,12 +17,12 @@ Mutators.prototype.relax = function(g, graphNodes) {
   var nbrVal; // value of the neighbor node
   // for each node, calculate the offset
   g.nodes().forEach( function(nd) {
-    nodeCoord = graphNodes[nd].coordinates;
+    nodeCoord = graphNodes[nd].getCoordinates();
     offset0 = 0;
     offset1 = 0;
     // get the neighbors and calc the offset
     g.neighbors(nd).forEach( function(nbr) {
-      nbrCoord = graphNodes[nbr].coordinates;
+      nbrCoord = graphNodes[nbr].getCoordinates();
       offset0 += (nbrCoord[0] - nodeCoord[0]);
       offset1 += (nbrCoord[1] - nodeCoord[1]);
     });
@@ -32,9 +32,9 @@ Mutators.prototype.relax = function(g, graphNodes) {
     // now update the nodes
   g.nodes().forEach( function(nd) {
 
-var oldcoord = graphNodes[nd].coordinates.slice();
-    graphNodes[nd].coordinates = [newCoord0[nd], newCoord1[nd]];
-var newcoord = graphNodes[nd].coordinates.slice();
+var oldcoord = graphNodes[nd].getCoordinates();
+    graphNodes[nd].setCoordinates([newCoord0[nd], newCoord1[nd]]);
+var newcoord = graphNodes[nd].getCoordinates();
 
 console.log('changed node '+nd+' way '+graphNodes[nd].wayIds+' from ' + oldcoord +' to ' + newcoord);
   });
@@ -51,13 +51,13 @@ log('mondrianizing');
   var delta0, delta1, absLat, absLongCorrected;
 
   g.nodes().forEach( function(nd) {
-    nodeCoord = graphNodes[nd].coordinates;
+    nodeCoord = graphNodes[nd].getCoordinates();
     offset0 = 0;
     offset1 = 0;
 
     // get the neighbors and calc the offset
     g.neighbors(nd).forEach( function(nbr) {
-      nbrCoord = graphNodes[nbr].coordinates;
+      nbrCoord = graphNodes[nbr].getCoordinates();
 
 // start algo
       delta0 = (nbrCoord[0] - nodeCoord[0]);
@@ -97,9 +97,9 @@ console.log('angle is close to diagonal');
   // now update the nodes
   g.nodes().forEach( function(nd) {
 
-var oldcoord = graphNodes[nd].coordinates.slice();
-    graphNodes[nd].coordinates = [newCoord0[nd], newCoord1[nd]];
-var newcoord = graphNodes[nd].coordinates.slice();
+var oldcoord = graphNodes[nd].getCoordinates();
+    graphNodes[nd].setCoordinates([newCoord0[nd], newCoord1[nd]]);
+var newcoord = graphNodes[nd].getCoordinates();
 
 console.log('changed node '+nd+' way '+graphNodes[nd].wayIds+' from ' + oldcoord +' to ' + newcoord);
   });
@@ -113,7 +113,10 @@ Mutators.prototype.progressiveMesh = function(g, graphNodes, ways) {
 
   // quick length generator (for when don't need absolute length, just roughly relative length)
   function edgeLengthSquared (e,graphNodes) {
-    return (Math.pow((graphNodes[e.v].coordinates[0] - graphNodes[e.w].coordinates[0]), 2) + Math.pow((graphNodes[e.v].coordinates[1] - graphNodes[e.w].coordinates[1]), 2));
+    return (
+      Math.pow((graphNodes[e.v].getCoordinates()[0] - graphNodes[e.w].getCoordinates()[0]), 2) +
+      Math.pow((graphNodes[e.v].getCoordinates()[1] - graphNodes[e.w].getCoordinates()[1]), 2)
+    );
   }
 
   // returns true if e1 length >= e2 length
@@ -170,7 +173,7 @@ Mutators.prototype.progressiveMesh = function(g, graphNodes, ways) {
     });
 
     // reposition n1 toward n2
-    graphNodes[n1int].coordinates = midpoint(n1, n2);
+    graphNodes[n1int].setCoordinates(midpoint(n1, n2));
 
     // remove n2 from any ways. This can leave us with empty arrays in the ways list. Problem?
     graphNodes[n2int].wayIds.forEach(function(wid) {
@@ -189,8 +192,8 @@ Mutators.prototype.progressiveMesh = function(g, graphNodes, ways) {
 
   function midpoint (n1, n2) {
     return [
-      (graphNodes[n1].coordinates[0] + graphNodes[n2].coordinates[0]) / 2,
-      (graphNodes[n1].coordinates[1] + graphNodes[n2].coordinates[1]) / 2
+      (graphNodes[n1].getCoordinates()[0] + graphNodes[n2].getCoordinates()[0]) / 2,
+      (graphNodes[n1].getCoordinates()[1] + graphNodes[n2].getCoordinates()[1]) / 2
     ];
   }
 
