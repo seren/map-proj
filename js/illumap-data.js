@@ -216,7 +216,7 @@ oldEdgeCount = g.edgeCount();
     }
 
 
-    var mutateGeneric = function mutateGeneric(mutationType) {
+    var mutateGeneric = function mutateGeneric(mutationType, repulsionPoint) {
       if (graphStale || (mapg.nodeCount < 1)) {
         buildGraph();
       }
@@ -227,7 +227,7 @@ oldEdgeCount = g.edgeCount();
         throw('there is no mutation type "'+mutationType);
       }
       log('mutateGeneric: '+mutationType);
-      mapg = mutators[mutationType](mapg, graphNodes, ways);
+      mapg = mutators[mutationType]({'g':mapg, "graphNodes":graphNodes, "ways":ways, "repulsionPoint":repulsionPoint});
       mutationSequence.push(mutationType);
     };
 

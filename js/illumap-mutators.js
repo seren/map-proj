@@ -6,8 +6,11 @@ Mutators.prototype.generic = function(g, graphNodes, mutationFunc) {
 
 };
 
-// force directed algorithm
-Mutators.prototype.relax = function(g, graphNodes) {
+// force directed relaxation algorithm
+Mutators.prototype.relax = function(opts) {
+// debugger
+  var g = opts.g;
+  var graphNodes = opts.graphNodes;
 
   var springForce = 0.2;
   var offset0, offset1, nodeCoord;
@@ -42,7 +45,10 @@ console.log('changed node '+nd+' way '+graphNodes[nd].wayIds+' from ' + oldcoord
 };
 
 // orthoganalization algorithm
-Mutators.prototype.mondrianize = function(g, graphNodes) {
+Mutators.prototype.mondrianize = function(opts) {
+  var g = opts.g;
+  var graphNodes = opts.graphNodes;
+
   // Note: the coordinates are stored: [longitude, latitude]
 log('mondrianizing');
   var newCoord0 = {};
@@ -108,7 +114,11 @@ console.log('changed node '+nd+' way '+graphNodes[nd].wayIds+' from ' + oldcoord
 
 
 // we may want to memoize the sorted array or some other data-structures
-Mutators.prototype.progressiveMesh = function(g, graphNodes, ways) {
+Mutators.prototype.progressiveMesh = function(opts) {
+  var g = opts.g;
+  var graphNodes = opts.graphNodes;
+  var ways = opts.ways;
+
   var sortedEdges, ec;
 
   // quick length generator (for when don't need absolute length, just roughly relative length)
