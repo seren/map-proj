@@ -29,8 +29,6 @@ function Illumap() {
     endpoint: false
   };
 
-  this.mousedrag = 'slippy';
-
   this.globalLoglevel = 'DEBUG';
 
   log = function log (str, msgLevel) {
@@ -91,19 +89,26 @@ function Illumap() {
     .on('drag', dragged);
 
 
-  container.call(zoomBehavior); // assign zooming behavior to the container
+  // container.call(dragBehavior); // assign zooming behavior to the container
   container.on("mousemove", mousemoved); // set mousemovement listener on container
 
+  function enableZoom() {
+    container.on('.drag', null);
+    container.call(zoomBehavior);
+  }
+
+  function enableDrag() {
+    container.on('.zoom', null);
+    container.call(dragBehavior);
+  }
+
   function toggleSlippy() {
+    // debugger
     var container = d3.select('.container');
-    if (illumap.mousedrag === 'slippy') {
-      illumap.mousedrag = 'repulse';
-      container.on('.zoom', null);
-      container.call(dragBehavior);
+    if (d3.select('#repulsecheckbox').property('checked')) {
+      enableDrag();
     } else {
-      illumap.mousedrag = 'slippy';
-      container.on('.drag', null);
-      container.call(zoomBehavior);
+      enableZoom();
     }
   }
 
@@ -335,6 +340,11 @@ console.log('translation: '+illumap.d3projection.translate()+' -> '+zoomBehavior
     illumap.drawMutated();
   };
 
+  this.replay = function replay() {
+    illumap.data.replayMutations();
+    illumap.drawMutated();
+  };
+
   this.reset = function reset() {
     illumap.data.reset();
     illumap.svgDrawRaw();
@@ -376,6 +386,7 @@ console.log('translation: '+illumap.d3projection.translate()+' -> '+zoomBehavior
       // d3.select('#location').on("keydown", illumap.setLocationFromBox);
       d3.select('#location').call(d3.keybinding()
                                     .on('return', illumap.setLocationFromBox));
+      enableDrag();
 // debugger
       // d3.select('.container')
       //   .call(zoomBehavior);

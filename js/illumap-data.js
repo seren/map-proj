@@ -220,6 +220,15 @@ oldEdgeCount = g.edgeCount();
 
     }
 
+    var replayMutations = function replayMutations() {
+// debugger
+      for (var i=0,  len=mutationSequence.length; i < len; i++) {
+        console.log('applying mutation: '+mutationSequence[i].type);
+        mutateGeneric(mutationSequence[i].type, mutationSequence[i].repulsionPoint);
+        illumap.graphics.svgDraw();
+        // illumap.graphics.requestRedraw();
+      }
+    };
 
     var mutateGeneric = function mutateGeneric(mutationType, repulsionPoint) {
       if (graphStale || (mapg.nodeCount < 1)) {
@@ -233,7 +242,10 @@ oldEdgeCount = g.edgeCount();
       }
       log('mutateGeneric: '+mutationType);
       mapg = mutators[mutationType]({'g':mapg, "graphNodes":graphNodes, "ways":ways, "repulsionPoint":repulsionPoint});
-      mutationSequence.push(mutationType);
+      mutationSequence.push({
+        'type':mutationType,
+        'repulsionPoint':repulsionPoint
+        });
     };
 
     // loads tiles in current view and adds the geojson to our data store
@@ -282,7 +294,7 @@ console.log("running loadTileFromServer");
         geojsonBucket.add(f);
       });
       graphStale = true;
-      illumap.graphics.redrawRequest();
+      illumap.graphics.requestRedraw();
     }
 
     function edgeNodesCoordinates(e) {
@@ -370,6 +382,7 @@ console.log(n);
       loadTileFromServer: loadTileFromServer,
       pathsFromEdges: pathsFromEdges,
       mutateGeneric: mutateGeneric,
+      replayMutations: replayMutations,
       featureListFromGraph: featureListFromGraph,
       // graphNodes: function() { return graphNodes; },
       // ways: function() { return ways; },
@@ -452,7 +465,7 @@ featureNodes: function() { return featureNodes; },
       // used when restarting the mutation process. resets everything except tile caches and geojsonbucket
       reset: function reset() {
         mutators = new Mutators();
-        mutationSequence.length = 0;
+        // mutationSequence.length = 0;
         highestWayId = 0;
         ways.length = 0;
         graphNodes.length = 0;

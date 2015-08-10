@@ -40,7 +40,7 @@ var illumap = (function() {
       while (redrawPending) {
         redrawPending = false;
         svgDraw(paths);
-        paths = undefined;
+        paths = undefined; // we don't want to keep redrawing the paths that were passed in after the first time
       }
 
     }

@@ -65,9 +65,10 @@ path {
   <a class="button" id='mondrianizebutton'>mutate: mondrian</a>
   <a class="button" id='pmeshbutton'>mutate: progressive mesh</a>
   <label>
-    <input type="checkbox" id='repulsecheckbox'>drag-repulse</input>
+    <input type="checkbox" id='repulsecheckbox' checked>drag-repulse</input>
   </label>
   <a class="button" id='resetbutton'>reset</a>
+  <a class="button" id='replaybutton'>replay mutations</a>
   <a class="button" id='reloadbutton'>reload</a>
   <input type="text" id="location">
 </div>
@@ -95,6 +96,8 @@ d3.select('#pmeshbutton')
   .on('click', illumap.mutateProgressiveMesh);
 d3.select('#resetbutton')
   .on('click', illumap.reset);
+d3.select('#replaybutton')
+  .on('click', illumap.replay);
 d3.select('#drawrawbutton')
   .on('click', illumap.svgDrawRaw);
 d3.select('#drawrawmutatedbutton')
