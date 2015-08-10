@@ -64,7 +64,6 @@ path {
   <a class="button" id='relaxbutton'>mutate: relax</a>
   <a class="button" id='mondrianizebutton'>mutate: mondrian</a>
   <a class="button" id='pmeshbutton'>mutate: progressive mesh</a>
-  <a class="button" id='repulsebutton'>repulse</a>
   <label>
     <input type="checkbox" id='repulsecheckbox'>drag-repulse</input>
   </label>
@@ -92,8 +91,6 @@ d3.select('#relaxbutton')
   .on('click', illumap.mutateRelax);
 d3.select('#mondrianizebutton')
   .on('click', illumap.mutateMondrianize);
-d3.select('#repulsebutton')
-  .on('click', illumap.mutateRepulse);
 d3.select('#pmeshbutton')
   .on('click', illumap.mutateProgressiveMesh);
 d3.select('#resetbutton')

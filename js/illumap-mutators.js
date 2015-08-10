@@ -12,7 +12,7 @@ Mutators.prototype.repulse = function(opts) {
   var graphNodes = opts.graphNodes;
   var repulsionPoint = opts.repulsionPoint;
 
-  var chargeForce = 100;
+  var chargeForce = 80;
   var attenuation = function attenuation (dist) {
     // inverse-square law
     return (1/(dist*dist));
