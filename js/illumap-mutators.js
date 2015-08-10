@@ -6,6 +6,50 @@ Mutators.prototype.generic = function(g, graphNodes, mutationFunc) {
 
 };
 
+// force directed repulsion-from-point algorithm
+Mutators.prototype.repulse = function(opts) {
+  var g = opts.g;
+  var graphNodes = opts.graphNodes;
+  var repulsionPoint = opts.repulsionPoint;
+
+  var chargeForce = 100;
+  var attenuation = function attenuation (dist) {
+    // inverse-square law
+    return (1/(dist*dist));
+  };
+  var offset0, offset1, nodeCoord, dist;
+
+  var newCoord0 = {};
+  var newCoord1 = {};
+  var nbrVal; // value of the neighbor node
+  // for each node, calculate the offset
+  g.nodes().forEach( function(nd) {
+// debugger
+    nodeCoord = graphNodes[nd].getCoordinates();
+    offset0 = nodeCoord[0] - repulsionPoint[0];
+    offset1 = nodeCoord[1] - repulsionPoint[1];
+    screenOffset0 = illumap.d3projection(nodeCoord)[0] - illumap.d3projection(repulsionPoint)[0];
+    screenOffset1 = illumap.d3projection(nodeCoord)[1] - illumap.d3projection(repulsionPoint)[1];
+    screenDist = Math.sqrt((screenOffset0*screenOffset0) + (screenOffset1*screenOffset1));
+    force = Math.min(1, attenuation(screenDist) * chargeForce);
+// console.log('node:'+nd+' offsets:'+offset0+','+offset1+' force:'+force);
+// if (force > 1) { debugger }
+    newCoord0[nd] = nodeCoord[0] + (offset0 * force);
+    newCoord1[nd] = nodeCoord[1] + (offset1 * force);
+// debugger
+  });
+    // now update the nodes
+  g.nodes().forEach( function(nd) {
+
+var oldcoord = graphNodes[nd].getCoordinates();
+    graphNodes[nd].setCoordinates([newCoord0[nd], newCoord1[nd]]);
+var newcoord = graphNodes[nd].getCoordinates();
+
+// console.log('changed node '+nd+' way '+graphNodes[nd].wayIds+' from ' + oldcoord +' to ' + newcoord);
+  });
+  return g;
+};
+
 // force directed relaxation algorithm
 Mutators.prototype.relax = function(opts) {
 // debugger
@@ -212,7 +256,13 @@ Mutators.prototype.progressiveMesh = function(opts) {
   // need extra logic if we want to support freezing certain nodes (e.g. endnodes, wayends, borders, connectors)
   collapseEdge(g, sortedEdges[0]);
   return g;
-
-
 };
+
+
+// Ramer-Douglas-Peucker
+Mutators.prototype.rpd = function(g, graphNodes) {
+  return g;
+};
+
+
 

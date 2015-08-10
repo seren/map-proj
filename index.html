@@ -26,6 +26,21 @@ body {
   margin-bottom: 6px;
 }
 
+.svg {
+  position: absolute;
+  overflow: hidden;
+}
+
+.container {
+  position: absolute;
+}
+
+.info {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+}
+
 path {
   fill: none;
   stroke: #000;
@@ -43,16 +58,26 @@ path {
 
 </style>
 <body>
-  <div class='readout'></div><br>
+<div class="container">
   <a class="button" id='drawrawbutton'>draw raw</a>
   <a class="button" id='drawrawmutatedbutton'>draw mutated</a>
   <a class="button" id='relaxbutton'>mutate: relax</a>
   <a class="button" id='mondrianizebutton'>mutate: mondrian</a>
   <a class="button" id='pmeshbutton'>mutate: progressive mesh</a>
+  <a class="button" id='repulsebutton'>repulse</a>
+  <label>
+    <input type="checkbox" id='repulsecheckbox'>drag-repulse</input>
+  </label>
   <a class="button" id='resetbutton'>reset</a>
   <a class="button" id='reloadbutton'>reload</a>
+  <input type="text" id="location">
+</div>
+
+
+
 <script src="js/d3.v3.js"></script>
 <script src="js/d3.geo.tile.v0.min.js"></script>
+<script src="js/d3.keybinding.js"></script>
 <script src="js/graphlib.js"></script>
 <script src="js/illumap.js"></script>
 <script src="js/illumap-geojsonbucket.js"></script>
@@ -61,11 +86,14 @@ path {
 <script src="js/illumap-utility.js"></script>
 <script src="js/illumap-mutators.js"></script>
 <script src="js/illumap-node.js"></script>
+
 <script type="text/javascript">
 d3.select('#relaxbutton')
   .on('click', illumap.mutateRelax);
 d3.select('#mondrianizebutton')
   .on('click', illumap.mutateMondrianize);
+d3.select('#repulsebutton')
+  .on('click', illumap.mutateRepulse);
 d3.select('#pmeshbutton')
   .on('click', illumap.mutateProgressiveMesh);
 d3.select('#resetbutton')

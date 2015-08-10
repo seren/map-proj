@@ -3,6 +3,7 @@ var illumap = (function() {
   this.data = function data() {
 
   var geojsonBucket = new GeojsonBucket('rawdata'),  // module that holds raw data
+      source = 'server',
       // mutatedData = [],
       mutationSequence = [],  // list of changes performed on data
       mutators,
@@ -64,68 +65,72 @@ if (featureNodes[feature.id] === undefined) {
     // have to copy features, since we'll be modifying the contents and don't want to affect the original
     // ignore feature/way ids; make our own ids. combine all overlapping points and create ways at junctions of degree >2
     var buildGraph = function buildGraph() {
-      if (graphStale === true) {
-        console.log('graph is out of date. rebuilding from geojson');
+      while (graphStale) {
+        graphStale = false;
+      // if (graphStale === true) {
+      //   console.log('graph is out of date. rebuilding from geojson');
+      // }
+
+        // is this scope correct? will ways and graphNodes ref global or function vars?
+        ways.length = 0; // reset ways (lines of coordinates between endpoints or intersections)
+        graphNodes.length = 0;
+        coordinatesAdded.length = 0;
+
+        var nodeId;
+        var features = geojsonBucket.getFeaturesClone();
+        features.forEach( function(feature) {
+          var geometryType = feature.geometry.type;
+          if (geometryType === 'LineString') {
+            var featureCoordinates = feature.geometry.coordinates;
+              prevNodeId = addNode(feature, 0);
+              for (var i = 0, len = featureCoordinates.length; i < len - 1 ; i++) {
+                currNodeId = addNode(feature, i+1);
+                mapg.setEdge(prevNodeId, currNodeId, {}); // way-finding builds: {way: feature.id, length: len});
+                console.log('graph: added edge from featureId:index: ' + feature.id + ':' + i + ' c1: ' + prevNodeId + ' c2: ' + currNodeId);
+                prevNodeId = currNodeId;
+              }
+          } else {
+              console.log("skipping feature " + feature.id + ". Can't handle geometry type: " + feature.geometry.type);
+          }
+        });
+
+        // build way list and find the end-nodes, itersection nodes, etc
+
+        var markEndpoint = function markEndpoint(n) {
+          console.log('marking endpoint: ' + n);
+  if (graphNodes[n] === undefined) { debugger; }
+          graphNodes[n].endpoint = true;
+          // mapg.node(n)['endpoint'] = true;
+        };
+        var markIntersection = function markIntersection(n) {
+          console.log('marking intersection: ' + n);
+          graphNodes[n].intersection = true;
+          // mapg.node(n)['intersection'] = true;
+        };
+
+        // remove orphan nodes, and mark the intersection and endpoints
+        console.log('marking endpoints and removing orphans');
+        mapg.nodes().toInt().forEach( function(n) {
+          switch (mapg.nodeEdges(n).length) {
+            case 0:
+              console.log('deleting orphan node ' + n);
+              mapg.removeNode(n);
+              break;
+            case 1:
+              markEndpoint(n);
+              break;
+            case 2:
+              // skip
+              break;
+            default:
+              markEndpoint(n);
+              markIntersection(n);
+              break;
+          }
+        });
+  // debugger
+        buildAllWays();
       }
-      // is this scope correct? will ways and graphNodes ref global or function vars?
-      ways.length = 0; // reset ways (lines of coordinates between endpoints or intersections)
-      graphNodes.length = 0;
-      coordinatesAdded.length = 0;
-
-      var nodeId;
-      var features = geojsonBucket.getFeaturesClone();
-      features.forEach( function(feature) {
-        var geometryType = feature.geometry.type;
-        if (geometryType === 'LineString') {
-          var featureCoordinates = feature.geometry.coordinates;
-            prevNodeId = addNode(feature, 0);
-            for (var i = 0, len = featureCoordinates.length; i < len - 1 ; i++) {
-              currNodeId = addNode(feature, i+1);
-              mapg.setEdge(prevNodeId, currNodeId, {}); // way-finding builds: {way: feature.id, length: len});
-              console.log('graph: added edge from featureId:index: ' + feature.id + ':' + i + ' c1: ' + prevNodeId + ' c2: ' + currNodeId);
-              prevNodeId = currNodeId;
-            }
-        } else {
-            console.log("skipping feature " + feature.id + ". Can't handle geometry type: " + feature.geometry.type);
-        }
-      });
-
-      // build way list and find the end-nodes, itersection nodes, etc
-
-      var markEndpoint = function markEndpoint(n) {
-        console.log('marking endpoint: ' + n);
-if (graphNodes[n] === undefined) { debugger; }
-        graphNodes[n].endpoint = true;
-        // mapg.node(n)['endpoint'] = true;
-      };
-      var markIntersection = function markIntersection(n) {
-        console.log('marking intersection: ' + n);
-        graphNodes[n].intersection = true;
-        // mapg.node(n)['intersection'] = true;
-      };
-
-      // remove orphan nodes, and mark the intersection and endpoints
-      console.log('marking endpoints and removing orphans');
-      mapg.nodes().toInt().forEach( function(n) {
-        switch (mapg.nodeEdges(n).length) {
-          case 0:
-            console.log('deleting orphan node ' + n);
-            mapg.removeNode(n);
-            break;
-          case 1:
-            markEndpoint(n);
-            break;
-          case 2:
-            // skip
-            break;
-          default:
-            markEndpoint(n);
-            markIntersection(n);
-            break;
-        }
-      });
-// debugger
-      buildAllWays();
 
     };
 
@@ -237,28 +242,48 @@ oldEdgeCount = g.edgeCount();
       illumap.d3tiler    // Generates tile coordinates in current view
         .scale(illumap.d3projection.scale() * 2 * Math.PI)
         .translate(illumap.d3projection([0, 0]))()
-        .forEach(function(t) {   // download and display each vector tile
-          var tid = illumap.tileId(t);
-          console.log('need to get tile ' + tid);
-          var tileserver = "http://" + ["a", "b", "c"][(t[0] * 31 + t[1]) % 3] + ".tile.openstreetmap.us";
-          var tileurlpaths = ["/vectiles-highroad/" + t[2] + "/" + t[0] + "/" + t[1] + ".json",
-                           "/vectiles-water-areas/" + t[2] + "/" + t[0] + "/" + t[1] + ".json"];
-          tileurlpaths.forEach(function(tileurlpath) {
-            d3.json( tileserver + tileurlpath , function(error, json) {  // this is asynchronous
-              illumap.tileCache[tid] = json;
-              localStorage.setObject('tileCache', illumap.tileCache);
-              // 'json' is a FeatureCollection object containing an array of Feature objects
-              json.features.sort(function(a, b) { return a.properties.sort_key - b.properties.sort_key; }) // sort it so our join-by-index is consistent
-                .forEach(function(f) { // for each feature
-                  geojsonBucket.add(f);
-                  console.log('retrieved tile ' + tid + ', features: ' + json.features.length);
-                  graphStale = true;
-                });
-            });
-          });
-        });
-      // buildGraph();
+        .forEach(loadTileFromServer);
+      buildGraph();
     };
+
+    var loadTileFromServer = function loadTileFromServer (t) {
+console.log("running loadTileFromServer");
+// debugger
+      var tid = illumap.tileId(t);
+      console.log('need to get tile ' + tid);
+      var tileserver = "http://" + ["a", "b", "c"][(t[0] * 31 + t[1]) % 3] + ".tile.openstreetmap.us";
+      var tileurlpaths = ["/vectiles-highroad/" + t[2] + "/" + t[0] + "/" + t[1] + ".json",
+                       "/vectiles-water-areas/" + t[2] + "/" + t[0] + "/" + t[1] + ".json"];
+      tileurlpaths.forEach(function(tileurlpath) {
+        // if (illumap.tileCache[tileurlpath]) {
+        if (illumap.tileCache[tid]) {
+          console.log('found tile '+tileurlpath+' in cache');
+          updateBucket(illumap.tileCache[tileurlpath]);
+        } else {
+ console.log('openstreetmap vectices currently unavailable');
+          // d3.json( tileserver + tileurlpath , function(error, json) {  // this is asynchronous
+          //   if (json) {
+          //     json.features.sort(function(a, b) { return a.properties.sort_key - b.properties.sort_key; }); // sort it so our join-by-index is consistent
+          //     illumap.tileCache[tileurlpath] = json;
+          //     localStorage.setObject('tileCache', illumap.tileCache);
+          //     // 'json' is a FeatureCollection object containing an array of Feature objects
+          //     updateBucket(json);
+          //     console.log('retrieved tile ' + tid + ', features: ' + json.features.length);
+          //   } else {
+          //     console.log("Couldn't retrieve tile " + tid + ". Error: " + error.status + " " + error.text);
+          //   }
+          // });
+        }
+      });
+    };
+
+    function updateBucket (json) {
+      json.forEach(function(f) { // for each feature
+        geojsonBucket.add(f);
+      });
+      graphStale = true;
+      illumap.graphics.redrawRequest();
+    }
 
     function edgeNodesCoordinates(e) {
       return [graphNodes[e.v].getCoordinates(), graphNodes[e.w].getCoordinates()];
@@ -313,6 +338,27 @@ console.log(n);
       buildGraph();
     };
 
+    var loadGeojson = function loadGeojson () {
+      switch (source) {
+        case "server":
+          loadGeojsonFromServer();
+          break;
+        case "local":
+          loadGeojsonFromLocal();
+          break;
+        case "test":
+          loadTestGeojsonData();
+          break;
+        default:
+          loadGeojsonFromLocal();
+          if (geojsonBucket.length === 0) {
+            console.log("Couldn't load data from disk. Loading from server");
+            loadGeojsonFromServer();
+          }
+        }
+      console.log("data inited. loaded from " + source);
+    };
+
 
 
     // 'data' return
@@ -321,6 +367,7 @@ console.log(n);
       geojsonBucket: geojsonBucket,  // module that holds features in current view (should we directly modify contents, or feed into something else?)
       mutationSequence: mutationSequence,  // list of changes performed on data
       mapg: mapg,
+      loadTileFromServer: loadTileFromServer,
       pathsFromEdges: pathsFromEdges,
       mutateGeneric: mutateGeneric,
       featureListFromGraph: featureListFromGraph,
@@ -328,31 +375,21 @@ console.log(n);
       // ways: function() { return ways; },
       graphNodes: graphNodes,
       ways: ways,
+      source: source,
+      loadGeojson: loadGeojson,
 featureNodes: function() { return featureNodes; },
 
       init: function init() {
         console.log('initing data');
         // var defaults = {source: 'local'};
-        var defaults = {};
-        var opts = illumap.utility.merge(defaults, (arguments[0] || {}));
-        switch (opts.source) {
-          case "server":
-            loadGeojsonFromServer();
-            break;
-          case "local":
-            loadGeojsonFromLocal();
-            break;
-          case "test":
-            loadTestGeojsonData();
-            break;
-          default:
-            loadGeojsonFromLocal();
-            if (geojsonBucket.length === 0) {
-              console.log("Couldn't load data from disk. Loading from server");
-              loadGeojsonFromServer();
-            }
-          }
-        console.log("data inited. loaded from " + opts.source);
+        // var defaults = {};
+        // var opts = illumap.utility.merge(defaults, (arguments[0] || {}));
+        var opts = (arguments[0] || {});
+        if (opts.source) {
+          source = opts.source;
+        }
+        loadGeojson();
+        buildGraph();
       },
 
       debug: function () {
@@ -412,6 +449,7 @@ featureNodes: function() { return featureNodes; },
         console.log('remaining ' + mutatedData);
       },
 
+      // used when restarting the mutation process. resets everything except tile caches and geojsonbucket
       reset: function reset() {
         mutators = new Mutators();
         mutationSequence.length = 0;
@@ -422,6 +460,12 @@ featureNodes: function() { return featureNodes; },
         mapg.nodes().forEach(function (n) {mapg.removeNode(n); }); // reset graph without recreating
         graphStale = true;
         console.log('reset data');
+      },
+
+      resetDataCaches: function resetDataCaches() {
+        illumap.tileCache = {};
+        geojsonbucket.reset();
+        this.reset();
       },
 
       reload: function reload() {

@@ -5,6 +5,8 @@ var illumap = (function() {
     // Phase1: draw the data from the data object
     // Phase2: add event handling for scrolling and zooming, retrieve new data (and pass it to the data module), and update the display area with modified data from the data module
 
+    var redrawPending = true;
+
     var svg;
 
     var svgClear = function svgClear() {
@@ -13,10 +15,10 @@ var illumap = (function() {
 
     var svgDraw = function svgDraw(paths) {
       if (paths === undefined) {
-        console.log('no data passed to draw.');
-        debugger;
-        fullstop();
+        console.log('no data passed to draw. drawing mutated');
+        paths = illumap.data.getMutatedPaths();
       }
+// debugger
       console.log('drawing ' + paths.length + ' paths');
       svgClear();
       svg.selectAll("path")  // get all the svg paths from this svg grouping
@@ -31,13 +33,28 @@ var illumap = (function() {
           ;
     };
 
+
+    var requestRedraw = function requestRedraw (paths) {
+// debugger
+      redrawPending = true;
+      while (redrawPending) {
+        redrawPending = false;
+        svgDraw(paths);
+        paths = undefined;
+      }
+
+    }
+
     var addDecoration = function addDecoration (edges) {
 //todo
-    }
+    };
 
     return {
       svgDraw: svgDraw,
       svgClear: svgClear,
+      redrawPending: redrawPending,
+      requestRedraw: requestRedraw,
+
 
       // init: store passed in svg element.
       // draw: take data and draw it, using module parameters
@@ -51,12 +68,13 @@ var illumap = (function() {
         this.height = opts.height;
 
         console.log('graphics inited');
-        if (svg === undefined) {
-          svg = d3.select("body").append("svg")
+        if ((svg === undefined) || (d3.select('svg')[0][0] === null)) {
+          svg = d3.select(".container").append("svg")
               .attr("width", this.width)
               .attr("height", this.height);
-          }
-        return this.svg;
+        }
+
+        return svg;
       },
 
       debug: function () {
