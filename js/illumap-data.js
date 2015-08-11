@@ -224,28 +224,39 @@ oldEdgeCount = g.edgeCount();
 // debugger
       for (var i=0,  len=mutationSequence.length; i < len; i++) {
         console.log('applying mutation: '+mutationSequence[i].type);
-        mutateGeneric(mutationSequence[i].type, mutationSequence[i].repulsionPoint);
+        mutateGeneric({
+          mutationType: mutationSequence[i].type,
+          repulsionPoint: mutationSequence[i].repulsionPoint,
+          addToReplay: false
+        });
         illumap.graphics.svgDraw();
         // illumap.graphics.requestRedraw();
       }
     };
 
-    var mutateGeneric = function mutateGeneric(mutationType, repulsionPoint) {
+    var mutateGeneric = function mutateGeneric(opts) {
       if (graphStale || (mapg.nodeCount < 1)) {
         buildGraph();
       }
       if (mutators === undefined) {
         mutators = new Mutators();
       }
-      if (mutators[mutationType] === undefined) {
-        throw('there is no mutation type "'+mutationType);
+      if (mutators[opts.mutationType] === undefined) {
+        throw('there is no mutation type: "'+opts.mutationType);
       }
-      log('mutateGeneric: '+mutationType);
-      mapg = mutators[mutationType]({'g':mapg, "graphNodes":graphNodes, "ways":ways, "repulsionPoint":repulsionPoint});
-      mutationSequence.push({
-        'type':mutationType,
-        'repulsionPoint':repulsionPoint
-        });
+      log('mutateGeneric: '+opts.mutationType);
+      mapg = mutators[opts.mutationType]({
+        'g':mapg,
+        "graphNodes":graphNodes,
+        "ways":ways,
+        "repulsionPoint":opts.repulsionPoint
+      });
+      if (opts.addToReplay !== false) {
+        mutationSequence.push({
+          'type':opts.mutationType,
+          'repulsionPoint':opts.repulsionPoint
+          });
+      }
     };
 
     // loads tiles in current view and adds the geojson to our data store

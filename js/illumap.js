@@ -316,17 +316,20 @@ console.log('translation: '+illumap.d3projection.translate()+' -> '+zoomBehavior
   };
 
   this.mutateRelax = function mutateRelax() {
-    illumap.data.mutateGeneric('relax');
+    illumap.data.mutateGeneric({mutationType: 'relax'});
     illumap.drawMutated();
   };
 
   this.mutateRepulse = function mutateRepulse(origin) {
-    illumap.data.mutateGeneric('repulse', origin || illumap.mapCenter);
+    illumap.data.mutateGeneric({
+      mutationType: 'repulse',
+      repulsionPoint: (origin || illumap.mapCenter)
+    });
     illumap.drawMutated();
   };
 
   this.mutateMondrianize = function mutateMondrianize() {
-    illumap.data.mutateGeneric('mondrianize');
+    illumap.data.mutateGeneric({mutationType: 'mondrianize'});
     illumap.drawMutated();
   };
 
@@ -334,7 +337,7 @@ console.log('translation: '+illumap.d3projection.translate()+' -> '+zoomBehavior
 // debugger
     var stepSize = Math.round(Math.log(illumap.data.mapg.edgeCount()));
     for (var i=0; i < stepSize; i++) {
-      illumap.data.mutateGeneric('progressiveMesh');
+      illumap.data.mutateGeneric({mutationType: 'progressiveMesh'});
     }
     console.log('stepSize:'+stepSize);
     illumap.drawMutated();
