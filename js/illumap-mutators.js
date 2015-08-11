@@ -92,6 +92,7 @@ console.log('changed node '+nd+' way '+graphNodes[nd].wayIds+' from ' + oldcoord
 Mutators.prototype.mondrianize = function(opts) {
   var g = opts.g;
   var graphNodes = opts.graphNodes;
+  var dampeningFactor = 0.25;
 
   // Note: the coordinates are stored: [longitude, latitude]
 log('mondrianizing');
@@ -125,9 +126,9 @@ log('mondrianizing');
 
       // check if edge is approximately horizontal or vertical
       if (absLongCorrected < absLat) {
-        offset0 += 0.25 * delta0;
+        offset0 += dampeningFactor * delta0;
       } else {
-        offset1 += 0.25 * delta1;
+        offset1 += dampeningFactor * delta1;
       }
 
       // check if edge is close to diagonal

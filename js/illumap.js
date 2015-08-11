@@ -274,6 +274,20 @@ console.log('translation: '+illumap.d3projection.translate()+' -> '+zoomBehavior
   };
 
   // Add useful array function
+  Array.prototype.flatten = function() {
+    return this.reduce( function(x,y) {
+      return x.concat(y);
+    });
+  };
+
+  // Add useful array function
+  Array.prototype.unique = function() {
+    return this.filter(function (value, index, self) {
+        return self.indexOf(value) === index;
+    });
+  };
+
+  // Add useful array function
   Array.prototype.removeByValue = function() {
     var what, a = arguments, L = a.length, ax;
     while (L && this.length) {
