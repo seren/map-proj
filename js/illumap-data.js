@@ -331,6 +331,14 @@ console.log("running loadTileFromServer");
       buildGraph();
     };
 
+    function geometryFromWay(w, i) {
+      var coordinates = w.map( function(n) {
+        return graphNodes[n].getCoordinates();
+      });
+      return {coordinates: coordinates, type: "LineString", id: i};
+    };
+
+
 // out-dated and wrong. shouldn't use features any more
     // returns a list of all unique features (key-values: feature-id -> feature)
     var featureListFromGraph = function featureListFromGraph(g) {
@@ -427,13 +435,6 @@ featureNodes: function() { return featureNodes; },
 
       // returns graph data in a collection of feature-geometry-style objects: {coordinates: ['10','20','30'], type: "LineString"}
       getMutatedPaths: function getMutatedPaths() {
-        function geometryFromWay(w, i) {
-          var coordinates = w.map( function(n) {
-            return graphNodes[n].getCoordinates();
-          });
-          return {coordinates: coordinates, type: "LineString", id: i};
-        }
-
         console.log('loading mutated paths from graph');
         if (graphStale === true) { buildGraph(); }
         var paths = [];
