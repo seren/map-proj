@@ -219,6 +219,13 @@ var illumap = (function() {
       var dx = p2[0] - p1[0];
       var dy = p2[1] - p1[1];
       return [[-dy, dx, dy, -dx]];
+    },
+
+    wayNeighbors: function wayNeighbors (wayId) {
+      var waysOfNodes = function(nodeId) {
+        return illumap.data.graphNodes[nodeId].wayIds.filter(function(w) { return w !== wayId });
+      };
+      return illumap.data.ways[wayId].map(waysOfNodes).flatten().unique();
     }
 
   };

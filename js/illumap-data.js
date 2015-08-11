@@ -245,6 +245,7 @@ oldEdgeCount = g.edgeCount();
         throw('there is no mutation type: "'+opts.mutationType);
       }
       log('mutateGeneric: '+opts.mutationType);
+      // mutate the graph
       mapg = mutators[opts.mutationType]({
         'g':mapg,
         "graphNodes":graphNodes,
@@ -364,6 +365,7 @@ console.log(n);
       // json = '{"6530017":{"geometry":{"type":"LineString", "coordinates":[[6.1671293, 53.4758415 ], [6.1668354, 53.4766041 ] ] }, "type":"Feature", "id":"6530017", "clipped":true, "properties":{"kind":"minor_road", "sort_key":-6, "is_link":"no", "is_tunnel":"no", "is_bridge":"no", "railway":null, "highway":"unclassified"} }, "6530069":{"geometry":{"type":"LineString", "coordinates":[[6.1671293, 53.4758415 ], [6.1674498, 53.4758629 ], [6.1688231, 53.4759547 ] ] }, "type":"Feature", "id":"6530069", "clipped":true, "properties":{"kind":"major_road", "sort_key":-4, "is_link":"no", "is_tunnel":"no", "is_bridge":"no", "railway":null, "highway":"tertiary"} } }';
       // 2 features (2, 2 & 3 points), 2 connected at ends (one duplicate point), one free standing, so 2 ways
       json = '{"6530017":{"geometry":{"type":"LineString", "coordinates":[[6.1671293, 53.4758415 ], [6.1668354, 53.4766041 ] ] }, "type":"Feature", "id":"6530017", "clipped":true, "properties":{"kind":"minor_road", "sort_key":-6, "is_link":"no", "is_tunnel":"no", "is_bridge":"no", "railway":null, "highway":"unclassified"} }, "6530069":{"geometry":{"type":"LineString", "coordinates":[[6.1671293, 53.4758415 ], [6.1674498, 53.4759629 ], [6.1688231, 53.4759547 ] ] }, "type":"Feature", "id":"6530069", "clipped":true, "properties":{"kind":"major_road", "sort_key":-4, "is_link":"no", "is_tunnel":"no", "is_bridge":"no", "railway":null, "highway":"tertiary"} }, "6530000":{"geometry":{"type":"LineString", "coordinates":[[6.1671293, 53.4757415 ], [6.1674498, 53.4756629 ] ] }, "type":"Feature", "id":"6530000", "clipped":true, "properties":{"kind":"major_road", "sort_key":-4, "is_link":"no", "is_tunnel":"no", "is_bridge":"no", "railway":null, "highway":"tertiary"} } }';
+      json = '{"61":{"geometry":{"coordinates":[[6.15673,53.472326],[6.1574,53.472388],[6.16151,53.47254]],"type":"LineString","id":61},"type":"Feature","properties":{"sort_key":1}},"127":{"geometry":{"coordinates":[[6.166614,53.468317],[6.166598,53.468431],[6.166038,53.472436]],"type":"LineString","id":127},"type":"Feature","properties":{"sort_key":1}},"128":{"geometry":{"coordinates":[[6.166038,53.472436],[6.16333,53.472501],[6.16151,53.47254]],"type":"LineString","id":128},"type":"Feature","properties":{"sort_key":1}},"129":{"geometry":{"coordinates":[[6.161514,53.472598],[6.16151,53.47254]],"type":"LineString","id":129},"type":"Feature","properties":{"sort_key":1}},"209":{"geometry":{"coordinates":[[6.166038,53.472436],[6.168295,53.472551]],"type":"LineString","id":209},"type":"Feature","properties":{"sort_key":1}}}';
       geojsonBucket.reset();
       geojsonBucket.load(JSON.parse(json));
       buildGraph();
@@ -496,8 +498,22 @@ featureNodes: function() { return featureNodes; },
       reload: function reload() {
         loadGeojsonFromServer();
         console.log('Reloading data from server');
-      }
+      },
 
+      geojsonFromWays: function geojsonFromWays (waysArray) {
+        waysArray = (waysArray === undefined) ? [128, 127, 209, 61, 129] : waysArray; // use a sample array if need be
+        json = waysArray.reduce(function(prev, w) {
+          prev[w]={
+            'geometry': geometryFromWay(illumap.data.ways[w], w),
+            'type': 'Feature',
+            'properties': {
+              'sort_key': 1
+            }
+          };
+          return prev;
+        }, {});
+        return JSON.stringify(json);
+      }
 
 
 
