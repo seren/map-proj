@@ -389,9 +389,9 @@ console.log('translation: '+illumap.d3projection.translate()+' -> '+zoomBehavior
     // init: store passed in svg element.
     var init = function init() {
       var source = illumap.utility.runningInDevelopment() ? 'local' : 'server';
-      source = 'local';
+      // source = 'local';
       // source = 'server';
-      // source = 'test';
+      source = 'test';
       // debugger;
       illumap.graphics.init( {width: illumap.width, height: illumap.height} );
       illumap.data.init({source: source});
