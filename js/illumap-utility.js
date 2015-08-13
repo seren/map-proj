@@ -210,20 +210,15 @@ var illumap = (function() {
       };
     },
 
-    unitVector: function unitVector (v) {
-      return Math.sqrt(v[0] * v[0] + v[1] * v[1]);
-    },
-
-    tangentVectors: function tangentVectors (p1,p2) {
-      // if we define dx=x2-x1 and dy=y2-y1, then the normals are (-dy, dx) and (dy, -dx)
-      var dx = p2[0] - p1[0];
-      var dy = p2[1] - p1[1];
-      return [[-dy, dx, dy, -dx]];
+    sumArrays: function sumArrays (a1, a2) {
+      var sum = [];
+      for(var i=0; i<a1.length; sum[i]=a1[i]+a2[i], i++);
+      return sum;
     },
 
     wayNeighbors: function wayNeighbors (wayId) {
       var waysOfNodes = function(nodeId) {
-        return illumap.data.graphNodes[nodeId].wayIds.filter(function(w) { return w !== wayId });
+        return illumap.data.graphNodes[nodeId].wayIds.filter(function(w) { return w !== wayId; });
       };
       return illumap.data.ways[wayId].map(waysOfNodes).flatten().unique();
     },
@@ -240,7 +235,7 @@ var illumap = (function() {
       var code = 256;
       for (var i=1; i<data.length; i++) {
           currChar=data[i];
-          if (dict[phrase + currChar] != null) {
+          if (dict[phrase + currChar] !== null) {
               phrase += currChar;
           }
           else {

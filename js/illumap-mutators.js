@@ -28,10 +28,13 @@ Mutators.prototype.repulse = function(opts) {
     nodeCoord = graphNodes[nd].getCoordinates();
     offset0 = nodeCoord[0] - repulsionPoint[0];
     offset1 = nodeCoord[1] - repulsionPoint[1];
+
+    // calculate the force based on distance using the user's contex (screen distance)
     screenOffset0 = illumap.d3projection(nodeCoord)[0] - illumap.d3projection(repulsionPoint)[0];
     screenOffset1 = illumap.d3projection(nodeCoord)[1] - illumap.d3projection(repulsionPoint)[1];
     screenDist = Math.sqrt((screenOffset0*screenOffset0) + (screenOffset1*screenOffset1));
     force = Math.min(1, attenuation(screenDist) * chargeForce);
+
 // console.log('node:'+nd+' offsets:'+offset0+','+offset1+' force:'+force);
 // if (force > 1) { debugger }
     newCoord0[nd] = nodeCoord[0] + (offset0 * force);

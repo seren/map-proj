@@ -188,8 +188,9 @@ oldEdgeCount = g.edgeCount();
         wayPath = findWayFromEdge(e);
         ways[newWayId] = wayPath.slice();
 // if ( newWayId === 218 ) { debugger; }
-        // add the way id to each node, and remove the node from the search list
-        wayPath.forEach( function wayPathAddAndNodePrune(n,i) {
+
+        // function to add the way id to each node, and remove the node from the search list
+        var wayPathAddAndNodePrune = function wayPathAddAndNodePrune(n,i) {
           graphNodes[n].wayIds.push(newWayId);
           if (i > 0) {  // skip the first node since we have one fewer edges than nodes/way-points
             // record way in path
@@ -207,7 +208,10 @@ oldEdgeCount = g.edgeCount();
             // g.removeEdge(wayPath[i-1].toString(),n.toString());
             g.removeEdge(wayPath[i-1], n);
           }
-        });
+        }
+        // add the way id to each node, and remove the node from the search list
+        wayPath.forEach(wayPathAddAndNodePrune);
+
 console.log('----');
 // sanity check to prevent an infinite loop
 if (oldEdgeCount === g.edgeCount()) {
@@ -332,12 +336,39 @@ console.log("running loadTileFromServer");
       buildGraph();
     };
 
-    function geometryFromWay(w, i) {
+    var featureFromCoordinates = function featureFromCoordinates(coordinates, id) {
+      id = (id === undefined) ? 0 : id;
+      return {
+        geometry: {
+          coordinates: coordinates,
+          type: "LineString",
+          id: id
+        },
+        // type: "Feature",
+        id: id,
+        properties: {
+          sort_key: -6
+        }
+      };
+    }
+
+    // geometry wrapped up with feature values
+    function featureFromWay(w, id) {
       var coordinates = w.map( function(n) {
         return graphNodes[n].getCoordinates();
       });
-      return {coordinates: coordinates, type: "LineString", id: i};
+      return featureFromCoordinates(coordinates, id);
+    }
+
+    var geojsonFromWays = function geojsonFromWays (waysArray) {
+      waysArray = (waysArray === undefined) ? [128, 127, 209, 61, 129] : waysArray; // use a sample array if need be
+      json = {};
+      waysArray.forEach(function(w) {
+        json[w]= featureFromWay(illumap.data.ways[w], w);
+      });
+      return JSON.stringify(json);
     };
+
 
 
 // out-dated and wrong. shouldn't use features any more
@@ -361,7 +392,7 @@ console.log(n);
     var loadTestGeojsonData = function loadTestGeojsonData() {
       // pretty print: http://jsonformatter.curiousconcept.com/
       geojsonBucket.reset();
-      geojsonBucket.load(JSON.parse(illumap.testdata.fullraw));
+      geojsonBucket.load(JSON.parse(illumap.testdata.minimal));
       buildGraph();
     };
 
@@ -399,6 +430,8 @@ console.log(n);
       mutateGeneric: mutateGeneric,
       replayMutations: replayMutations,
       featureListFromGraph: featureListFromGraph,
+      geojsonFromWays: geojsonFromWays,
+      featureFromCoordinates: featureFromCoordinates,
       // graphNodes: function() { return graphNodes; },
       // ways: function() { return ways; },
       graphNodes: graphNodes,
@@ -437,7 +470,7 @@ featureNodes: function() { return featureNodes; },
         //todo
         // fix ways
         //return paths
-        return ways.map(geometryFromWay);
+        return ways.map(featureFromWay);
       },
 
 // old and should be removed
@@ -494,20 +527,6 @@ featureNodes: function() { return featureNodes; },
         console.log('Reloading data from server');
       },
 
-      geojsonFromWays: function geojsonFromWays (waysArray) {
-        waysArray = (waysArray === undefined) ? [128, 127, 209, 61, 129] : waysArray; // use a sample array if need be
-        json = waysArray.reduce(function(prev, w) {
-          prev[w]={
-            'geometry': geometryFromWay(illumap.data.ways[w], w),
-            'type': 'Feature',
-            'properties': {
-              'sort_key': 1
-            }
-          };
-          return prev;
-        }, {});
-        return JSON.stringify(json);
-      }
 
 
 

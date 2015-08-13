@@ -7,7 +7,10 @@ var illumap = (function() {
 
     var redrawPending = true;
 
-    var svg;
+    var svg; // populated in init
+
+    var d3line = d3.svg.line();
+
 
     var svgClear = function svgClear() {
       svg.selectAll("*").remove();
@@ -19,18 +22,115 @@ var illumap = (function() {
         paths = illumap.data.getMutatedPaths();
       }
 // debugger
-      console.log('drawing ' + paths.length + ' paths');
+      console.log('in svgDraw, drawing ' + paths.length + ' paths');
       svgClear();
-      svg.selectAll("path")  // get all the svg paths from this svg grouping
+
+      // create groups for each line and its tangents
+      var waygroups = svg.selectAll('.waygroup')
           .data(paths)
-        .enter().append("path")
-          .attr("class", function(d) { return ((d && d.properties && d.properties.kind) || 'generic'); })
-          .attr("wayid", function(d) { return d.id; })
-          .attr("d", illumap.d3path)
-          // .each(function(f) { // for each feature
-          //   console.log('drawing path with ' + f.geometry.coordinates.length + ' nodes');
-          // })
-          ;
+        .enter().append('g')
+          .attr('class', 'waygroup')
+          .attr('wayid', function(d) { return d.id; });
+
+      // add the way path
+      waygroups.append('g')
+        .attr("class", function(d) { return 'waypath ' + ((d && d.properties && d.properties.kind) || 'generic'); })
+      .append('path')
+        .attr("d", function(d) {return illumap.d3path(d.geometry) } );
+
+
+      // // create a group for the way's segment's tangents, and create a tangent path for each segment
+      // waygroups.append('g')
+      //   .attr('class', 'tangentgroup')
+      // .selectAll("path")
+      //   .data(function(feature) { return pointPairs(feature.geometry.coordinates); })
+      // .enter().append('path')
+      //   .attr('class', 'tan')
+      //   .attr('d', function (d) {
+      //     // this produces scewed tangents
+      //     // return illumap.d3path(illumap.data.featureFromCoordinates(tangentFromMidpoint(d)).geometry);
+      //     var screenCoord = [illumap.d3projection(d[0]), illumap.d3projection(d[1])];
+      //     return d3line(tangentFromMidpoint(screenCoord));
+      //   });
+
+
+      // create a group for the way's segment's decoration, and create a decoration path for each segment
+      waygroups.append('g')
+        .attr('class', 'decorationgroup')
+      .selectAll("path")
+        .data(function(feature) { return pointPairs(feature.geometry.coordinates); })
+      .enter().append('path')
+        .attr('class', 'decoration')
+        .attr('d', function (d) {
+          // this produces scewed tangents
+          // return illumap.d3path(illumap.data.featureFromCoordinates(tangentFromMidpoint(d)).geometry);
+          var screenCoord = [illumap.d3projection(d[0]), illumap.d3projection(d[1])];
+          // return d3line(tangentFromMidpoint(screenCoord));
+          return d3line(rectFromEdge(screenCoord[0], screenCoord[1])) + 'Z';
+        });
+
+
+
+
+
+      // returns a tangent line starting from the mid-point of the original line
+      function tangentFromMidpoint (line) {
+        var p1 = line[0];
+        var p2 = line[1];
+        var midPoint = [(p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2];
+        var tv = tangentVectors(p1,p2)[0];
+        return [midPoint, [tv[0] + midPoint[0], tv[1] + midPoint[1]]];
+      }
+
+      function tangentUnitVector (p1,p2) {
+        var dx = p2[0] - p1[0];
+        var dy = p2[1] - p1[1];
+        return unitVector(dx,dy);
+      }
+
+      // perpendicular unit vector
+      function unitVector (p1,p2) {
+        var h = Math.sqrt(p1 * p1 + p2 * p2);
+        return [p2 / h, p1 / h];
+      }
+
+      // Returns both tangent vectors (not unit-vector) for a line
+      function tangentVectors (p1,p2) {
+        // if we define dx=x2-x1 and dy=y2-y1, then the normals are (-dy, dx) and (dy, -dx)
+        var dx = p2[0] - p1[0];
+        var dy = p2[1] - p1[1];
+        return [[-dy, dx], [dy, -dx]];
+      }
+
+
+
+    // Takes a series of coordinates, and returns the component edges (coordinate pairs)
+    function pointPairs (coordinates) {
+    // debugger
+      return d3.range(coordinates.length - 1).map(function(i) {
+        return [coordinates[i], coordinates[i + 1]];
+      });
+    }
+
+
+
+    };
+
+    var rectFromEdge = function rectFromEdge(p1, p2) {
+      // get unit vect and scaling factor
+      // create new points from original + unitvect * scaling
+      var dx = p1[1] - p2[1];
+      var dy = p2[0] - p1[0];
+      var h = Math.sqrt(dx * dx + dy * dy);
+      var p0 = [p1[0] + dx, p1[1] + dy];
+      var p3 = [p2[0] + dx, p2[1] + dy];
+// debugger
+      // var h = Math.sqrt(dx * dx + dy * dy);
+      // var unitv = [dx / h, dy / h];
+      // var p0 = [p1[0] + unitv[0] * h, p1[1] + unitv[1] * h];
+      // var p3 = [p2[0] + unitv[0] * h, p2[1] + unitv[1] * h];
+      // console.log('h:'+h+' unitv:'+unitv);
+      return [p0, p1, p2, p3];
     };
 
 

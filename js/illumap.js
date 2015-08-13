@@ -415,7 +415,7 @@ console.log('translation: '+illumap.d3projection.translate()+' -> '+zoomBehavior
 // m.relax(illumap.data.mapg)
 
       // illumap.data.mutateRelax();
-      illumap.svgDrawRaw();
+      // illumap.svgDrawRaw();
       illumap.drawMutated();
 
 // debugger;
