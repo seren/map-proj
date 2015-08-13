@@ -40,8 +40,7 @@ var featureNodes={}; //temp
           intersection: false,
           wayEnd: false,
           wayIds: [],
-          tangentVector: [],
-          tangentStale: true
+          tangentVector: []
         });
         mapg.setNode(id);
       } else {
