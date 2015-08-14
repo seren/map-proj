@@ -388,15 +388,15 @@ console.log(n);
     };
 
 
-    var loadTestGeojsonData = function loadTestGeojsonData() {
+    var loadTestGeojsonData = function loadTestGeojsonData(testType) {
       // pretty print: http://jsonformatter.curiousconcept.com/
       geojsonBucket.reset();
-      geojsonBucket.load(JSON.parse(illumap.testdata.minimal));
+      geojsonBucket.load(JSON.parse(illumap.testdata[testType]));
       buildGraph();
     };
 
     var loadGeojson = function loadGeojson () {
-      switch (source) {
+      switch (source[0]) {
         case "server":
           loadGeojsonFromServer();
           break;
@@ -404,7 +404,7 @@ console.log(n);
           loadGeojsonFromLocal();
           break;
         case "test":
-          loadTestGeojsonData();
+          loadTestGeojsonData(source[1]);
           break;
         default:
           loadGeojsonFromLocal();
