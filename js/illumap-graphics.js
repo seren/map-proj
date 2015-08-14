@@ -8,23 +8,15 @@ var illumap = (function() {
     var redrawPending = true;
 
     var colors = new Colors();
-    var numGradients = 20;
-
+    var numGradients = 200;
 
     var svg; // populated in init
 
     var d3line = d3.svg.line();
 
-    // closure that returns an incrementing
-    var gradientSelector = function gradientSelector() {
-      var i = 0;
-      return function() {
-        return (i++ % numGradients);
-      }
-    }();
-
     var svgClear = function svgClear() {
-      svg.selectAll("*").remove();
+// debugger
+      svg.selectAll(".waygroup").remove();
     };
 
     var svgDraw = function svgDraw(paths) {
@@ -89,12 +81,19 @@ var illumap = (function() {
       waygroups.append('g')
         .attr('class', 'decorationgroup')
       .selectAll("g")
-        .data(function(feature) { return pointPairs(feature.geometry.coordinates); })
+        .data(function(feature) {
+          return pointPairs(feature.geometry.coordinates).map(function(pp) {
+            return {
+              point: pp,
+              id: feature.id
+            };
+          })
+        })
       .enter().append('rect')
         .attr("rx", 1)
         .attr("ry", 1)
         .attr('x', function (d) {
-          var screenCoord = [illumap.d3projection(d[0]), illumap.d3projection(d[1])];
+          var screenCoord = [illumap.d3projection(d.point[0]), illumap.d3projection(d.point[1])];
           d.rect = rectFromEdge(screenCoord[0], screenCoord[1], 10);
           return 0;
         })
@@ -103,35 +102,11 @@ var illumap = (function() {
         .attr("height", function(d) { return d.rect.height; })
         .attr("transform", function(d) { return "translate(" + [d.rect.x,d.rect.y] +")rotate(" + d.rect.rotation + ")"; })
         // .style("fill", d3.scale.category20c());
-        .style("fill", function() { return "url(#gradient"+ gradientSelector() +")" });
+        // colors way segments all the same
+        // .style("fill", function(d, i) {return "url(#gradient"+ ((d.id + i) % numGradients) +")" });
+        // colors way segments differently. not stable if the way has segments removed
+        .style("fill", function(d, i) {return "url(#gradient"+ ((d.id + i) % numGradients) +")" });
 
-        // create actualy gradient entries
-        d3.range(numGradients - 1).map(function(i) {
-          appendNormalGradient('gradient'+i,colors.random(),colors.random());
-        });
-      // appendNormalGradient('gradient',colors.random(),colors.random());
-
-      function appendNormalGradient(id,color1,color2) {
-        var gradient = svg.append("svg:defs")
-          .append("svg:linearGradient")
-            .attr("id", id)
-            .attr("x1", "0%")
-            .attr("y1", "0%")
-            .attr("x2", "100%")
-            .attr("y2", "0%")
-            .attr("spreadMethod", "pad");
-
-        gradient.append("svg:stop")
-            .attr("offset", "0%")
-            .attr("stop-color", "#"+color1)
-            .attr("stop-opacity", 1);
-
-        gradient.append("svg:stop")
-            .attr("offset", "100%")
-            .attr("stop-color", "#"+color2)
-            // .attr("stop-color", "#FFF")
-            .attr("stop-opacity", 0);
-      }
 
       // returns a tangent line starting from the mid-point of the original line
       function tangentFromMidpoint (line) {
@@ -162,20 +137,17 @@ var illumap = (function() {
         return [[-dy, dx], [dy, -dx]];
       }
 
-
-
-    // Takes a series of coordinates, and returns the component edges (coordinate pairs)
-    function pointPairs (coordinates) {
-    // debugger
-      return d3.range(coordinates.length - 1).map(function(i) {
-        return [coordinates[i], coordinates[i + 1]];
-      });
-    }
+      // Takes a series of coordinates, and returns the component edges (coordinate pairs)
+      function pointPairs (coordinates) {
+      // debugger
+        return d3.range(coordinates.length - 1).map(function(i) {
+          return [coordinates[i], coordinates[i + 1]];
+        });
+      }
 
 
 
     };
-
 
 
     var rectFromEdge = function rectCoordFromEdge(p1, p2, height) {
@@ -264,6 +236,35 @@ var illumap = (function() {
               .attr("width", this.width)
               .attr("height", this.height);
         }
+
+        // create actual gradient entries
+        d3.range(numGradients - 1).map(function(i) {
+          appendNormalGradient('gradient'+i,colors.random(),colors.random());
+        });
+      // appendNormalGradient('gradient',colors.random(),colors.random());
+
+      function appendNormalGradient(id,color1,color2) {
+        var gradient = svg.append("svg:defs")
+          .append("svg:linearGradient")
+            .attr("id", id)
+            .attr("x1", "0%")
+            .attr("y1", "0%")
+            .attr("x2", "100%")
+            .attr("y2", "0%")
+            .attr("spreadMethod", "pad");
+
+        gradient.append("svg:stop")
+            .attr("offset", "0%")
+            .attr("stop-color", "#"+color1)
+            .attr("stop-opacity", 1);
+
+        gradient.append("svg:stop")
+            .attr("offset", "100%")
+            .attr("stop-color", "#"+color2)
+            // .attr("stop-color", "#FFF")
+            .attr("stop-opacity", 0);
+      }
+
 
         return svg;
       },
