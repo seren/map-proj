@@ -7,10 +7,21 @@ var illumap = (function() {
 
     var redrawPending = true;
 
+    var colors = new Colors();
+    var numGradients = 20;
+
+
     var svg; // populated in init
 
     var d3line = d3.svg.line();
 
+    // closure that returns an incrementing
+    var gradientSelector = function gradientSelector() {
+      var i = 0;
+      return function() {
+        return (i++ % numGradients);
+      }
+    }();
 
     var svgClear = function svgClear() {
       svg.selectAll("*").remove();
@@ -39,6 +50,7 @@ var illumap = (function() {
         .attr("d", function(d) {return illumap.d3path(d.geometry) } );
 
 
+//tangent lines
       // // create a group for the way's segment's tangents, and create a tangent path for each segment
       // waygroups.append('g')
       //   .attr('class', 'tangentgroup')
@@ -53,25 +65,73 @@ var illumap = (function() {
       //     return d3line(tangentFromMidpoint(screenCoord));
       //   });
 
+//tangent box paths
+      // // create a group for the way's segment's decoration, and create a decoration path for each segment
+      // waygroups.append('g')
+      //   .attr('class', 'decorationgroup')
+      // .selectAll("path")
+      //   .data(function(feature) { return pointPairs(feature.geometry.coordinates); })
+      // .enter().append('path')
+      //   .attr('class', 'decoration')
+      //   .attr('d', function (d) {
+      //     // this produces scewed tangents
+      //     // return illumap.d3path(illumap.data.featureFromCoordinates(tangentFromMidpoint(d)).geometry);
+      //     var screenCoord = [illumap.d3projection(d[0]), illumap.d3projection(d[1])];
+      //     // return d3line(tangentFromMidpoint(screenCoord));
+      //     return d3line(rectCoordFromEdge(screenCoord[0], screenCoord[1], 10)) + 'Z';
+      //   });
 
-      // create a group for the way's segment's decoration, and create a decoration path for each segment
+
+// construct a sized rect with fill
+// apply offset and rotation
+
+      // create a group for the way's segment's decoration, and create a decoration rect for each segment
       waygroups.append('g')
         .attr('class', 'decorationgroup')
-      .selectAll("path")
+      .selectAll("g")
         .data(function(feature) { return pointPairs(feature.geometry.coordinates); })
-      .enter().append('path')
-        .attr('class', 'decoration')
-        .attr('d', function (d) {
-          // this produces scewed tangents
-          // return illumap.d3path(illumap.data.featureFromCoordinates(tangentFromMidpoint(d)).geometry);
+      .enter().append('rect')
+        .attr("rx", 1)
+        .attr("ry", 1)
+        .attr('x', function (d) {
           var screenCoord = [illumap.d3projection(d[0]), illumap.d3projection(d[1])];
-          // return d3line(tangentFromMidpoint(screenCoord));
-          return d3line(rectFromEdge(screenCoord[0], screenCoord[1], 10)) + 'Z';
+          d.rect = rectFromEdge(screenCoord[0], screenCoord[1], 10);
+          return 0;
+        })
+        .attr("y", 0)
+        .attr("width", function(d) { return d.rect.width; })
+        .attr("height", function(d) { return d.rect.height; })
+        .attr("transform", function(d) { return "translate(" + [d.rect.x,d.rect.y] +")rotate(" + d.rect.rotation + ")"; })
+        // .style("fill", d3.scale.category20c());
+        .style("fill", function() { return "url(#gradient"+ gradientSelector() +")" });
+
+        // create actualy gradient entries
+        d3.range(numGradients - 1).map(function(i) {
+          appendNormalGradient('gradient'+i,colors.random(),colors.random());
         });
+      // appendNormalGradient('gradient',colors.random(),colors.random());
 
+      function appendNormalGradient(id,color1,color2) {
+        var gradient = svg.append("svg:defs")
+          .append("svg:linearGradient")
+            .attr("id", id)
+            .attr("x1", "0%")
+            .attr("y1", "0%")
+            .attr("x2", "100%")
+            .attr("y2", "0%")
+            .attr("spreadMethod", "pad");
 
+        gradient.append("svg:stop")
+            .attr("offset", "0%")
+            .attr("stop-color", "#"+color1)
+            .attr("stop-opacity", 1);
 
-
+        gradient.append("svg:stop")
+            .attr("offset", "100%")
+            .attr("stop-color", "#"+color2)
+            // .attr("stop-color", "#FFF")
+            .attr("stop-opacity", 0);
+      }
 
       // returns a tangent line starting from the mid-point of the original line
       function tangentFromMidpoint (line) {
@@ -116,7 +176,30 @@ var illumap = (function() {
 
     };
 
-    var rectFromEdge = function rectFromEdge(p1, p2, tangentLength) {
+
+
+    var rectFromEdge = function rectCoordFromEdge(p1, p2, height) {
+      // get unit vect and scaling factor
+      // create new points from original + unitvect * scaling
+      var p0, p3, h;
+      var dx = p1[1] - p2[1];
+      var dy = p2[0] - p1[0];
+      var length = Math.sqrt(dx * dx + dy * dy);
+      if (height === undefined) {
+        height = length;
+      };
+      var angle = Math.atan2(dy,dx) * 180 / Math.PI + 180;
+      return {x:p1[0],
+              y:p1[1],
+              // height: height,
+              // width: length,
+              height: length,
+              width: height,
+              rotation: angle
+            };
+    };
+
+    var rectCoordFromEdge = function rectCoordFromEdge(p1, p2, tangentLength) {
       // get unit vect and scaling factor
       // create new points from original + unitvect * scaling
       var p0, p3, h;
@@ -132,7 +215,6 @@ var illumap = (function() {
         p0 = [p1[0] + scaledUnitv[0], p1[1] + scaledUnitv[1]];
         p3 = [p2[0] + scaledUnitv[0], p2[1] + scaledUnitv[1]];
       }
-
 // debugger
       // var h = Math.sqrt(dx * dx + dy * dy);
       // var unitv = [dx / h, dy / h];
