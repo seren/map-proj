@@ -66,7 +66,7 @@ var illumap = (function() {
           // return illumap.d3path(illumap.data.featureFromCoordinates(tangentFromMidpoint(d)).geometry);
           var screenCoord = [illumap.d3projection(d[0]), illumap.d3projection(d[1])];
           // return d3line(tangentFromMidpoint(screenCoord));
-          return d3line(rectFromEdge(screenCoord[0], screenCoord[1])) + 'Z';
+          return d3line(rectFromEdge(screenCoord[0], screenCoord[1], 10)) + 'Z';
         });
 
 
@@ -116,14 +116,23 @@ var illumap = (function() {
 
     };
 
-    var rectFromEdge = function rectFromEdge(p1, p2) {
+    var rectFromEdge = function rectFromEdge(p1, p2, tangentLength) {
       // get unit vect and scaling factor
       // create new points from original + unitvect * scaling
+      var p0, p3, h;
       var dx = p1[1] - p2[1];
       var dy = p2[0] - p1[0];
-      var h = Math.sqrt(dx * dx + dy * dy);
-      var p0 = [p1[0] + dx, p1[1] + dy];
-      var p3 = [p2[0] + dx, p2[1] + dy];
+      if (tangentLength === undefined) {
+        p0 = [p1[0] + dx, p1[1] + dy];
+        p3 = [p2[0] + dx, p2[1] + dy];
+      } else {
+        h = Math.sqrt(dx * dx + dy * dy);
+        scaleFactor = h / tangentLength;
+        scaledUnitv = [dx / scaleFactor, dy / scaleFactor];
+        p0 = [p1[0] + scaledUnitv[0], p1[1] + scaledUnitv[1]];
+        p3 = [p2[0] + scaledUnitv[0], p2[1] + scaledUnitv[1]];
+      }
+
 // debugger
       // var h = Math.sqrt(dx * dx + dy * dy);
       // var unitv = [dx / h, dy / h];
