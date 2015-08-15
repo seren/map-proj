@@ -87,10 +87,7 @@ var illumap = (function() {
       .selectAll("g")
         .data(function(feature) {
           return pointPairs(feature.geometry.coordinates).map(function(pp) {
-            return {
-              point: pp,
-              id: feature.id
-            };
+            return {point: pp, id: feature.id };
           })
         })
       .enter().append('rect')
@@ -111,7 +108,8 @@ var illumap = (function() {
         // colors way segments differently. not stable if the way has segments removed
         .style("fill", function(d, i) {return "url(#gradient"+ ((d.id + i) % numGradients) +")" });
 
-
+console.log('finished drawing decorations');
+console.log('mutation count: '+illumap.data.mutationSequence.length);
       // returns a tangent line starting from the mid-point of the original line
       function tangentFromMidpoint (line) {
         var p1 = line[0];

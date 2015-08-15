@@ -68,6 +68,8 @@ path {
     <input type="checkbox" id='repulsecheckbox' checked>drag-repulse</input>
   </label>
   <a class="button" id='resetbutton'>reset</a>
+  <a class="button" steps=1 id='undobutton'>undo</a>
+  <a class="button" steps=20 id='undobutton20'>undo 20</a>
   <a class="button" id='replaybutton'>replay mutations</a>
   <a class="button" id='reloadbutton'>reload</a>
   <input type="text" id="location">
@@ -96,6 +98,10 @@ d3.select('#mondrianizebutton')
   .on('click', illumap.mutateMondrianize);
 d3.select('#pmeshbutton')
   .on('click', illumap.mutateProgressiveMesh);
+d3.select('#undobutton')
+  .on('click', illumap.undo);
+d3.select('#undobutton20')
+  .on('click', illumap.undo);
 d3.select('#resetbutton')
   .on('click', illumap.reset);
 d3.select('#replaybutton')

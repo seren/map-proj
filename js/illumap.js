@@ -223,7 +223,6 @@ console.log('translation: '+illumap.d3projection.translate()+' -> '+zoomBehavior
 
 
 
-  // var d3line = d3.svg.line();
 
   this.tileCache = {};
   this.loadTileCache = function() {
@@ -364,6 +363,11 @@ console.log('translation: '+illumap.d3projection.translate()+' -> '+zoomBehavior
 
   this.reset = function reset() {
     illumap.data.reset();
+    illumap.svgDrawRaw();
+  };
+
+  this.undo = function undo() {
+    illumap.data.undo(parseInt(this.attributes.steps.value));
     illumap.svgDrawRaw();
   };
 

@@ -232,7 +232,7 @@ oldEdgeCount = g.edgeCount();
           repulsionPoint: mutationSequence[i].repulsionPoint,
           addToReplay: false
         });
-        illumap.graphics.svgDraw();
+        // illumap.graphics.svgDraw();
         // illumap.graphics.requestRedraw();
       }
     };
@@ -524,6 +524,13 @@ featureNodes: function() { return featureNodes; },
       reload: function reload() {
         loadGeojsonFromServer();
         console.log('Reloading data from server');
+      },
+
+      undo: function undo(stepsToUndo) {
+        console.log('Undoing '+stepsToUndo+' steps');
+        mutationSequence.length = Math.max(0, mutationSequence.length - stepsToUndo);
+        this.reset();
+        replayMutations();
       },
 
 
