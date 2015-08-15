@@ -13,6 +13,10 @@ var illumap = (function() {
     var svg; // populated in init
 
     var d3line = d3.svg.line();
+    var d3arcline = d3.svg.line()
+        .interpolate(function(points) { return points.join("A 1,1 0 0 1 "); })
+        .x(function(d) { return x(d.x); })
+        .y(function(d) { return y(d.y); });
 
     var svgClear = function svgClear() {
 // debugger

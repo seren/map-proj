@@ -5,7 +5,6 @@ var Node = function(args) {
   this.intersection = (args['intersection'] === undefined) ? false : args['intersection'];
   this.wayEnd = (args['wayEnd'] === undefined) ? false : args['wayEnd'];
   this.wayIds = (args['wayIds'] === undefined) ? [] : args['wayIds'];
-
   this._coordinates = (args['coordinates'] === undefined) ? [] : args['coordinates'];
 };
 
