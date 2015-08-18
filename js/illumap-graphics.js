@@ -9,6 +9,7 @@ var illumap = (function() {
 
     var colors = new Colors();
     var numGradients = 200;
+    var decorationStrokeLength = 20;
 
     var svg; // populated in init
 
@@ -93,13 +94,13 @@ var illumap = (function() {
       .enter().append('rect')
         .attr("rx", 1)
         .attr("ry", 1)
-        .attr('x', function (d) {
-          var screenCoord = [illumap.d3projection(d.point[0]), illumap.d3projection(d.point[1])];
-          d.rect = rectFromEdge(screenCoord[0], screenCoord[1], 10);
-          return 0;
-        })
+        .attr('x', 0)
         .attr("y", 0)
-        .attr("width", function(d) { return d.rect.width; })
+        .attr("width", function(d) {
+          var screenCoord = [illumap.d3projection(d.point[0]), illumap.d3projection(d.point[1])];
+          d.rect = rectFromEdge(screenCoord[0], screenCoord[1], decorationStrokeLength);
+          return d.rect.width;
+        })
         .attr("height", function(d) { return d.rect.height; })
         .attr("transform", function(d) { return "translate(" + [d.rect.x,d.rect.y] +")rotate(" + d.rect.rotation + ")"; })
         // .style("fill", d3.scale.category20c());
@@ -161,7 +162,9 @@ console.log('mutation count: '+illumap.data.mutationSequence.length);
       var length = Math.sqrt(dx * dx + dy * dy);
       if (height === undefined) {
         height = length;
-      };
+      } else {
+        height = Math.min(height, length);
+      }
       var angle = Math.atan2(dy,dx) * 180 / Math.PI + 180;
       return {x:p1[0],
               y:p1[1],
@@ -237,6 +240,7 @@ console.log('mutation count: '+illumap.data.mutationSequence.length);
           svg = d3.select(".container").append("svg")
               .attr("width", this.width)
               .attr("height", this.height);
+              // .attr('class', 'svg');
         }
 
         // create actual gradient entries
