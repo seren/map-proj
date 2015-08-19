@@ -24,6 +24,7 @@ var illumap = (function() {
       svg.selectAll(".waygroup").remove();
     };
 
+
     var svgDraw = function svgDraw(paths) {
       if (paths === undefined) {
         console.log('no data passed to draw. drawing mutated');
@@ -40,14 +41,9 @@ var illumap = (function() {
           .attr('class', 'waygroup')
           .attr('wayid', function(d) { return d.id; });
 
-      // add the way path
-      waygroups.append('g')
-        .attr("class", function(d) { return 'waypath ' + ((d && d.properties && d.properties.kind) || 'generic'); })
-      .append('path')
-        .attr("d", function(d) {return illumap.d3path(d.geometry) } );
 
 
-//tangent lines
+// //tangent lines
       // // create a group for the way's segment's tangents, and create a tangent path for each segment
       // waygroups.append('g')
       //   .attr('class', 'tangentgroup')
@@ -56,13 +52,13 @@ var illumap = (function() {
       // .enter().append('path')
       //   .attr('class', 'tan')
       //   .attr('d', function (d) {
-      //     // this produces scewed tangents
+      //     // this produces skewed tangents
       //     // return illumap.d3path(illumap.data.featureFromCoordinates(tangentFromMidpoint(d)).geometry);
       //     var screenCoord = [illumap.d3projection(d[0]), illumap.d3projection(d[1])];
       //     return d3line(tangentFromMidpoint(screenCoord));
       //   });
 
-//tangent box paths
+// //tangent box paths
       // // create a group for the way's segment's decoration, and create a decoration path for each segment
       // waygroups.append('g')
       //   .attr('class', 'decorationgroup')
@@ -71,7 +67,7 @@ var illumap = (function() {
       // .enter().append('path')
       //   .attr('class', 'decoration')
       //   .attr('d', function (d) {
-      //     // this produces scewed tangents
+      //     // this produces skewed tangents
       //     // return illumap.d3path(illumap.data.featureFromCoordinates(tangentFromMidpoint(d)).geometry);
       //     var screenCoord = [illumap.d3projection(d[0]), illumap.d3projection(d[1])];
       //     // return d3line(tangentFromMidpoint(screenCoord));
@@ -108,6 +104,13 @@ var illumap = (function() {
         // .style("fill", function(d, i) {return "url(#gradient"+ ((d.id + i) % numGradients) +")" });
         // colors way segments differently. not stable if the way has segments removed
         .style("fill", function(d, i) {return "url(#gradient"+ ((d.id + i) % numGradients) +")" });
+
+
+      // add the way path
+      waygroups.append('g')
+        .attr("class", function(d) { return 'waypath ' + ((d && d.properties && d.properties.kind) || 'generic'); })
+      .append('path')
+        .attr("d", function(d) {return illumap.d3path(d.geometry) } );
 
 console.log('finished drawing decorations');
 console.log('mutation count: '+illumap.data.mutationSequence.length);
