@@ -79,7 +79,7 @@ var illumap = (function() {
 // apply offset and rotation
 
       // create a group for the way's segment's decoration, and create a decoration rect for each segment
-      waygroups.append('g')
+      var gg = waygroups.append('g')
         .attr('class', 'decorationgroup')
       .selectAll("g")
         .data(function(feature) {
@@ -87,17 +87,18 @@ var illumap = (function() {
             return {point: pp, id: feature.id };
           })
         })
-      .enter().append('rect')
-        .attr("rx", 1)
-        .attr("ry", 1)
-        .attr('x', 0)
-        .attr("y", 0)
+
+      gg.enter().append('rect')
         .attr("width", function(d) {
           var screenCoord = [illumap.d3projection(d.point[0]), illumap.d3projection(d.point[1])];
           d.rect = rectFromEdge(screenCoord[0], screenCoord[1], decorationStrokeLength);
           return d.rect.width;
         })
         .attr("height", function(d) { return d.rect.height; })
+        .attr("rx", 1)
+        .attr("ry", 1)
+        .attr("x", 0)
+        .attr("y", 0)
         .attr("transform", function(d) { return "translate(" + [d.rect.x,d.rect.y] +")rotate(" + d.rect.rotation + ")"; })
         // .style("fill", d3.scale.category20c());
         // colors way segments all the same
@@ -105,6 +106,26 @@ var illumap = (function() {
         // colors way segments differently. not stable if the way has segments removed
         .style("fill", function(d, i) {return "url(#gradient"+ ((d.id + i) % numGradients) +")" });
 
+      // // add opposite-side decoration stroke
+      // gg.enter().append('rect')
+      //   .attr("width", function(d) {
+      //     // var screenCoord = [illumap.d3projection(d.point[0]), illumap.d3projection(d.point[1])];
+      //     // d.rect = rectFromEdge(screenCoord[0], screenCoord[1], decorationStrokeLength);
+      //     return d.rect.width;
+      //   })
+      //   .attr("height", function(d) { return d.rect.height; })
+      //   .attr("rx", 1)
+      //   .attr("ry", 1)
+      //   .attr('x', 0)
+      //   // .attr('x', function(d) { return 1 * d.rect.width; })
+      //   // .attr("y", 0)
+      //   .attr('y', function(d) { return -1 * d.rect.height; })
+      //   .attr("transform", function(d) { return "translate(" + [d.rect.x,d.rect.y] +")rotate(" + (d.rect.rotation + 180) + ")"; })
+      //   // .style("fill", d3.scale.category20c());
+      //   // colors way segments all the same
+      //   // .style("fill", function(d, i) {return "url(#gradient"+ ((d.id + i) % numGradients) +")" });
+      //   // colors way segments differently. not stable if the way has segments removed
+      //   .style("fill", function(d, i) {return "url(#gradient"+ ((d.id + i) % numGradients) +")" });
 
       // add the way path
       waygroups.append('g')
