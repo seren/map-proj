@@ -287,6 +287,31 @@ console.log("running loadTileFromServer");
           console.log('found tile '+tileurlpath+' in cache');
           updateBucket(illumap.tileCache[tileurlpath]);
         } else {
+
+// // TODO: new work flow to handle asynchronous downloads and rebuilds
+// increment counter
+// async download:
+  // if !failed
+  //   add data to tempstore
+//   decrement counter
+//   if counter = 0
+//     reset timesincelastrebuild
+//     call Doit
+//   if counter > 0
+//     if timesincelastrebuild < 12?
+//       increment timesincelastrebuild
+//     else
+//       reset timesincelastrebuild
+//       Doit
+//   if counter < 0
+//     error
+
+// Doit:
+//   merge tempstore with datastore
+//   trigger rebuild
+//   trigger redraw
+
+
  console.log('openstreetmap vectices currently unavailable');
           // d3.json( tileserver + tileurlpath , function(error, json) {  // this is asynchronous
           //   if (json) {
