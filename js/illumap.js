@@ -77,7 +77,6 @@ function Illumap() {
       .projection(this.d3projection);
 
   var container = d3.select('.container');
-  var repulseCheckbox = d3.select('#repulsecheckbox');
 
   var zoomBehavior = d3.behavior.zoom()
     .scale(this.d3projection.scale() * 2 * Math.PI)
@@ -102,17 +101,68 @@ function Illumap() {
     container.call(dragBehavior);
   }
 
+  // Set up control panel actions
+
   function toggleSlippy() {
     // debugger
-    var container = d3.select('.container');
-    if (d3.select('#repulsecheckbox').property('checked')) {
+    // var container = d3.select('.container');
+    // if (d3.select('#repulsecheckbox').property('checked')) {
+    if (d3.select('#'+this.id).property('checked')) {
       enableDrag();
     } else {
       enableZoom();
     }
   }
+  // var repulseCheckbox = d3.select('#repulsecheckbox');
+  // repulseCheckbox.on('change', toggleSlippy);
+  // var repulseCheckbox = d3.select('#repulsecheckbox');
+  d3.select('#repulsecheckbox').on('change', toggleSlippy);
 
-  repulseCheckbox.on('change', toggleSlippy);
+  function toggleHighlights() {
+    // debugger
+    console.log('button ' + this.id + ' triggered a recalc of node visiblility');
+    // var checked = d3.selectAll('.highlightCheckbox').property('checked');
+
+    var checkedAllNodes = d3.select('#highlightAllNodes').property('checked');
+    var checkedIntersections = d3.select('#highlightIntersections').property('checked');
+    var checkedEndpoints = d3.select('#highlightEndpoints').property('checked');
+
+    // build a function to feed all nodes into
+    var checkerFunction = (function checkerFunction(checkedAllNodes, checkedIntersections, checkedEndpoints) {
+      var all = checkedAllNodes;
+      var intersections = checkedIntersections;
+      var endpoints = checkedEndpoints;
+      return function(node) {
+        node.visible = all || (intersections && node.intersection) || (endpoints && node.intersection);
+      }
+    }(checkedAllNodes, checkedIntersections, checkedEndpoints));
+
+    // run against all nodes (todo)
+    // illumap.data.modifyNodes(checkerFunction);
+  }
+  d3.selectAll('.highlightCheckbox').on('change', toggleHighlights);
+
+  function toggleFrozen() {
+    // debugger
+    console.log('button ' + this.id + ' triggered a recalc of node mobility');
+    // var checked = d3.selectAll('.freezeCheckbox').property('checked');
+
+    var checkedIntersections = d3.select('#freezeIntersections').property('checked');
+    var checkedEndpoints = d3.select('#freezeEndpoints').property('checked');
+
+    // build a function to feed all nodes into
+    var checkerFunction = (function checkerFunction(checkedIntersections, checkedEndpoints) {
+      var intersections = checkedIntersections;
+      var endpoints = checkedEndpoints;
+      return function(node) {
+        node.frozen = (intersections && node.intersection) || (endpoints && node.intersection);
+      }
+    }(checkedIntersections, checkedEndpoints));
+
+    // run against all nodes (todo)
+    // illumap.data.modifyNodes(checkerFunction);
+  }
+  d3.selectAll('.freezeCheckbox').on('change', toggleFrozen);
 
 
 function dragged(d) {
@@ -311,6 +361,32 @@ console.log('translation: '+illumap.d3projection.translate()+' -> '+zoomBehavior
     return this;
   };
 
+  this.buttonAction = function buttonAction() {
+// debugger
+    var action = this.attributes.action.value;
+    var cases = {
+      relax: illumap.mutateRelax,
+      mondrianize: illumap.mutateMondrianize,
+      progressivemesh: illumap.mutateProgressiveMesh,
+      rdp: illumap.mutateRDP,
+      undo: function() { illumap.undo(parseInt(this.attributes.steps.value)); },
+      reset: illumap.reset,
+      replay: illumap.replay,
+      drawraw: illumap.svgDrawRaw,
+      drawmutated: illumap.drawMutated,
+      reload: illumap.reload,
+      save: function() { illumap.save(parseInt(this.attributes.format.value)); },
+      _default: function() {
+        console.log("Action: "+action+" unknown. Button press ignored.");
+      }
+    };
+    var func = cases[action] ? cases[action] : cases._default;
+    func.call(this);
+    // hide the button's parent container if requested
+    if (this.attributes.hideparent.value === 'true') {
+      this.parentElement.style.display = 'none';
+    }
+  };
 
   this.svgDrawRaw = function svgDrawRaw() {
 // debugger
@@ -366,8 +442,8 @@ console.log('translation: '+illumap.d3projection.translate()+' -> '+zoomBehavior
     illumap.svgDrawRaw();
   };
 
-  this.undo = function undo() {
-    illumap.data.undo(parseInt(this.attributes.steps.value));
+  this.undo = function undo(count) {
+    illumap.data.undo(count);
     illumap.svgDrawRaw();
   };
 
@@ -376,7 +452,11 @@ console.log('translation: '+illumap.d3projection.translate()+' -> '+zoomBehavior
     illumap.svgDrawRaw();
   };
 
-
+  this.save = function save(format) {
+    var formats = ["png","svg","link","text"];
+    // todo: check if valid format
+    // todo: save various forms
+  }
 
 
 
@@ -404,6 +484,10 @@ console.log('translation: '+illumap.d3projection.translate()+' -> '+zoomBehavior
       // illumap.svgDrawRaw();
       // illumap.graphics.svgClear();
       // svgDrawRaw();
+
+      d3.selectAll('.actionButton')
+        .on('click', illumap.buttonAction);
+
 
       // d3.select('#location').on("keydown", illumap.setLocationFromBox);
       d3.select('#location').call(d3.keybinding()
@@ -441,3 +525,4 @@ console.log('translation: '+illumap.d3projection.translate()+' -> '+zoomBehavior
 }
 
 var illumap = new Illumap();
+

@@ -4,35 +4,70 @@
 
 body {
   margin: 0;
+  font-family:Arial;
 }
 
-.button {
-  outline: none;
-/*  display: block;
-*/  width: 100px;
-  padding: 6px 10px;
-  text-align: center;
-  border: 1px solid #ddd;
-  border-bottom: 1px solid #aaa;
-  border-right: 1px solid #aaa;
-  background-color: #ccc;
-  background-repeat: repeat-x;
-  background-position: left top;
-  font-size: 14px;
-  text-shadow: 1px 1px 1px #fff;
-  font-weight: bold;
-  height: 22px;
-  line-height: 1.5em;
-  margin-bottom: 6px;
+.myButton {
+  /*-moz-box-shadow: 0px 10px 14px -7px #276873;*/
+  /*-webkit-box-shadow: 0px 10px 14px -7px #276873;*/
+  box-shadow: 0px 10px 14px -7px #276873;
+  background-color:#599bb3;
+  /*-moz-border-radius:8px;*/
+  /*-webkit-border-radius:8px;*/
+  border-radius:8px;
+  display:inline-block;
+  cursor:pointer;
+  color:#ffffff;
+  /*font-family:Arial;*/
+  font-size:14px;
+  /*font-weight:bold;*/
+  padding:2px 6px;
+  text-decoration:none;
+  text-shadow:0px 1px 0px #3d768a;
 }
+.myButton:hover {
+  background-color:#408c99;
+}
+.myButton:active {
+  position:relative;
+  top:1px;
+}
+
+
+
+
+.container {
+  position: absolute;
+}
+
+.controls {
+  /*background-color: rgba(255, 255, 255, .7);*/
+  /*-moz-box-shadow: 10px 10px 10px 5px #FFF;*/
+  /*-webkit-box-shadow: 10px 10px 10px 5px #FFF;*/
+  box-shadow: 0px 0px 5px 5px #FFF;
+  background-color: #FFF;
+  margin: 5px;
+  /*padding: 5px;*/
+  border-radius: 8px;
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+.control_panel {
+  padding: 5px;
+}
+
+.buttonGroup {
+  border: 2px;
+  border-color: 'black';
+  margin: 5px;
+}
+
 
 .svg {
   position: absolute;
   overflow: hidden;
-}
-
-.container {
-  position: absolute;
 }
 
 .info {
@@ -59,20 +94,95 @@ path {
 </style>
 <body>
 <div class="container">
-  <a class="button" id='drawrawbutton'>draw raw</a>
-  <a class="button" id='drawrawmutatedbutton'>draw mutated</a>
-  <a class="button" id='relaxbutton'>mutate: relax</a>
-  <a class="button" id='mondrianizebutton'>mutate: mondrian</a>
-  <a class="button" id='pmeshbutton'>mutate: progressive mesh</a>
-  <label>
-    <input type="checkbox" id='repulsecheckbox' checked>drag-repulse</input>
-  </label>
-  <a class="button" id='resetbutton'>reset</a>
-  <a class="button" steps=1 id='undobutton'>undo</a>
-  <a class="button" steps=20 id='undobutton20'>undo 20</a>
-  <a class="button" id='replaybutton'>replay mutations</a>
-  <a class="button" id='reloadbutton'>reload</a>
-  <input type="text" id="location">
+  <div class="controls">
+
+    <div class="controls_basic control_panel" id="basic">
+      <a class="myButton actionButton control_mutate" action="relax" id='relaxbutton'>Relax</a>
+      <a class="myButton actionButton control_mutate" action="mondrianize" id='mondrianizebutton'>Mondrianize</a>
+      <a class="myButton actionButton control_mutate" action="progressivemesh" id='pmeshbutton'>Progressive Mesh</a>
+      <a class="myButton actionButton control_mutate" action="rdp" id='rdpbutton'>Ramer-Douglas-Peucker</a>
+      <div class="myButton"> <label>
+        <input type="checkbox" class="control_mutate" id='repulsecheckbox' checked>Drag-Repulsion</input>
+      </label> </div>
+      <a class="myButton panelButton" id='colorbutton'>Colors</a>
+      <input type="text" id="location">
+      <a class="myButton actionButton" action="undo" steps=1 id='undobutton'>undo</a>
+      <a class="myButton actionButton" action="reset" id='resetbutton'>reset</a>
+      <a class="myButton panelButton" id='advancedbutton'>advanced</a>
+    </div>
+
+    <div class="controls_color control_panel" id="colorcontrols" style="display: none">
+      Color picker
+    </div>
+
+    <div class="controls_advanced control_panel" id="advancedcontrols" style="display: none">
+      <div class="buttonGroup freezeButtons">
+        Freeze:
+        <div class="myButton"> <label> <input type="checkbox" class="freezeCheckbox" id='freezeEndpoints'>Endpoints</input> </label> </div>
+        <div class="myButton"> <label> <input type="checkbox" class="freezeCheckbox" id='freezeIntersections'>Intersections</input> </label> </div>
+      </div>
+      <div class="buttonGroup highlightButtons">
+        Highlight:
+        <div class="myButton"> <label> <input type="checkbox" class="highlightCheckbox" id='highlightAllNodes'>All Nodes</input> </label> </div>
+        <div class="myButton"> <label> <input type="checkbox" class="highlightCheckbox" id='highlightEndpoints'>Endpoints</input> </label> </div>
+        <div class="myButton"> <label> <input type="checkbox" class="highlightCheckbox" id='highlightIntersections'>Intersections</input> </label> </div>
+      </div>
+      <a class="myButton actionButton" action="share">Share Map</a>
+      <a class="myButton panelButton" id='savebutton'>Save Map</a>
+      <a class="myButton panelButton" id='loadbutton'>Load Saved Map</a>
+      <a class="myButton panelButton" id='debugbutton'>debug</a>
+<!--
+        <a class="myButton actionButton" action=""></a>
+        <a class="myButton actionButton" action=""></a>
+ -->
+
+
+    <div class="controls_save control_panel" id="savecontrols" style="display: none">
+      <a class="myButton actionButton" action="save" hideparent="true" format="png">PNG</a>
+      <a class="myButton actionButton" action="save" hideparent="true" format="svg">SVG</a>
+      <a class="myButton actionButton" action="save" hideparent="true" format="link">Link</a>
+      <a class="myButton actionButton" action="save" hideparent="true" format="text">Text</a>
+    </div>
+
+    <div class="controls_load control_panel" id="loadcontrols" style="display: none">
+      <a class="myButton actionButton" action="load" hideparent="true" format="link">Link</a>
+      <a class="myButton actionButton" action="load" hideparent="true" format="text">Saved Text</a>
+    </div>
+
+<!--
+freeze
+  endpoints
+  intersections
+highlight
+  all nodes
+  endpoints
+  intersections
+share
+  link
+save
+  PNG
+  SVG
+  Link
+  Text
+load
+  link
+  saved-text
+find
+stylize
+
+ -->
+
+      <div class="controls_debug control_panel" id="debugcontrols" style="display: none">
+        <a class="myButton actionButton" id='drawrawbutton'>draw raw</a>
+        <a class="myButton actionButton" id='drawrawmutatedbutton'>draw mutated</a>
+        <a class="myButton actionButton" id='replaybutton'>replay mutations</a>
+        <a class="myButton actionButton" id='reloadbutton'>reload</a>
+        <a class="myButton actionButton" steps=20 id='undobutton20'>undo 20</a>
+        <a class="myButton actionButton" id='flushcache'>flush cache</a>
+      </div>
+    </div>
+
+  </div>
 </div>
 
 
@@ -92,28 +202,57 @@ path {
 <script src="js/illumap-testdata.js"></script>
 
 <script type="text/javascript">
-d3.select('#relaxbutton')
-  .on('click', illumap.mutateRelax);
-d3.select('#mondrianizebutton')
-  .on('click', illumap.mutateMondrianize);
-d3.select('#pmeshbutton')
-  .on('click', illumap.mutateProgressiveMesh);
-d3.select('#undobutton')
-  .on('click', illumap.undo);
-d3.select('#undobutton20')
-  .on('click', illumap.undo);
-d3.select('#resetbutton')
-  .on('click', illumap.reset);
-d3.select('#replaybutton')
-  .on('click', illumap.replay);
-d3.select('#drawrawbutton')
-  .on('click', illumap.svgDrawRaw);
-d3.select('#drawrawmutatedbutton')
-  .on('click', illumap.drawMutated);
-d3.select('#reloadbutton')
-  .on('click', illumap.reload);
+// d3.select('.myButton')
+//   .on('click', illumap.buttonAction);
+
+// d3.select('#relaxbutton')
+//   .on('click', illumap.mutateRelax);
+// d3.select('#mondrianizebutton')
+//   .on('click', illumap.mutateMondrianize);
+// d3.select('#pmeshbutton')
+//   .on('click', illumap.mutateProgressiveMesh);
+// d3.select('#undobutton')
+//   .on('click', illumap.undo);
+// d3.select('#undobutton20')
+//   .on('click', illumap.undo);
+// d3.select('#resetbutton')
+//   .on('click', illumap.reset);
+// d3.select('#replaybutton')
+//   .on('click', illumap.replay);
+// d3.select('#drawrawbutton')
+//   .on('click', illumap.svgDrawRaw);
+// d3.select('#drawrawmutatedbutton')
+//   .on('click', illumap.drawMutated);
+// d3.select('#reloadbutton')
+//   .on('click', illumap.reload);
+
+
+// panel expanding code
+d3.selectAll('.panelButton')
+  .on('click', function(button) {
+    // var buttonDivMap = {
+    //   debugbutton: 'debugcontrols',
+    //   advancedbutton: 'advancedcontrols'
+    //   savebutton: 'savecontrols'
+    // }
+    var r = /(.*)button/
+    var controlpanel = r.exec(this.id)[1] + 'controls';
+    var div = document.getElementById(controlpanel);
+// debugger
+    if (div.style.display !== 'none') {
+      div.style.display = 'none';
+    } else {
+      div.style.display = 'block';
+    }
+    // if (div.style.display !== 'none') {
+    //     div.style.display = 'none';
+    // }
+    // else {
+    //     div.style.display = 'block';
+    // }
+  });
+
 
 </script>
-
 </body>
 </html>
