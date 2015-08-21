@@ -52,8 +52,8 @@ function Illumap() {
   // // Register the "custom" namespace prefix for our custom elements.
   // d3.ns.prefix.custom = "http://illumap.org/dom";
 
-  this.width = Math.max(960, window.innerWidth);
-  this.height = Math.max(500, window.innerHeight);
+  this.width = Math.max(960, window.innerWidth) - 5;
+  this.height = Math.max(500, window.innerHeight) - 5;
   this.prefix = prefixMatch(["webkit", "ms", "Moz", "O"]);
 
   function prefixMatch(p) {
