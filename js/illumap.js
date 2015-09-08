@@ -439,17 +439,20 @@ console.log('translation: '+illumap.d3projection.translate()+' -> '+zoomBehavior
 
   this.reset = function reset() {
     illumap.data.reset();
-    illumap.svgDrawRaw();
+    illumap.drawMutated();
+    // illumap.svgDrawRaw();
   };
 
   this.undo = function undo(count) {
     illumap.data.undo(count);
-    illumap.svgDrawRaw();
+    illumap.drawMutated();
+    // illumap.svgDrawRaw();
   };
 
   this.reload = function reload() {
     illumap.data.reload();
-    illumap.svgDrawRaw();
+    illumap.drawMutated();
+    // illumap.svgDrawRaw();
   };
 
   this.save = function save(format) {
