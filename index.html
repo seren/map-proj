@@ -131,11 +131,6 @@ path {
       <a class="myButton panelButton" id='savebutton'>Save Map</a>
       <a class="myButton panelButton" id='loadbutton'>Load Saved Map</a>
       <a class="myButton panelButton" id='debugbutton'>debug</a>
-<!--
-        <a class="myButton actionButton" action=""></a>
-        <a class="myButton actionButton" action=""></a>
- -->
-
 
     <div class="controls_save control_panel" id="savecontrols" style="display: none">
       <a class="myButton actionButton" action="save" hideparent="true" format="png">PNG</a>
@@ -148,29 +143,6 @@ path {
       <a class="myButton actionButton" action="load" hideparent="true" format="link">Link</a>
       <a class="myButton actionButton" action="load" hideparent="true" format="text">Saved Text</a>
     </div>
-
-<!--
-freeze
-  endpoints
-  intersections
-highlight
-  all nodes
-  endpoints
-  intersections
-share
-  link
-save
-  PNG
-  SVG
-  Link
-  Text
-load
-  link
-  saved-text
-find
-stylize
-
- -->
 
       <div class="controls_debug control_panel" id="debugcontrols" style="display: none">
         <a class="myButton actionButton" id='drawrawbutton'>draw raw</a>
@@ -202,54 +174,18 @@ stylize
 <script src="js/illumap-testdata.js"></script>
 
 <script type="text/javascript">
-// d3.select('.myButton')
-//   .on('click', illumap.buttonAction);
-
-// d3.select('#relaxbutton')
-//   .on('click', illumap.mutateRelax);
-// d3.select('#mondrianizebutton')
-//   .on('click', illumap.mutateMondrianize);
-// d3.select('#pmeshbutton')
-//   .on('click', illumap.mutateProgressiveMesh);
-// d3.select('#undobutton')
-//   .on('click', illumap.undo);
-// d3.select('#undobutton20')
-//   .on('click', illumap.undo);
-// d3.select('#resetbutton')
-//   .on('click', illumap.reset);
-// d3.select('#replaybutton')
-//   .on('click', illumap.replay);
-// d3.select('#drawrawbutton')
-//   .on('click', illumap.svgDrawRaw);
-// d3.select('#drawrawmutatedbutton')
-//   .on('click', illumap.drawMutated);
-// d3.select('#reloadbutton')
-//   .on('click', illumap.reload);
-
 
 // panel expanding code
 d3.selectAll('.panelButton')
   .on('click', function(button) {
-    // var buttonDivMap = {
-    //   debugbutton: 'debugcontrols',
-    //   advancedbutton: 'advancedcontrols'
-    //   savebutton: 'savecontrols'
-    // }
     var r = /(.*)button/
     var controlpanel = r.exec(this.id)[1] + 'controls';
     var div = document.getElementById(controlpanel);
-// debugger
     if (div.style.display !== 'none') {
       div.style.display = 'none';
     } else {
       div.style.display = 'block';
     }
-    // if (div.style.display !== 'none') {
-    //     div.style.display = 'none';
-    // }
-    // else {
-    //     div.style.display = 'block';
-    // }
   });
 
 

@@ -94,7 +94,7 @@ var illumap = (function() {
           d.rect = rectFromEdge(screenCoord[0], screenCoord[1], decorationStrokeLength);
           return d.rect.width;
         })
-        .attr("height", function(d) { return d.rect.height; })
+        .attr("height", function(d) { return d.rect.height;})
         .attr("rx", 1)
         .attr("ry", 1)
         .attr("x", 0)
