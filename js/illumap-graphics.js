@@ -25,23 +25,16 @@ var illumap = (function() {
     };
 
 
-    var svgDraw = function svgDraw(paths) {
-      if (paths === undefined) {
-        console.log('no data passed to draw. drawing mutated');
-        paths = illumap.data.getMutatedPaths();
-      }
-// debugger
-      console.log('in svgDraw, drawing ' + paths.length + ' paths');
-      svgClear();
-
-      // create groups for each line and its tangents
-      var waygroups = svg.selectAll('.waygroup')
-          .data(paths)
-        .enter().append('g')
-          .attr('class', 'waygroup')
-          .attr('wayid', function(d) { return d.id; });
-
-
+    function decorate (waygroups) {
+      // create a group for the way's segment's decoration, and create a decoration rect for each segment
+      var gg = waygroups.append('g')
+        .attr('class', 'decorationgroup')
+      .selectAll("g")
+        .data(function(feature) {
+          return pointPairs(feature.geometry.coordinates).map(function(pp) {
+            return {point: pp, id: feature.id };
+          })
+        })
 
 // //tangent lines
       // // create a group for the way's segment's tangents, and create a tangent path for each segment
@@ -75,18 +68,6 @@ var illumap = (function() {
       //   });
 
 
-// construct a sized rect with fill
-// apply offset and rotation
-
-      // create a group for the way's segment's decoration, and create a decoration rect for each segment
-      var gg = waygroups.append('g')
-        .attr('class', 'decorationgroup')
-      .selectAll("g")
-        .data(function(feature) {
-          return pointPairs(feature.geometry.coordinates).map(function(pp) {
-            return {point: pp, id: feature.id };
-          })
-        })
 
       gg.enter().append('rect')
         .attr("width", function(d) {
@@ -127,12 +108,6 @@ var illumap = (function() {
       //   // colors way segments differently. not stable if the way has segments removed
       //   .style("fill", function(d, i) {return "url(#gradient"+ ((d.id + i) % numGradients) +")" });
 
-      // add the way path
-      waygroups.append('g')
-        .attr("class", function(d) { return 'waypath ' + ((d && d.properties && d.properties.kind) || 'generic'); })
-      .append('path')
-        .attr("d", function(d) {return illumap.d3path(d.geometry) } );
-
 console.log('finished drawing decorations');
 console.log('mutation count: '+illumap.data.mutationSequence.length);
       // returns a tangent line starting from the mid-point of the original line
@@ -171,9 +146,35 @@ console.log('mutation count: '+illumap.data.mutationSequence.length);
           return [coordinates[i], coordinates[i + 1]];
         });
       }
+    }
 
+    function drawLines (waygroups) {
+      // add the way path
+      waygroups.append('g')
+        .attr("class", function(d) { return 'waypath ' + ((d && d.properties && d.properties.kind) || 'generic'); })
+      .append('path')
+        .attr("d", function(d) {return illumap.d3path(d.geometry) } );
+    }
 
+    var svgDraw = function svgDraw(paths) {
+      if (paths === undefined) {
+        console.log('no data passed to draw. drawing mutated');
+        paths = illumap.data.getMutatedPaths();
+      }
+// debugger
+      console.log('in svgDraw, drawing ' + paths.length + ' paths');
+      svgClear();
 
+      // create groups for each line and its tangents
+      var waygroups = svg.selectAll('.waygroup')
+          .data(paths)
+        .enter().append('g')
+          .attr('class', 'waygroup')
+          .attr('wayid', function(d) { return d.id; });
+
+      decorate(waygroups);
+      drawLines(waygroups);
+      // labelLines(waygroups);
     };
 
 
