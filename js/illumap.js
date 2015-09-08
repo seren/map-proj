@@ -383,7 +383,7 @@ console.log('translation: '+illumap.d3projection.translate()+' -> '+zoomBehavior
     var func = cases[action] ? cases[action] : cases._default;
     func.call(this);
     // hide the button's parent container if requested
-    if (this.attributes.hideparent.value === 'true') {
+    if (this.attributes.hideparent && (this.attributes.hideparent.value === 'true')) {
       this.parentElement.style.display = 'none';
     }
   };
