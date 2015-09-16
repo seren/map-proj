@@ -1,0 +1,99 @@
+    <!DOCTYPE html>
+    <meta charset="utf-8">
+    <style>
+    path {
+      fill: none;
+      stroke: #000;
+    }
+    </style>
+    <body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js"></script>
+    <script>
+
+      // test data
+      var lines = [{
+            id: 0,
+            coordinates: [[0,0],[10,10],[20,20]]},
+          {
+            id: 1,
+            coordinates: [[30,30],[40,40],[50,50]]
+          }];
+
+      var diameter = 100;
+
+      var d3line = d3.svg.line();
+
+      var svg = d3.select("body").append("svg")
+          .attr("width", diameter)
+          .attr("height", diameter);
+
+      // create groups for each line and its tangents
+      var linegroups = svg.selectAll('.linegroup')
+          .data(lines)
+        .enter().append('g')
+          .attr('class', 'linegroup')
+          .attr('id', function(d) { return d.id; });
+
+      // add the line path
+      linegroups.append('g')
+        .attr('class', 'linepath')
+      .append('path')
+        .attr("d", function(d) { return d3line(d.coordinates); });
+
+
+      // create a group for the line's segment's tangents, and create a tangent path for each segment
+      linegroups.append('g')
+         .attr('class', 'tangentgroup')
+       .selectAll("path")
+         .data(function(line) { return lineSegments(line.coordinates); })
+       .enter().append('path')
+         .attr('class', 'tan')
+         .attr('d', function (d) {
+           return d3line(tangentFromMidpoint(d));
+         });
+
+      // create a group for the line's segment's tangents, and create a tangent path for each segment
+      // linegroups.each(function(line, i) {
+      //   d3.select(this)
+      //       // The tangentgroup svg groups never show up
+      //   .append('g')
+      //     .attr('class', 'tangentgroup')
+      //   .selectAll('path')
+      //   .data(lineSegments(line.coordinates))
+      //       // 'tan' paths get appended to svg, not to the linegroup.
+      //       // This happens with our without the tangentgroup code above
+      //   .enter().append('path')
+      //     .attr('class', 'tan')
+      //     .attr('d', function (d) {
+      //       return d3line(tangentFromMidpoint(d));
+      //     });
+      // });
+
+
+      // returns lineSegments, comprised of pairs of points
+      function lineSegments (coordinates) {
+        return d3.range(coordinates.length - 1).map(function(i) {
+          return [coordinates[i], coordinates[i + 1]];
+        });
+      }
+
+      // returns a tangent line starting from the mid-point of the original line
+      function tangentFromMidpoint (line) {
+        var p1 = line[0];
+        var p2 = line[1];
+        var midPoint = [(p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2];
+        var tv = tangentVectors(p1,p2)[0];
+        return [midPoint, [tv[0] + midPoint[0], tv[1] + midPoint[1]]];
+      }
+
+      // Returns both tangent vectors (not unit-vector) for a line
+      function tangentVectors (p1,p2) {
+        // if we define dx=x2-x1 and dy=y2-y1, then the normals are (-dy, dx) and (dy, -dx)
+        var dx = p2[0] - p1[0];
+        var dy = p2[1] - p1[1];
+        return [[-dy, dx, dy, -dx]];
+      }
+
+
+    </script>
+
