@@ -5,3 +5,9 @@ var Way = function(args) {
   this.graph = (args['graph'] === undefined) ? [] : args['graph'];
 };
 
+Way.prototype.addNode(node) = function (node) {
+  if (this.nodes[node.id] === undefined) {
+    this.nodes[node.id] = node;
+  }
+  return this;
+}

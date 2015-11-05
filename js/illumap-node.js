@@ -10,6 +10,13 @@ var Node = function(args) {
   this.graph = (args['graph'] === undefined) ? [] : args['graph'];
 };
 
+Node.prototype.addWay(way) = function (way) {
+  if (this.ways[way.id] === undefined) {
+    this.ways[way.id] = way;
+  }
+  return this;
+}
+
 Node.prototype.getCoordinates = function() {
   return this._coordinates.slice();
 }
