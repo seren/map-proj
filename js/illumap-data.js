@@ -11,7 +11,7 @@ var illumap = (function() {
       graphStale = true,
       tangentsStale = true,  // used to trigger a pre-calculation of all tangents of edges (for decoration)
       mutatedFeatureList = {}, // we build our own geojson features list so that d3 can generate geo paths from it
-      graphNodes = [],  // holds all nodes. node = {coordinates: [lat,lon], wayIds: [], features: [], coordinateIndices, endpoint}
+      graphNodes = [],  // holds all nodes. node = {coordinates: [lat,lon], wayIds: [], features: [], endpoint}
       ways = [], // holds way objects: {edges: [], nodes: []}
       highestWayId = 0,
       nodesToExplore = [], // used to record visited nodes when building ways
@@ -35,7 +35,6 @@ var featureNodes={}; //temp
         graphNodes[id] = new Node ({
           coordinates: coordinates.slice(),
           features: [feature],
-          coordinateIndices: [coordinateIndex],
           endpoint: false,
           intersection: false,
           wayEnd: false,
@@ -46,7 +45,6 @@ var featureNodes={}; //temp
       } else {
 console.log('addNode id:'+id);
         graphNodes[id].features.push(feature);
-        graphNodes[id].coordinateIndices.push(coordinateIndex);
       }
 
 // temp debugging
