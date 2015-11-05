@@ -148,33 +148,34 @@ console.log('mutation count: '+illumap.data.mutationSequence.length);
       }
     }
 
-    function drawLines (waygroups) {
-      // add the way path
-      waygroups.append('g')
-        .attr("class", function(d) { return 'waypath ' + ((d && d.properties && d.properties.kind) || 'generic'); })
+    function drawLines (edgegroups) {
+      // add the edge path
+      edgegroups.append('g')
+        .attr("class", function(d) { return 'edgepath ' + ((d && d.properties && d.properties.kind) || 'generic'); })
       .append('path')
         .attr("d", function(d) {return illumap.d3path(d.geometry) } );
     }
 
+
+
     var svgDraw = function svgDraw(paths) {
       if (paths === undefined) {
-        console.log('no data passed to draw. drawing mutated');
-        paths = illumap.data.getMutatedPaths();
+        alert('ERROR: no data passed to draw!');
       }
 // debugger
       console.log('in svgDraw, drawing ' + paths.length + ' paths');
       svgClear();
 
-      // create groups for each line and its tangents
-      var waygroups = svg.selectAll('.waygroup')
+      // create groups for each edge and its tangent
+      var edgegroups = svg.selectAll('.edgegroup')
           .data(paths)
         .enter().append('g')
-          .attr('class', 'waygroup')
-          .attr('wayid', function(d) { return d.id; });
+          .attr('class', 'edgegroup')
+          .attr('uid', function(d) { return d.uid; });
 
-      decorate(waygroups);
-      drawLines(waygroups);
-      // labelLines(waygroups);
+      decorate(edgegroups);
+      drawLines(edgegroups);
+      // labelLines(edgegroups);
     };
 
 

@@ -12,7 +12,7 @@ var illumap = (function() {
       tangentsStale = true,  // used to trigger a pre-calculation of all tangents of edges (for decoration)
       mutatedFeatureList = {}, // we build our own geojson features list so that d3 can generate geo paths from it
       graphNodes = [],  // holds all nodes. node = {coordinates: [lat,lon], wayIds: [], features: [], coordinateIndices, endpoint}
-      ways = [], // holds objects: {edges: [], nodes: []}
+      ways = [], // holds way objects: {edges: [], nodes: []}
       highestWayId = 0,
       nodesToExplore = [], // used to record visited nodes when building ways
       coordinatesAdded = []; // temp variable for spotting duplicate coordinates
@@ -360,6 +360,7 @@ console.log("running loadTileFromServer");
       buildGraph();
     };
 
+    // coordinates: [[1,2],[3,4],[5,6]]
     var featureFromCoordinates = function featureFromCoordinates(coordinates, id) {
       id = (id === undefined) ? 0 : id;
       return {
@@ -488,6 +489,17 @@ featureNodes: function() { return featureNodes; },
 
       // returns graph data in a collection of feature-geometry-style objects: {coordinates: ['10','20','30'], type: "LineString"}
       getMutatedPaths: function getMutatedPaths() {
+        console.log('loading mutated paths from graph');
+        if (graphStale === true) { buildGraph(); }
+        var paths = [];
+        //todo
+        // fix ways
+        //return paths
+        return ways.map(featureFromWay);
+      },
+
+      // returns graph data in a collection of feature-geometry-style objects: {coordinates: ['10','20','30'], type: "LineString"}
+      getEdges: function getEdges() {
         console.log('loading mutated paths from graph');
         if (graphStale === true) { buildGraph(); }
         var paths = [];
