@@ -13,9 +13,10 @@ var illumap = (function() {
       mutatedFeatureList = {}, // we build our own geojson features list so that d3 can generate geo paths from it
       graphNodes = [],  // holds all nodes. node = {coordinates: [lat,lon], wayIds: [], features: [], endpoint}
       ways = [], // holds way objects: {edges: [], nodes: []}
+      xNodes = {}; hold the nodes, indexed by coordUid
+      xWays = {}; hold the ways(features), indexed by featureId;
       highestWayId = 0,
       nodesToExplore = [], // used to record visited nodes when building ways
-      coordinatesAdded = []; // temp variable for spotting duplicate coordinates
     // function coordinatesSame(a, b) {
     //   return ((a[0] === b[0]) && (a[1] === b[1]));
     // }
@@ -25,41 +26,45 @@ var featureNodes={}; //temp
     // id = coordinate array, value = custom hash with useful data
     function addNode(feature, coordinateIndex) {
       var coordinates = feature.geometry.coordinates[coordinateIndex];
-      var coordUid = coordinates[0] + ',' + coordinates[1];
-      var featureId = feature.id;
-      var id = coordinatesAdded.indexOf(coordUid);
-      if (id === -1) {
-        id = graphNodes.length;
-        coordinatesAdded.push(coordUid);
-        console.log(coordUid);
-        graphNodes[id] = new Node ({
+
+      var wayId = feature.id;
+      var way = xWays[wayId];
+      if (way === undefined) {
+        way = xWays[wayId] = new Way({
+          id: wayId
+        });
+      }
+
+      var nodeId = coordinates[0] + ',' + coordinates[1];
+      var node = xNodes(nodeId);
+      if (node === undefined) {
+        console.log(nodeId);
+        node = new Node ({
+          id: nodeId,
           coordinates: coordinates.slice(),
           features: [feature],
           endpoint: false,
           intersection: false,
           wayEnd: false,
-          wayIds: [],
-          tangentVector: []
+          ways: [way],
+          graph: mapg;
         });
-        mapg.setNode(id);
+        xNodes[nodeId] = node;
+        mapg.setNode(nodeId); // add node to graph (no edge relationships yet)
       } else {
-console.log('addNode id:'+id);
-        graphNodes[id].features.push(feature);
+console.log('addNode id:'+nodeId);
+        node = xNodes[nodeId];
+        node.features.push(feature);
       }
-
-// temp debugging
-if (featureNodes[feature.id] === undefined) {
-  featureNodes[feature.id] = [id];
-} else {
-  featureNodes[feature.id].push(id);
-}
-      return id;
+      way.addNode(node);
+      node.addWay(way);
+      return nodeId;
     }  // end addNode
 
 
 
+    // Builds a graphlib graph from the geojson features
     // graph nodes: id:(lat-lon) val:(ref to feature coordinates and feature)
-    // have to copy features, since we'll be modifying the contents and don't want to affect the original
     // ignore feature/way ids; make our own ids. combine all overlapping points and create ways at junctions of degree >2
     var buildGraph = function buildGraph() {
       while (graphStale) {
@@ -71,9 +76,8 @@ if (featureNodes[feature.id] === undefined) {
         // is this scope correct? will ways and graphNodes ref global or function vars?
         ways.length = 0; // reset ways (lines of coordinates between endpoints or intersections)
         graphNodes.length = 0;
-        coordinatesAdded.length = 0;
 
-        var nodeId;
+        // have to copy features, since we'll be modifying the contents and don't want to affect the original
         var features = geojsonBucket.getFeaturesClone();
         features.forEach( function(feature) {
           var geometryType = feature.geometry.type;
@@ -544,7 +548,6 @@ featureNodes: function() { return featureNodes; },
         highestWayId = 0;
         ways.length = 0;
         graphNodes.length = 0;
-        coordinatesAdded.length = 0;
         mapg.nodes().forEach(function (n) {mapg.removeNode(n); }); // reset graph without recreating
         graphStale = true;
         console.log('reset data');
