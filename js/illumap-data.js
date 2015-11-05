@@ -20,7 +20,6 @@ var illumap = (function() {
     // function coordinatesSame(a, b) {
     //   return ((a[0] === b[0]) && (a[1] === b[1]));
     // }
-var featureNodes={}; //temp
 
 
     // id = coordinate array, value = custom hash with useful data
@@ -465,7 +464,6 @@ console.log(n);
       ways: ways,
       source: source,
       loadGeojson: loadGeojson,
-featureNodes: function() { return featureNodes; },
 
       init: function init() {
         console.log('initing data');
@@ -502,7 +500,6 @@ featureNodes: function() { return featureNodes; },
 
       // returns graph data in a collection of feature-geometry-style objects: {coordinates: ['10','20','30'], type: "LineString"}
       getEdges: function getEdges() {
-        console.log('loading mutated paths from graph');
         if (graphStale === true) { buildGraph(); }
         var paths = [];
         //todo
