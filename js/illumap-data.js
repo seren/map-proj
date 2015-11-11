@@ -11,18 +11,18 @@ var illumap = (function() {
       graphStale = true,
       tangentsStale = true,  // used to trigger a pre-calculation of all tangents of edges (for decoration)
       mutatedFeatureList = {}, // we build our own geojson features list so that d3 can generate geo paths from it
-      graphNodes = [],  // holds all nodes. node = {coordinates: [lat,lon], wayIds: [], features: [], endpoint}
+      graphNodes = [],  // holds all nodes. node = {coordinates: [lat,lon], wayIds: [], features: [], endpoint}  //deprecated
       ways = [], // holds way objects: {edges: [], nodes: []}
-      xNodes = {}; hold the nodes, indexed by coordUid
-      xWays = {}; hold the ways(features), indexed by featureId;
+      xNodes = {}, // hold the nodes, indexed by coordUid
+      xWays = {}, // hold the ways(features), indexed by featureId;
       highestWayId = 0,
-      nodesToExplore = [], // used to record visited nodes when building ways
+      nodesToExplore = []; // used to record visited nodes when building ways
     // function coordinatesSame(a, b) {
     //   return ((a[0] === b[0]) && (a[1] === b[1]));
     // }
 
 
-    // id = coordinate array, value = custom hash with useful data
+    // creates node and way (if necessary) and updates the xNodes list
     function addNode(feature, coordinateIndex) {
       var coordinates = feature.geometry.coordinates[coordinateIndex];
 
@@ -35,7 +35,7 @@ var illumap = (function() {
       }
 
       var nodeId = coordinates[0] + ',' + coordinates[1];
-      var node = xNodes(nodeId);
+      var node = xNodes[nodeId];
       if (node === undefined) {
         console.log(nodeId);
         node = new Node ({
@@ -46,12 +46,12 @@ var illumap = (function() {
           intersection: false,
           wayEnd: false,
           ways: [way],
-          graph: mapg;
+          graph: mapg
         });
         xNodes[nodeId] = node;
         mapg.setNode(nodeId); // add node to graph (no edge relationships yet)
       } else {
-console.log('addNode id:'+nodeId);
+        console.log('addNode id:'+nodeId);
         node = xNodes[nodeId];
         node.features.push(feature);
       }
@@ -98,19 +98,19 @@ console.log('addNode id:'+nodeId);
 
         var markEndpoint = function markEndpoint(n) {
           console.log('marking endpoint: ' + n);
-  if (graphNodes[n] === undefined) { debugger; }
-          graphNodes[n].endpoint = true;
+          if (xNodes[n] === undefined) { debugger; }  //debug
+          xNodes[n].endpoint = true;
           // mapg.node(n)['endpoint'] = true;
         };
         var markIntersection = function markIntersection(n) {
           console.log('marking intersection: ' + n);
-          graphNodes[n].intersection = true;
+          xNodes[n].intersection = true;
           // mapg.node(n)['intersection'] = true;
         };
 
         // remove orphan nodes, and mark the intersection and endpoints
         console.log('marking endpoints and removing orphans');
-        mapg.nodes().toInt().forEach( function(n) {
+        mapg.nodes().forEach( function(n) {
           switch (mapg.nodeEdges(n).length) {
             case 0:
               console.log('deleting orphan node ' + n);
@@ -144,9 +144,9 @@ console.log(debugDirection +'about to traverse, startNode='+startNode+' currNode
         var prevNode = startNode;
         var nextNode;
         var direction;
-        while (graphNodes[currNode].endpoint === false) {
+        while (xNodes[currNode].endpoint === false) {
           // get the 2 (because it's not an endpoint) neighbors, remove the visited-node, and get the remaining node
-          nextNode = mapg.neighbors(currNode).toInt().removeByValue(prevNode)[0];
+          nextNode = mapg.neighbors(currNode).removeByValue(prevNode)[0];
 console.log('traversing path ['+path+']. prevNode:'+prevNode+' currNode:'+currNode+' nextNode:'+nextNode+'(this is added to the path)');
           path.push(nextNode);
           prevNode = currNode;
@@ -156,16 +156,16 @@ console.log('returning path: ['+path.join(',')+']');
         return path;
       }
 
-      var v = parseInt(e.v);
-      var w = parseInt(e.w);
+      var v = e.v;
+      var w = e.w;
       var path=[v];
       var reversePath=[];
       var forwardPath=[];
-      if (graphNodes[v].endpoint) {
+      if (xNodes[v].endpoint) {
         path = path.concat(getNodesUntilEndpoint(v, w,'from-end: '));
       } else {
-        forwardPath = getNodesUntilEndpoint(v, parseInt(mapg.neighbors(v)[0]),'forward: ');
-        reversePath = getNodesUntilEndpoint(v, parseInt(mapg.neighbors(v)[1]),'backward: ').reverse();
+        forwardPath = getNodesUntilEndpoint(v, mapg.neighbors(v)[0],'forward: ');
+        reversePath = getNodesUntilEndpoint(v, mapg.neighbors(v)[1],'backward: ').reverse();
         path = reversePath.concat(path, forwardPath);
       }
 console.log('full path: ['+path.join(',') +']');
@@ -191,7 +191,7 @@ oldEdgeCount = g.edgeCount();
 
         // function to add the way id to each node, and remove the node from the search list
         var wayPathAddAndNodePrune = function wayPathAddAndNodePrune(n,i) {
-          graphNodes[n].wayIds.push(newWayId);
+          xNodes[n].wayIds.push(newWayId);
           if (i > 0) {  // skip the first node since we have one fewer edges than nodes/way-points
             // record way in path
             mapg.setEdge(wayPath[i-1], n, {wayId: newWayId});
@@ -208,7 +208,7 @@ oldEdgeCount = g.edgeCount();
             // g.removeEdge(wayPath[i-1].toString(),n.toString());
             g.removeEdge(wayPath[i-1], n);
           }
-        }
+        };
         // add the way id to each node, and remove the node from the search list
         wayPath.forEach(wayPathAddAndNodePrune);
 
@@ -252,7 +252,7 @@ oldEdgeCount = g.edgeCount();
       // mutate the graph
       mapg = mutators[opts.mutationType]({
         'g':mapg,
-        "graphNodes":graphNodes,
+        "xNodes":xNodes,
         "ways":ways,
         "repulsionPoint":opts.repulsionPoint
       });
@@ -339,7 +339,7 @@ console.log("running loadTileFromServer");
     }
 
     function edgeNodesCoordinates(e) {
-      return [graphNodes[e.v].getCoordinates(), graphNodes[e.w].getCoordinates()];
+      return [xNodes[e.v].getCoordinates(), xNodes[e.w].getCoordinates()];
     }
 
 
@@ -376,12 +376,12 @@ console.log("running loadTileFromServer");
           sort_key: -6
         }
       };
-    }
+    };
 
     // geometry wrapped up with feature values
     function featureFromWay(w, id) {
       var coordinates = w.map( function(n) {
-        return graphNodes[n].getCoordinates();
+        return xNodes[n].getCoordinates();
       });
       return featureFromCoordinates(coordinates, id);
     }
@@ -402,9 +402,9 @@ console.log("running loadTileFromServer");
     var featureListFromGraph = function featureListFromGraph(g) {
       var features = {};
       var feature;
-      mapg.nodes().toInt().forEach( function (n) {
+      mapg.nodes().forEach( function (n) {
 console.log(n);
-        feature = graphNodes[n].features[0];
+        feature = xNodes[n].features[0];
         // feature = mapg.node(n).feature;
         if (features[feature.id] === undefined) {
           features[feature.id] = feature;
@@ -460,7 +460,7 @@ console.log(n);
       featureFromCoordinates: featureFromCoordinates,
       // graphNodes: function() { return graphNodes; },
       // ways: function() { return ways; },
-      graphNodes: graphNodes,
+      graphNodes: graphNodes, //deprecated
       ways: ways,
       source: source,
       loadGeojson: loadGeojson,
@@ -501,7 +501,8 @@ console.log(n);
       // returns graph data in a collection of feature-geometry-style objects: {coordinates: ['10','20','30'], type: "LineString"}
       getEdges: function getEdges() {
         if (graphStale === true) { buildGraph(); }
-        var paths = [];
+        var edges = [];
+        // mapg.edges.forEach( function (e)
         //todo
         // fix ways
         //return paths

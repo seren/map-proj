@@ -2,14 +2,14 @@
 var Mutators = function() {
 };
 
-Mutators.prototype.generic = function(g, graphNodes, mutationFunc) {
+Mutators.prototype.generic = function(g, xNodes, mutationFunc) {
 
 };
 
 // force directed repulsion-from-point algorithm
 Mutators.prototype.repulse = function(opts) {
   var g = opts.g;
-  var graphNodes = opts.graphNodes;
+  var xNodes = opts.xNodes;
   var repulsionPoint = opts.repulsionPoint;
 
   var chargeForce = 80;
@@ -25,7 +25,7 @@ Mutators.prototype.repulse = function(opts) {
   // for each node, calculate the offset
   g.nodes().forEach( function(nd) {
 // debugger
-    nodeCoord = graphNodes[nd].getCoordinates();
+    nodeCoord = xNodes[nd].getCoordinates();
     offset0 = nodeCoord[0] - repulsionPoint[0];
     offset1 = nodeCoord[1] - repulsionPoint[1];
 
@@ -44,11 +44,11 @@ Mutators.prototype.repulse = function(opts) {
     // now update the nodes
   g.nodes().forEach( function(nd) {
 
-var oldcoord = graphNodes[nd].getCoordinates();
-    graphNodes[nd].setCoordinates([newCoord0[nd], newCoord1[nd]]);
-var newcoord = graphNodes[nd].getCoordinates();
+var oldcoord = xNodes[nd].getCoordinates();
+    xNodes[nd].setCoordinates([newCoord0[nd], newCoord1[nd]]);
+var newcoord = xNodes[nd].getCoordinates();
 
-// console.log('changed node '+nd+' way '+graphNodes[nd].wayIds+' from ' + oldcoord +' to ' + newcoord);
+// console.log('changed node '+nd+' way '+xNodes[nd].wayIds+' from ' + oldcoord +' to ' + newcoord);
   });
   return g;
 };
@@ -57,7 +57,7 @@ var newcoord = graphNodes[nd].getCoordinates();
 Mutators.prototype.relax = function(opts) {
 // debugger
   var g = opts.g;
-  var graphNodes = opts.graphNodes;
+  var xNodes = opts.xNodes;
 
   var springForce = 0.2;
   var offset0, offset1, nodeCoord;
@@ -67,12 +67,12 @@ Mutators.prototype.relax = function(opts) {
   var nbrVal; // value of the neighbor node
   // for each node, calculate the offset
   g.nodes().forEach( function(nd) {
-    nodeCoord = graphNodes[nd].getCoordinates();
+    nodeCoord = xNodes[nd].getCoordinates();
     offset0 = 0;
     offset1 = 0;
     // get the neighbors and calc the offset
     g.neighbors(nd).forEach( function(nbr) {
-      nbrCoord = graphNodes[nbr].getCoordinates();
+      nbrCoord = xNodes[nbr].getCoordinates();
       offset0 += (nbrCoord[0] - nodeCoord[0]);
       offset1 += (nbrCoord[1] - nodeCoord[1]);
     });
@@ -82,11 +82,11 @@ Mutators.prototype.relax = function(opts) {
     // now update the nodes
   g.nodes().forEach( function(nd) {
 
-var oldcoord = graphNodes[nd].getCoordinates();
-    graphNodes[nd].setCoordinates([newCoord0[nd], newCoord1[nd]]);
-var newcoord = graphNodes[nd].getCoordinates();
+var oldcoord = xNodes[nd].getCoordinates();
+    xNodes[nd].setCoordinates([newCoord0[nd], newCoord1[nd]]);
+var newcoord = xNodes[nd].getCoordinates();
 
-console.log('changed node '+nd+' way '+graphNodes[nd].wayIds+' from ' + oldcoord +' to ' + newcoord);
+console.log('changed node '+nd+' way '+xNodes[nd].wayIds+' from ' + oldcoord +' to ' + newcoord);
   });
   return g;
 };
@@ -94,7 +94,7 @@ console.log('changed node '+nd+' way '+graphNodes[nd].wayIds+' from ' + oldcoord
 // orthoganalization algorithm
 Mutators.prototype.mondrianize = function(opts) {
   var g = opts.g;
-  var graphNodes = opts.graphNodes;
+  var xNodes = opts.xNodes;
   var dampeningFactor = 0.25;
 
   // Note: the coordinates are stored: [longitude, latitude]
@@ -105,13 +105,13 @@ log('mondrianizing');
   var delta0, delta1, absLat, absLongCorrected;
 
   g.nodes().forEach( function(nd) {
-    nodeCoord = graphNodes[nd].getCoordinates();
+    nodeCoord = xNodes[nd].getCoordinates();
     offset0 = 0;
     offset1 = 0;
 
     // get the neighbors and calc the offset
     g.neighbors(nd).forEach( function(nbr) {
-      nbrCoord = graphNodes[nbr].getCoordinates();
+      nbrCoord = xNodes[nbr].getCoordinates();
 
 // start algo
       delta0 = (nbrCoord[0] - nodeCoord[0]);
@@ -151,11 +151,11 @@ console.log('angle is close to diagonal');
   // now update the nodes
   g.nodes().forEach( function(nd) {
 
-var oldcoord = graphNodes[nd].getCoordinates();
-    graphNodes[nd].setCoordinates([newCoord0[nd], newCoord1[nd]]);
-var newcoord = graphNodes[nd].getCoordinates();
+var oldcoord = xNodes[nd].getCoordinates();
+    xNodes[nd].setCoordinates([newCoord0[nd], newCoord1[nd]]);
+var newcoord = xNodes[nd].getCoordinates();
 
-console.log('changed node '+nd+' way '+graphNodes[nd].wayIds+' from ' + oldcoord +' to ' + newcoord);
+console.log('changed node '+nd+' way '+xNodes[nd].wayIds+' from ' + oldcoord +' to ' + newcoord);
   });
   return g;
 };
@@ -164,23 +164,23 @@ console.log('changed node '+nd+' way '+graphNodes[nd].wayIds+' from ' + oldcoord
 // we may want to memoize the sorted array or some other data-structures
 Mutators.prototype.progressiveMesh = function(opts) {
   var g = opts.g;
-  var graphNodes = opts.graphNodes;
+  var xNodes = opts.xNodes;
   var ways = opts.ways;
 
   var sortedEdges, ec;
 
   // quick length generator (for when don't need absolute length, just roughly relative length)
-  function edgeLengthSquared (e,graphNodes) {
+  function edgeLengthSquared (e,xNodes) {
     return (
-      Math.pow((graphNodes[e.v].getCoordinates()[0] - graphNodes[e.w].getCoordinates()[0]), 2) +
-      Math.pow((graphNodes[e.v].getCoordinates()[1] - graphNodes[e.w].getCoordinates()[1]), 2)
+      Math.pow((xNodes[e.v].getCoordinates()[0] - xNodes[e.w].getCoordinates()[0]), 2) +
+      Math.pow((xNodes[e.v].getCoordinates()[1] - xNodes[e.w].getCoordinates()[1]), 2)
     );
   }
 
   // returns true if e1 length >= e2 length
   function edgeLengthComparator (e1,e2) {
-    var e1Len = edgeLengthSquared(e1,graphNodes);
-    var e2Len = edgeLengthSquared(e2,graphNodes);
+    var e1Len = edgeLengthSquared(e1,xNodes);
+    var e2Len = edgeLengthSquared(e2,xNodes);
     // console.log('edge ['+e1.v+','+e1.w+']='+ e1Len + ' ' + ((e1Len >= e2Len) ? '>=' : '<') +' ['+e2.v+','+e2.w+']='+e2Len);
     // return ((edgeLengthSquared(e1) >= edgeLengthSquared(e2)) ? 1 : -1);
     if (e1Len > e2Len) {
@@ -194,11 +194,11 @@ Mutators.prototype.progressiveMesh = function(opts) {
 
   function collapseEdge (g, e) {
     // debugger
-    var n1, n2, n1int, n2int, n1Frozen, n2Frozen, n1Edges, n2Edges, n1Neighbors, n2Neighbors, nbrVal;
+    var n1, n2, n1Frozen, n2Frozen, n1Edges, n2Edges, n1Neighbors, n2Neighbors, nbrVal;
     n1 = e.v;
     n2 = e.w;
-    n1Frozen = illumap.utility.nodeFrozen(graphNodes[n1]);
-    n2Frozen = illumap.utility.nodeFrozen(graphNodes[n2]);
+    n1Frozen = illumap.utility.nodeFrozen(xNodes[n1]);
+    n2Frozen = illumap.utility.nodeFrozen(xNodes[n2]);
     // can't collapse if they're both frozen
     if (n1Frozen && n2Frozen) { return false; }
     // if one is frozen, make sure it's not n2
@@ -206,9 +206,6 @@ Mutators.prototype.progressiveMesh = function(opts) {
       n2 = e.v;
       n1 = e.w;
     }
-
-    n1int = parseInt(n1);
-    n2int = parseInt(n2);
 
     // move edges from n2 to n1 (if necessary)
     n1Edges = g.nodeEdges(n1);
@@ -224,20 +221,20 @@ Mutators.prototype.progressiveMesh = function(opts) {
         // create new edge, preserving the old edge's value
         g.setEdge(n1, nbr, nbrVal);
         // add any new wayIds to n1
-        if (graphNodes[n1int].wayIds.indexOf(nbrVal.wayId) === -1) {
-          graphNodes[n1int].wayIds.push(nbrVal.wayId);
+        if (xNodes[n1].wayIds.indexOf(nbrVal.wayId) === -1) {
+          xNodes[n1].wayIds.push(nbrVal.wayId);
         }
       }
     });
 
     // reposition n1 toward n2
-    graphNodes[n1int].setCoordinates(midpoint(n1, n2));
+    xNodes[n1].setCoordinates(midpoint(n1, n2));
 
     // remove n2 from any ways. This can leave us with empty arrays in the ways list. Problem?
-    graphNodes[n2int].wayIds.forEach(function(wid) {
+    xNodes[n2].wayIds.forEach(function(wid) {
 // debugger
       console.log('removing '+n2+' from way '+wid);
-      ways[wid].removeByValue(n2int);
+      ways[wid].removeByValue(n2);
       // clear any ways with only 1 node
       if (ways[wid].length === 1) {
         ways[wid].length = 0;
@@ -250,8 +247,8 @@ Mutators.prototype.progressiveMesh = function(opts) {
 
   function midpoint (n1, n2) {
     return [
-      (graphNodes[n1].getCoordinates()[0] + graphNodes[n2].getCoordinates()[0]) / 2,
-      (graphNodes[n1].getCoordinates()[1] + graphNodes[n2].getCoordinates()[1]) / 2
+      (xNodes[n1].getCoordinates()[0] + xNodes[n2].getCoordinates()[0]) / 2,
+      (xNodes[n1].getCoordinates()[1] + xNodes[n2].getCoordinates()[1]) / 2
     ];
   }
 
@@ -264,7 +261,7 @@ Mutators.prototype.progressiveMesh = function(opts) {
 
 
 // Ramer-Douglas-Peucker
-Mutators.prototype.rpd = function(g, graphNodes) {
+Mutators.prototype.rpd = function(g, xNodes) {
   return g;
 };
 
