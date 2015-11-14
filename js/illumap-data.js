@@ -363,28 +363,29 @@ console.log("running loadTileFromServer");
 
     // coordinates: [[1,2],[3,4],[5,6]]
     // produces a geojson-like feature from an array of coordinate arrays. used for d3 path generation.
-    var featureFromCoordinates = function featureFromCoordinates(coordinates, id) {
+    var featureFromNodes = function featureFromNodes(nodes, id) {
       id = (id === undefined) ? 0 : id;
+      var coordinates = nodes.map( function(n) {
+        return n.getCoordinates();
+      });
       return {
+        // type: "Feature",
+        id: id,
+        nodes: nodes,
+        properties: {
+          sort_key: -6
+        },
         geometry: {
           coordinates: coordinates,
           type: "LineString",
           id: id
-        },
-        // type: "Feature",
-        id: id,
-        properties: {
-          sort_key: -6
         }
       };
     };
 
     // geometry wrapped up with feature values
     function featureFromWay(w, id) {
-      var coordinates = w.map( function(n) {
-        return xNodes[n].getCoordinates();
-      });
-      return featureFromCoordinates(coordinates, id);
+      return featureFromNodes(w, id);
     }
 
     var geojsonFromWays = function geojsonFromWays (waysArray) {
@@ -458,7 +459,6 @@ console.log(n);
       replayMutations: replayMutations,
       featureListFromGraph: featureListFromGraph,
       geojsonFromWays: geojsonFromWays,
-      featureFromCoordinates: featureFromCoordinates,
       xNodes: xNodes,
       // graphNodes: function() { return graphNodes; },
       // ways: function() { return ways; },
@@ -495,7 +495,7 @@ console.log(n);
         var featureFromEdge = function (e) {
           // does id need to be numeric? should derive it from the edge.
           var edgeId = xNodes[e.v].numericId + xNodes[e.w].numericId;
-          return featureFromCoordinates([xNodes[e.v].coordinates,xNodes[e.w].coordinates],edgeId);
+          return featureFromNodes([xNodes[e.v],xNodes[e.w]],edgeId);
         };
         return mapg.edges().map(featureFromEdge);
       },
