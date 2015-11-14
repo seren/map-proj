@@ -9,6 +9,9 @@ var Node = function(args) {
   this._coordinates = (args.coordinates === undefined) ? [] : args.coordinates;
   this.coordinates = (args.coordinates === undefined) ? [] : args.coordinates;
   this.graph = (args.graph === undefined) ? [] : args.graph;
+  var n = this.id.split(',').reduce(
+      function(prev,curr){ return prev + parseFloat(curr); },0); // add the lat and lon values and covert to int for a quasi-uid
+  this.numericId = parseInt( n * Math.pow(10, illumap.utility.floatPrecision(n)) );
 };
 
 Node.prototype.addWay = function (way) {
