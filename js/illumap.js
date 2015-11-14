@@ -398,7 +398,7 @@ console.log('translation: '+illumap.d3projection.translate()+' -> '+zoomBehavior
 
   this.drawMutated = function drawMutated() {
 // debugger
-    var paths = illumap.data.getMutatedPaths();
+    var paths = illumap.data.getEdges();
     // var paths = illumap.data.getMutatedData();
     console.log('drawing ' + paths.length + ' paths from mutated data');
     illumap.graphics.requestRedraw(paths);

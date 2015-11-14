@@ -490,25 +490,14 @@ console.log(n);
       },
 
       // returns graph data in a collection of feature-geometry-style objects: {coordinates: ['10','20','30'], type: "LineString"}
-      getMutatedPaths: function getMutatedPaths() {
-        console.log('loading mutated paths from graph');
-        if (graphStale === true) { buildGraph(); }
-        var paths = [];
-        //todo
-        // fix ways
-        //return paths
-        return ways.map(featureFromWay);
-      },
-
-      // returns graph data in a collection of feature-geometry-style objects: {coordinates: ['10','20','30'], type: "LineString"}
       getEdges: function getEdges() {
         if (graphStale === true) { buildGraph(); }
-        var edges = [];
-        // mapg.edges.forEach( function (e)
-        //todo
-        // fix ways
-        //return paths
-        return ways.map(featureFromWay);
+        var featureFromEdge = function (e) {
+          // does id need to be numeric? should derive it from the edge.
+          var edgeId = xNodes[e.v].numericId + xNodes[e.w].numericId;
+          return featureFromCoordinates([xNodes[e.v].coordinates,xNodes[e.w].coordinates],edgeId);
+        };
+        return mapg.edges().map(featureFromEdge);
       },
 
 // old and should be removed
