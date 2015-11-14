@@ -362,6 +362,7 @@ console.log("running loadTileFromServer");
     };
 
     // coordinates: [[1,2],[3,4],[5,6]]
+    // produces a geojson-like feature from an array of coordinate arrays. used for d3 path generation.
     var featureFromCoordinates = function featureFromCoordinates(coordinates, id) {
       id = (id === undefined) ? 0 : id;
       return {
@@ -458,6 +459,7 @@ console.log(n);
       featureListFromGraph: featureListFromGraph,
       geojsonFromWays: geojsonFromWays,
       featureFromCoordinates: featureFromCoordinates,
+      xNodes: xNodes,
       // graphNodes: function() { return graphNodes; },
       // ways: function() { return ways; },
       graphNodes: graphNodes, //deprecated
