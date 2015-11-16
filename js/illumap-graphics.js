@@ -88,7 +88,7 @@ var illumap = (function() {
         // colors way segments all the same
         // .style("fill", function(d, i) {return "url(#gradient"+ ((d.id + i) % numGradients) +")" });
         // colors way segments differently. not stable if the way has segments removed
-        .style("fill", function(d, i) {return "url(#gradient"+ ((d.id + i) % numGradients) +")" });
+        .style("fill", function(d) { return "url(#gradient"+ ((d.id) % numGradients) +")"; });
 
       // // add opposite-side decoration stroke
       // gg.enter().append('rect')
