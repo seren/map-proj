@@ -19,9 +19,11 @@ var illumap = (function() {
         .x(function(d) { return x(d.x); })
         .y(function(d) { return y(d.y); });
 
+    var groupname = 'edges';
+
     var svgClear = function svgClear() {
 // debugger
-      svg.selectAll(".waygroup").remove();
+      svg.selectAll('.'+groupname).remove();
     };
 
 
@@ -166,11 +168,11 @@ console.log('mutation count: '+illumap.data.mutationSequence.length);
       console.log('in svgDraw, drawing ' + paths.length + ' paths');
       svgClear();
 
-      // create groups for each edge and its tangent
-      var edgegroups = svg.selectAll('.edgegroup')
+      // create groups for each edge and its decorations
+      var edgegroups = svg.selectAll('.'+groupname)
           .data(paths)
         .enter().append('g')
-          .attr('class', 'edgegroup')
+          .attr('class', groupname)
           .attr('uid', function(d) { return d.uid; });
 
       decorate(edgegroups);
