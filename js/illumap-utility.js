@@ -277,6 +277,12 @@ var illumap = (function() {
           oldPhrase = phrase;
       }
       return out.join("");
+    },
+
+    floatPrecision: function floatPrecision (a) {
+      var e = 1;
+      while (Math.round(a * e) / e !== a) e *= 10;
+      return Math.round(Math.log(e) / Math.LN10);
     }
 
   };
