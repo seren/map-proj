@@ -194,61 +194,61 @@ Mutators.prototype.progressiveMesh = function(opts) {
 
   function collapseEdge (g, e) {
     // debugger
-    var n1, n2, n1Frozen, n2Frozen, n1Edges, n2Edges, n1Neighbors, n2Neighbors, nbrVal;
-    n1 = e.v;
-    n2 = e.w;
-    n1Frozen = illumap.utility.nodeFrozen(xNodes[n1]);
-    n2Frozen = illumap.utility.nodeFrozen(xNodes[n2]);
+    var n1, n2, n1id, n2id, n1Frozen, n2Frozen, n1Edges, n2Edges, n1Neighbors, n2Neighbors, nbrVal;
+    n1 = xNodes[e.v];
+    n2 = xNodes[e.w];
     // can't collapse if they're both frozen
-    if (n1Frozen && n2Frozen) { return false; }
+    if (n1.frozen && n2.frozen) { return false; }
     // if one is frozen, make sure it's not n2
-    if (n2Frozen) {
-      n2 = e.v;
-      n1 = e.w;
+    if (n2.frozen) {
+      n2 = xNodes[e.v];
+      n1 = xNodes[e.w];
     }
+    n1id = n1.id;
+    n2id = n2.id;
 
     // move edges from n2 to n1 (if necessary)
-    n1Edges = g.nodeEdges(n1);
-    n2Edges = g.nodeEdges(n2);
-    n1Neighbors = g.neighbors(n1);
-    n2Neighbors = g.neighbors(n2);
+    n1Edges = g.nodeEdges(n1id);
+    n2Edges = g.nodeEdges(n2id);
+    n1Neighbors = g.neighbors(n1id);
+    n2Neighbors = g.neighbors(n2id);
     // add edge to n1 if it's not already there, and not the edge we're collapsing
     n2Neighbors.forEach(function(nbr) {
-      if ((nbr !== n1) && (n1Neighbors.indexOf(nbr) == -1)) {
+      if ((nbr !== n1id) && (n1Neighbors.indexOf(nbr) == -1)) {
 // debugger;
-        nbrVal = g.edge(n2, nbr);
-        console.log('creating edge ['+n1+','+nbr+'] from old edge ['+n2+','+nbr+'], wantayid '+g.edge(n2, nbr).wayId);
+        nbrVal = g.edge(n2id, nbr);
+        console.log('creating edge ['+n1id+','+nbr+'] from old edge ['+n2id+','+nbr+'], wayid '+g.edge(n2id, nbr).wayId);
         // create new edge, preserving the old edge's value
-        g.setEdge(n1, nbr, nbrVal);
+        g.setEdge(n1id, nbr, nbrVal);
         // add any new wayIds to n1
-        if (xNodes[n1].wayIds.indexOf(nbrVal.wayId) === -1) {
-          xNodes[n1].wayIds.push(nbrVal.wayId);
+        if (n1.wayIds.indexOf(nbrVal.wayId) === -1) {
+          n1.wayIds.push(nbrVal.wayId);
         }
       }
     });
 
     // reposition n1 toward n2
-    xNodes[n1].setCoordinates(midpoint(n1, n2));
+    n1.setCoordinates(midpoint(n1id, n2id));
 
     // remove n2 from any ways. This can leave us with empty arrays in the ways list. Problem?
-    xNodes[n2].wayIds.forEach(function(wid) {
+    n2.wayIds.forEach(function(wid) {
 // debugger
-      console.log('removing '+n2+' from way '+wid);
-      ways[wid].removeByValue(n2);
+      console.log('removing '+n2id+' from way '+wid);
+      ways[wid].removeByValue(n2id);
       // clear any ways with only 1 node
       if (ways[wid].length === 1) {
         ways[wid].length = 0;
       }
     });
 
-    g.removeNode(n2);
+    g.removeNode(n2id);
     return g;
   }
 
   function midpoint (n1, n2) {
     return [
-      (xNodes[n1].getCoordinates()[0] + xNodes[n2].getCoordinates()[0]) / 2,
-      (xNodes[n1].getCoordinates()[1] + xNodes[n2].getCoordinates()[1]) / 2
+      (n1.getCoordinates()[0] + n2.getCoordinates()[0]) / 2,
+      (n1.getCoordinates()[1] + n2.getCoordinates()[1]) / 2
     ];
   }
 
