@@ -84,6 +84,7 @@ var illumap = (function() {
         .attr("x", 0)
         .attr("y", 0)
         .attr("transform", function(d) { return "translate(" + [d.rect.x,d.rect.y] +")rotate(" + d.rect.rotation + ")"; })
+        // colors segments all the same
         // .style("fill", d3.scale.category20c());
         // colors way segments all the same
         // .style("fill", function(d, i) {return "url(#gradient"+ ((d.id + i) % numGradients) +")" });
@@ -143,6 +144,7 @@ console.log('mutation count: '+illumap.data.mutationSequence.length);
       }
 
       // Takes a series of coordinates, and returns the component edges (coordinate pairs)
+      // ex: [1,2,3] -> [[1,2],[2,3]]
       function pointPairs (coordinates) {
       // debugger
         return d3.range(coordinates.length - 1).map(function(i) {
@@ -241,10 +243,6 @@ console.log('mutation count: '+illumap.data.mutationSequence.length);
         paths = undefined; // we don't want to keep redrawing the paths that were passed in after the first time
       }
 
-    }
-
-    var addDecoration = function addDecoration (edges) {
-//todo
     };
 
     return {
@@ -273,12 +271,12 @@ console.log('mutation count: '+illumap.data.mutationSequence.length);
               // .attr('class', 'svg');
         }
 
-        // create actual gradient entries
+        // create gradient definition tags
         d3.range(numGradients - 1).map(function(i) {
           appendNormalGradient('gradient'+i,colors.random(),colors.random());
         });
-      // appendNormalGradient('gradient',colors.random(),colors.random());
 
+      // appends perpendicular gradients to svg
       function appendNormalGradient(id,color1,color2) {
         var gradient = svg.append("svg:defs")
           .append("svg:linearGradient")
@@ -300,7 +298,6 @@ console.log('mutation count: '+illumap.data.mutationSequence.length);
             // .attr("stop-color", "#FFF")
             .attr("stop-opacity", 0);
       }
-
 
         return svg;
       },
