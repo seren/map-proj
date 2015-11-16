@@ -157,8 +157,9 @@ console.log('mutation count: '+illumap.data.mutationSequence.length);
       // add the edge path
       edges.append('g')
         .attr("class", function(d) { return 'edge ' + ((d && d.properties && d.properties.kind) || 'generic'); })
+        .attr("id", function(d) { return 'edge' + d.id; })
       .append('path')
-        .attr("d", function(d) {return illumap.d3path(d.geometry) } );
+        .attr("d", function(d) {return illumap.d3path(d.geometry); } );
     }
 
 
