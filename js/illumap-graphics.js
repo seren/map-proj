@@ -27,20 +27,22 @@ var illumap = (function() {
     };
 
 
-    function decorate (waygroups) {
+
+    // Given a d3 selection, create a gradient perpendicular to the edge
+    function decorate (edges) {
       // create a group for the way's segment's decoration, and create a decoration rect for each segment
-      var gg = waygroups.append('g')
+      var gg = edges.append('g')
         .attr('class', 'decorationgroup')
       .selectAll("g")
-        .data(function(feature) {
-          return pointPairs(feature.geometry.coordinates).map(function(pp) {
-            return {point: pp, id: feature.id };
-          })
-        })
+        .data(function(d) {
+          return pointPairs(d.geometry.coordinates).map(function(pp) {
+            return {point: pp, id: d.id };
+          });
+        });
 
 // //tangent lines
       // // create a group for the way's segment's tangents, and create a tangent path for each segment
-      // waygroups.append('g')
+      // edges.append('g')
       //   .attr('class', 'tangentgroup')
       // .selectAll("path")
       //   .data(function(feature) { return pointPairs(feature.geometry.coordinates); })
@@ -55,7 +57,7 @@ var illumap = (function() {
 
 // //tangent box paths
       // // create a group for the way's segment's decoration, and create a decoration path for each segment
-      // waygroups.append('g')
+      // edges.append('g')
       //   .attr('class', 'decorationgroup')
       // .selectAll("path")
       //   .data(function(feature) { return pointPairs(feature.geometry.coordinates); })
@@ -69,8 +71,7 @@ var illumap = (function() {
       //     return d3line(rectCoordFromEdge(screenCoord[0], screenCoord[1], 10)) + 'Z';
       //   });
 
-
-
+      //
       gg.enter().append('rect')
         .attr("width", function(d) {
           var screenCoord = [illumap.d3projection(d.point[0]), illumap.d3projection(d.point[1])];
@@ -150,10 +151,10 @@ console.log('mutation count: '+illumap.data.mutationSequence.length);
       }
     }
 
-    function drawLines (edgegroups) {
+    function drawLines (edges) {
       // add the edge path
-      edgegroups.append('g')
-        .attr("class", function(d) { return 'edgepath ' + ((d && d.properties && d.properties.kind) || 'generic'); })
+      edges.append('g')
+        .attr("class", function(d) { return 'edge ' + ((d && d.properties && d.properties.kind) || 'generic'); })
       .append('path')
         .attr("d", function(d) {return illumap.d3path(d.geometry) } );
     }
@@ -169,15 +170,16 @@ console.log('mutation count: '+illumap.data.mutationSequence.length);
       svgClear();
 
       // create groups for each edge and its decorations
-      var edgegroups = svg.selectAll('.'+groupname)
+      var edges = svg.selectAll('.'+groupname)
           .data(paths)
         .enter().append('g')
           .attr('class', groupname)
           .attr('uid', function(d) { return d.uid; });
 
-      decorate(edgegroups);
-      drawLines(edgegroups);
-      // labelLines(edgegroups);
+      // we draw the decoration first so it doesn't cover up the edge lines
+      decorate(edges);
+      drawLines(edges);
+      // labelLines(edges);
     };
 
 
