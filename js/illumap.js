@@ -350,6 +350,11 @@ console.log('translation: '+illumap.d3projection.translate()+' -> '+zoomBehavior
   };
 
   // Add useful array function
+  Array.prototype.removeByIndex = function(index){
+    this.splice(index,1);
+  };
+
+  // Add useful array function
   Array.prototype.removeAllByValue = function() {
     var what, a = arguments, L = a.length, ax;
     while (L && this.length) {
