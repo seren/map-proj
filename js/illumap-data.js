@@ -15,17 +15,24 @@ var illumap = (function() {
       ways = [], // holds way objects: {edges: [], nodes: []}
       xNodes = {}, // hold the nodes, indexed by coordUid
       xWays = {}, // hold the ways(features), indexed by featureId;
+      xEdges = {}, // hold the attributes of graph edges
       highestWayId = 0,
       nodesToExplore = []; // used to record visited nodes when building ways
     // function coordinatesSame(a, b) {
     //   return ((a[0] === b[0]) && (a[1] === b[1]));
     // }
 
+    function newEdge (id, obj) {
+      var x = xEdges[id] = (obj || {});
+      return x;
+    }
+
 
     // creates node and way (if necessary) and updates the xNodes list
     function addNode(feature, coordinateIndex) {
       var coordinates = feature.geometry.coordinates[coordinateIndex];
 
+      // do ways and features map one-to-one?
       var wayId = feature.id;
       var way = xWays[wayId];
       if (way === undefined) {
@@ -85,7 +92,7 @@ var illumap = (function() {
               prevNodeId = addNode(feature, 0);
               for (var i = 0, len = featureCoordinates.length; i < len - 1 ; i++) {
                 currNodeId = addNode(feature, i+1);
-                mapg.setEdge(prevNodeId, currNodeId, {}); // way-finding builds: {way: feature.id, length: len});
+                mapg.setEdge(prevNodeId, currNodeId, newEdge(prevNodeId+currNodeId)); // way-finding builds: {way: feature.id, length: len}
                 console.log('graph: added edge from featureId:index: ' + feature.id + ':' + i + ' c1: ' + prevNodeId + ' c2: ' + currNodeId);
                 prevNodeId = currNodeId;
               }
@@ -194,7 +201,7 @@ oldEdgeCount = g.edgeCount();
           xNodes[n].wayIds.push(newWayId);
           if (i > 0) {  // skip the first node since we have one fewer edges than nodes/way-points
             // record way in path
-            mapg.setEdge(wayPath[i-1], n, {wayId: newWayId});
+            mapg.setEdge(wayPath[i-1], n, newEdge(wayPath[i-1]+n, {wayId: newWayId}));
 
             console.log('removing edge: ['+[wayPath[i-1],n].join(',')+']');
 
