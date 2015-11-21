@@ -14,6 +14,7 @@ var Node = function(args) {
   this.coordinates = (args.coordinates === undefined) ? [] : args.coordinates;
   this.graph = args.graph;
   this.rdpMetric = undefined;
+  return this;
 };
 
 // to deprecate

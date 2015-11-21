@@ -5,6 +5,7 @@ var Edge = function(args) {
   this.node1 = (args.node1 === undefined) ? [] : args.node1;
   this.node2 = (args.node2 === undefined) ? [] : args.node2;
   // this.ways = (args.ways === undefined) ? [] : args.ways;
+  return this;
 };
 
 
