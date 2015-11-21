@@ -57,25 +57,3 @@ Graph.prototype.addWay = function (id, nodeArray) {
 
 
 
-
-"6.1668354,53.4766041", "6.1671293,53.4758415", "6.1674498,53.4759629", "6.1688231,53.4759547"
-path
-
-e.v
-"6.1668354,53.4766041"
-way "6530017"
-"6.1671293,53.4758415"
-"6.1668354,53.4766041"
-
-
-"6.1671293,53.4758415"
-
-
-node = coordinate, point, graphlib node with value set to Node obj stored in xNodes, obj {ways}
-way = collection of nodes from one endpoint/intersection to another
-edge = pair of connected nodes, graphlib edge with value set to an Edge object stored in xEdges, obj {ways, nodes}
-graph = graphlib object containing relations between edges
-
-storage of raw json tiles in cache (illumap.tileCache)
-storage of json data:
-
