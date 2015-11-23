@@ -7,7 +7,7 @@ var Graph = function(args) {
 
 // returns xNodes as an array
 Graph.prototype.nodes = function() {
-  return Object.keys(xNodes).map(function (key) { return xNodes[key]; } );
+  return this.genericAsArray(xNodes);
 };
 
 Graph.prototype.node = function (id) {
@@ -16,14 +16,14 @@ Graph.prototype.node = function (id) {
 
 Graph.prototype.addNode = function (id) {
   var n = new Node({id: id, graph: this});
-  xNodes[id] = n;
+  this.xNodes[id] = n;
   return n;
 };
 
 
 // returns xEdges as an array
 Graph.prototype.edges = function() {
-  return Object.keys(xEdges).map(function (key) { return xEdges[key]; } );
+  return this.genericAsArray(xEdges);
 };
 
 Graph.prototype.edge = function (id) {
@@ -35,8 +35,9 @@ Graph.prototype.addEdge = function (nodes) {
   var e = this.getEdge(nodes);
   if (e) debugger;
 
+  var id = nodes[0].id+nodes[1].id;
   e = new Edge({id: id, nodes: nodes, graph: this});
-  xEdges[id] = e;
+  this.xEdges[id] = e;
   return e;
 };
 
@@ -49,7 +50,7 @@ Graph.prototype.getEdge = function(nodes) {
 
 // returns xWays as an array
 Graph.prototype.ways = function() {
-  return Object.keys(xWays).map(function (key) { return xWays[key]; } );
+  return this.genericAsArray(xWays);
 };
 
 Graph.prototype.way = function (id) {
@@ -57,21 +58,21 @@ Graph.prototype.way = function (id) {
 };
 
 Graph.prototype.addWay = function (id, nodeArray) {
-  if (xWays[id] !== undefined) {
+  if (this.xWays[id] !== undefined) {
     console.log("way '"+id+"' already exists. adding nodes to it");
     debugger;
   }
   var w = new Way({id: id, nodes: nodeArray, graph: this});
-  xWays[id] = w;
+  this.xWays[id] = w;
   nodeArray.forEach ( function (n) { n.ways.addWay(w); });
   return w;
 };
 
 Graph.prototype.resetWays = function () {
-  xNodes.forEach( function (n) {
+  this.xNodes.forEach( function (n) {
     n.ways.length = 0;
   });
-  xWays = {};
+  this.xWays = {};
   return true;
 };
 
@@ -88,3 +89,9 @@ Graph.prototype.resetWays = function () {
 //   if (edge.length > 1) debugger;
 //   return edge[0];
 // };
+
+
+Graph.prototype.genericAsArray = function(var) {
+  var obj = var;
+  return Object.keys(obj).map(function (key) { return obj[key]; } );
+}
