@@ -2,14 +2,13 @@
 var Mutators = function() {
 };
 
-Mutators.prototype.generic = function(g, xNodes, mutationFunc) {
+Mutators.prototype.generic = function(g, mutationFunc) {
 
 };
 
 // force directed repulsion-from-point algorithm
 Mutators.prototype.repulse = function(opts) {
-  var g = opts.g;
-  var xNodes = opts.xNodes;
+  var g = opts.g; // graph
   var repulsionPoint = opts.repulsionPoint;
 
   var chargeForce = 80;
@@ -17,15 +16,17 @@ Mutators.prototype.repulse = function(opts) {
     // inverse-square law
     return (1/(dist*dist));
   };
-  var offset0, offset1, nodeCoord, dist;
+  var offset0,
+      offset1,
+      nodeCoord,
+      distnewCoord0,
+      newCoord1,
+      nbrVal; // value of the neighbor node
 
-  var newCoord0 = {};
-  var newCoord1 = {};
-  var nbrVal; // value of the neighbor node
   // for each node, calculate the offset
-  g.nodes().forEach( function(nd) {
+  g.nodes.forEach( function(nd) {
 // debugger
-    nodeCoord = xNodes[nd].getCoordinates();
+    nodeCoord = nd.getCoordinates();
     offset0 = nodeCoord[0] - repulsionPoint[0];
     offset1 = nodeCoord[1] - repulsionPoint[1];
 
@@ -37,18 +38,18 @@ Mutators.prototype.repulse = function(opts) {
 
 // console.log('node:'+nd+' offsets:'+offset0+','+offset1+' force:'+force);
 // if (force > 1) { debugger }
-    newCoord0[nd] = nodeCoord[0] + (offset0 * force);
-    newCoord1[nd] = nodeCoord[1] + (offset1 * force);
+    newCoord0 = nodeCoord[0] + (offset0 * force);
+    newCoord1 = nodeCoord[1] + (offset1 * force);
 // debugger
   });
     // now update the nodes
-  g.nodes().forEach( function(nd) {
+  g.nodes.forEach( function(nd) {
 
-var oldcoord = xNodes[nd].getCoordinates();
-    xNodes[nd].setCoordinates([newCoord0[nd], newCoord1[nd]]);
-var newcoord = xNodes[nd].getCoordinates();
+var oldcoord = nd.getCoordinates();
+    nd.setCoordinates([newCoord0, newCoord1]);
+var newcoord = nd.getCoordinates();
 
-// console.log('changed node '+nd+' way '+xNodes[nd].wayIds+' from ' + oldcoord +' to ' + newcoord);
+// console.log('changed node '+nd+' way '+nd.wayIds+' from ' + oldcoord +' to ' + newcoord);
   });
   return g;
 };
@@ -57,36 +58,37 @@ var newcoord = xNodes[nd].getCoordinates();
 Mutators.prototype.relax = function(opts) {
 // debugger
   var g = opts.g;
-  var xNodes = opts.xNodes;
 
   var springForce = 0.2;
-  var offset0, offset1, nodeCoord;
+  var offset0,
+      offset1,
+      nodeCoord,
+      newCoord0,
+      newCoord1,
+      nbrVal; // value of the neighbor node
 
-  var newCoord0 = {};
-  var newCoord1 = {};
-  var nbrVal; // value of the neighbor node
   // for each node, calculate the offset
-  g.nodes().forEach( function(nd) {
-    nodeCoord = xNodes[nd].getCoordinates();
+  g.nodes.forEach( function(nd) {
+    nodeCoord = nd.getCoordinates();
     offset0 = 0;
     offset1 = 0;
     // get the neighbors and calc the offset
-    g.neighbors(nd).forEach( function(nbr) {
-      nbrCoord = xNodes[nbr].getCoordinates();
+    nd.neighbors().forEach( function(nbr) {
+      nbrCoord = nbr.getCoordinates();
       offset0 += (nbrCoord[0] - nodeCoord[0]);
       offset1 += (nbrCoord[1] - nodeCoord[1]);
     });
-    newCoord0[nd] = nodeCoord[0] + (offset0 * springForce);
-    newCoord1[nd] = nodeCoord[1] + (offset1 * springForce);
+    newCoord0 = nodeCoord[0] + (offset0 * springForce);
+    newCoord1 = nodeCoord[1] + (offset1 * springForce);
   });
     // now update the nodes
-  g.nodes().forEach( function(nd) {
+  g.nodes.forEach( function(nd) {
 
-var oldcoord = xNodes[nd].getCoordinates();
-    xNodes[nd].setCoordinates([newCoord0[nd], newCoord1[nd]]);
-var newcoord = xNodes[nd].getCoordinates();
+var oldcoord = nd.getCoordinates();
+    nd.setCoordinates([newCoord0, newCoord1]);
+var newcoord = nd.getCoordinates();
 
-console.log('changed node '+nd+' way '+xNodes[nd].wayIds+' from ' + oldcoord +' to ' + newcoord);
+console.log('changed node '+nd+' way '+nd.wayIds+' from ' + oldcoord +' to ' + newcoord);
   });
   return g;
 };
@@ -94,24 +96,25 @@ console.log('changed node '+nd+' way '+xNodes[nd].wayIds+' from ' + oldcoord +' 
 // orthoganalization algorithm
 Mutators.prototype.mondrianize = function(opts) {
   var g = opts.g;
-  var xNodes = opts.xNodes;
   var dampeningFactor = 0.25;
 
   // Note: the coordinates are stored: [longitude, latitude]
 log('mondrianizing');
-  var newCoord0 = {};
-  var newCoord1 = {};
+  var newCoord0,
+      newCoord1,
+      delta0,
+      delta1,
+      absLat,
+      absLongCorrected;
 
-  var delta0, delta1, absLat, absLongCorrected;
-
-  g.nodes().forEach( function(nd) {
-    nodeCoord = xNodes[nd].getCoordinates();
+  g.nodes.forEach( function(nd) {
+    nodeCoord = nd.getCoordinates();
     offset0 = 0;
     offset1 = 0;
 
     // get the neighbors and calc the offset
     g.neighbors(nd).forEach( function(nbr) {
-      nbrCoord = xNodes[nbr].getCoordinates();
+      nbrCoord = nbr.getCoordinates();
 
 // start algo
       delta0 = (nbrCoord[0] - nodeCoord[0]);
@@ -144,18 +147,18 @@ console.log('angle is close to diagonal');
         }
       }
 /// end algo
-      newCoord0[nd] = nodeCoord[0] + offset0;
-      newCoord1[nd] = nodeCoord[1] + offset1;
+      newCoord0 = nodeCoord[0] + offset0;
+      newCoord1 = nodeCoord[1] + offset1;
     });
   });
   // now update the nodes
-  g.nodes().forEach( function(nd) {
+  g.nodes.forEach( function(nd) {
 
-var oldcoord = xNodes[nd].getCoordinates();
-    xNodes[nd].setCoordinates([newCoord0[nd], newCoord1[nd]]);
-var newcoord = xNodes[nd].getCoordinates();
+var oldcoord = nd.getCoordinates();
+    nd.setCoordinates([newCoord0, newCoord1]);
+var newcoord = nd.getCoordinates();
 
-console.log('changed node '+nd+' way '+xNodes[nd].wayIds+' from ' + oldcoord +' to ' + newcoord);
+console.log('changed node '+nd+' way '+nd.wayIds+' from ' + oldcoord +' to ' + newcoord);
   });
   return g;
 };
@@ -164,23 +167,24 @@ console.log('changed node '+nd+' way '+xNodes[nd].wayIds+' from ' + oldcoord +' 
 // we may want to memoize the sorted array or some other data-structures
 Mutators.prototype.progressiveMesh = function(opts) {
   var g = opts.g;
-  var xNodes = opts.xNodes;
-  var ways = opts.ways;
 
-  var sortedEdges, ec;
+  var sortedEdges,
+      ec;
 
   // quick length generator (for when don't need absolute length, just roughly relative length)
-  function edgeLengthSquared (e,xNodes) {
+  function edgeLengthSquared (e) {
+    var v = e.nodes[0];
+    var w = e.nodes[1];
     return (
-      Math.pow((xNodes[e.v].getCoordinates()[0] - xNodes[e.w].getCoordinates()[0]), 2) +
-      Math.pow((xNodes[e.v].getCoordinates()[1] - xNodes[e.w].getCoordinates()[1]), 2)
+      Math.pow((v.getCoordinates()[0] - w.getCoordinates()[0]), 2) +
+      Math.pow((v.getCoordinates()[1] - w.getCoordinates()[1]), 2)
     );
   }
 
   // returns true if e1 length >= e2 length
   function edgeLengthComparator (e1,e2) {
-    var e1Len = edgeLengthSquared(e1,xNodes);
-    var e2Len = edgeLengthSquared(e2,xNodes);
+    var e1Len = edgeLengthSquared(e1);
+    var e2Len = edgeLengthSquared(e2);
     // console.log('edge ['+e1.v+','+e1.w+']='+ e1Len + ' ' + ((e1Len >= e2Len) ? '>=' : '<') +' ['+e2.v+','+e2.w+']='+e2Len);
     // return ((edgeLengthSquared(e1) >= edgeLengthSquared(e2)) ? 1 : -1);
     if (e1Len > e2Len) {
@@ -192,57 +196,45 @@ Mutators.prototype.progressiveMesh = function(opts) {
     return 0;
   }
 
-  function collapseEdge (g, e) {
+  function collapseEdge (e) {
     // debugger
-    var n1, n2, n1id, n2id, n1Frozen, n2Frozen, n1Edges, n2Edges, n1Neighbors, n2Neighbors, nbrVal;
-    n1 = xNodes[e.v];
-    n2 = xNodes[e.w];
+    var n1id, n2id, n1Frozen, n2Frozen, n1Neighbors, n2Neighbors, neighborWays, newEdge,
+        g = e.graph,
+        n1 = e.nodes[0],
+        n2 = e.nodes[1];
     // can't collapse if they're both frozen
     if (n1.frozen && n2.frozen) { return false; }
     // if one is frozen, make sure it's not n2
     if (n2.frozen) {
-      n2 = xNodes[e.v];
-      n1 = xNodes[e.w];
+      n2 = e.nodes[0];
+      n1 = e.nodes[1];
     }
     n1id = n1.id;
     n2id = n2.id;
 
-    // move edges from n2 to n1 (if necessary)
-    n1Edges = g.nodeEdges(n1id);
-    n2Edges = g.nodeEdges(n2id);
-    n1Neighbors = g.neighbors(n1id);
-    n2Neighbors = g.neighbors(n2id);
-    // add edge to n1 if it's not already there, and not the edge we're collapsing
+    // move edges from n2 to n1
+    n1Neighbors = n1.neighbors();
+    n2Neighbors = n2.neighbors();
+
+    // for each n2 neighbor (nbr), if it doesn't already connect to n1, create an edge [nbr, n1]
     n2Neighbors.forEach(function(nbr) {
-      if ((nbr !== n1id) && (n1Neighbors.indexOf(nbr) == -1)) {
-// debugger;
-        nbrVal = g.edge(n2id, nbr);
-        console.log('creating edge ['+n1id+','+nbr+'] from old edge ['+n2id+','+nbr+'], wayid '+g.edge(n2id, nbr).wayId);
+      if ((n1Neighbors.indexOf(nbr) == -1) && (nbr !== n1)) {
+        console.log('creating edge ['+n1.id+','+nbr.id+'] from old edge ['+n2.id+','+nbr.id+'], wayid '+g.edge(n2id, nbr).wayId);
         // create new edge, preserving the old edge's value
-        g.setEdge(n1id, nbr, nbrVal);
-        // add any new wayIds to n1
-        if (n1.wayIds.indexOf(nbrVal.wayId) === -1) {
-          n1.wayIds.push(nbrVal.wayId);
-        }
+        newEdge = g.addEdge([n1, nbr]);
+        oldEdge = g.getEdge([n2, nbr]);
+        newEdge.way = oldEdge.way;  // assign the old edge's way to the new edge
       }
     });
+
+    // refresh the ways of n1
+    n1.rediscoverWaysFromEdges();
 
     // reposition n1 toward n2
-    n1.setCoordinates(midpoint(n1id, n2id));
+    n1.setCoordinates(midpoint(n1, n2));
 
-    // remove n2 from any ways. This can leave us with empty arrays in the ways list. Problem?
-    n2.wayIds.forEach(function(wid) {
-// debugger
-      console.log('removing '+n2id+' from way '+wid);
-      ways[wid].removeByValue(n2id);
-      // clear any ways with only 1 node
-      if (ways[wid].length === 1) {
-        ways[wid].length = 0;
-      }
-    });
-
-    g.removeNode(n2id);
-    return g;
+    n2.delete();
+    return true;
   }
 
   function midpoint (n1, n2) {
@@ -252,17 +244,16 @@ Mutators.prototype.progressiveMesh = function(opts) {
     ];
   }
 
-  ec = g.edgeCount();
-  sortedEdges = g.edges().sort(edgeLengthComparator);
+  sortedEdges = g.edges.sort(edgeLengthComparator);
   // need extra logic if we want to support freezing certain nodes (e.g. endnodes, wayends, borders, connectors)
-  collapseEdge(g, sortedEdges[0]);
+  collapseEdge(sortedEdges[0]);
   return g;
 };
 
 
 // Ramer-Douglas-Peucker
-Mutators.prototype.rpd = function(g, xNodes) {
-  return g;
+Mutators.prototype.rpd = function(opts) {
+  return false;
 };
 
 

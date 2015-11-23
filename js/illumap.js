@@ -134,7 +134,7 @@ function Illumap() {
       var endpoints = checkedEndpoints;
       return function(node) {
         node.visible = all || (intersections && node.intersection) || (endpoints && node.intersection);
-      }
+      };
     }(checkedAllNodes, checkedIntersections, checkedEndpoints));
 
     // run against all nodes (todo)
@@ -156,7 +156,7 @@ function Illumap() {
       var endpoints = checkedEndpoints;
       return function(node) {
         node.frozen = (intersections && node.intersection) || (endpoints && node.intersection);
-      }
+      };
     }(checkedIntersections, checkedEndpoints));
 
     // run against all nodes (todo)

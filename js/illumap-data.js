@@ -8,64 +8,39 @@ var illumap = (function() {
       mutationSequence = [],  // list of changes performed on data
       mutators,
       mapg = new graphlib.Graph({ directed: false, multigraph: true }),
+      mgraph = new Graph(),
       graphStale = true,
       tangentsStale = true,  // used to trigger a pre-calculation of all tangents of edges (for decoration)
       mutatedFeatureList = {}, // we build our own geojson features list so that d3 can generate geo paths from it
       graphNodes = [],  // holds all nodes. node = {coordinates: [lat,lon], wayIds: [], features: [], endpoint}  //deprecated
       ways = [], // holds way objects: {edges: [], nodes: []}
-      xNodes = {}, // hold the nodes, indexed by coordUid
-      xWays = {}, // hold the ways(features), indexed by featureId;
-      xEdges = {}, // hold the attributes of graph edges
       highestWayId = 0,
       nodesToExplore = []; // used to record visited nodes when building ways
     // function coordinatesSame(a, b) {
     //   return ((a[0] === b[0]) && (a[1] === b[1]));
     // }
 
-    function newEdge (id, obj) {
-      var x = xEdges[id] = (obj || {});
-      return x;
-    }
-
-
-    // creates node and way (if necessary) and updates the xNodes list
+    // creates node and way (if necessary)
     function addNode(feature, coordinateIndex) {
       var coordinates = feature.geometry.coordinates[coordinateIndex];
 
-      // do ways and features map one-to-one?
-      var wayId = feature.id;
-      var way = xWays[wayId];
-      if (way === undefined) {
-        way = xWays[wayId] = new Way({
-          id: wayId
-        });
-      }
-
+      // do ways and features map one-to-one? No. Determine Way later
       var nodeId = coordinates[0] + ',' + coordinates[1];
-      var node = xNodes[nodeId];
+      var node = mgraph.node(nodeId);
       if (node === undefined) {
         console.log(nodeId);
-        node = new Node ({
-          id: nodeId,
-          coordinates: coordinates.slice(),
-          features: [feature],
-          endpoint: false,
-          intersection: false,
-          wayEnd: false,
-          ways: [way],
-          graph: mapg
-        });
-        xNodes[nodeId] = node;
-        mapg.setNode(nodeId); // add node to graph (no edge relationships yet)
+        node = mgraph.addNode(nodeId);
+        node.coordinates = coordinates.slice();
+        node.features = [feature];
+        node.endpoint = false;
+        node.intersection = false;
+        node.wayEnd = false;
       } else {
         console.log('addNode id:'+nodeId);
-        node = xNodes[nodeId];
         node.features.push(feature);
       }
-      way.addNode(node);
-      node.addWay(way);
-      return nodeId;
-    }  // end addNode
+      return node;
+    }
 
 
 
@@ -79,9 +54,7 @@ var illumap = (function() {
       //   console.log('graph is out of date. rebuilding from geojson');
       // }
 
-        // is this scope correct? will ways and graphNodes ref global or function vars?
-        ways.length = 0; // reset ways (lines of coordinates between endpoints or intersections)
-        graphNodes.length = 0;
+        mgraph = new Graph();
 
         // have to copy features, since we'll be modifying the contents and don't want to affect the original
         var features = geojsonBucket.getFeaturesClone();
@@ -89,49 +62,35 @@ var illumap = (function() {
           var geometryType = feature.geometry.type;
           if (geometryType === 'LineString') {
             var featureCoordinates = feature.geometry.coordinates;
-              prevNodeId = addNode(feature, 0);
+              prevNode = addNode(feature, 0);
               for (var i = 0, len = featureCoordinates.length; i < len - 1 ; i++) {
-                currNodeId = addNode(feature, i+1);
-                mapg.setEdge(prevNodeId, currNodeId, newEdge(prevNodeId+currNodeId)); // way-finding builds: {way: feature.id, length: len}
-                console.log('graph: added edge from featureId:index: ' + feature.id + ':' + i + ' c1: ' + prevNodeId + ' c2: ' + currNodeId);
-                prevNodeId = currNodeId;
+                currNode = addNode(feature, i+1);
+                mgraph.addEdge([prevNode, currNode]);
+                console.log('graph: added edge from featureId:index: ' + feature.id + ':' + i + ' c1: ' + prevNode.id + ' c2: ' + currNode.id);
+                prevNode = currNode;
               }
           } else {
               console.log("skipping feature " + feature.id + ". Can't handle geometry type: " + feature.geometry.type);
           }
         });
 
-        // build way list and find the end-nodes, itersection nodes, etc
-
-        var markEndpoint = function markEndpoint(n) {
-          console.log('marking endpoint: ' + n);
-          if (xNodes[n] === undefined) { debugger; }  //debug
-          xNodes[n].endpoint = true;
-          // mapg.node(n)['endpoint'] = true;
-        };
-        var markIntersection = function markIntersection(n) {
-          console.log('marking intersection: ' + n);
-          xNodes[n].intersection = true;
-          // mapg.node(n)['intersection'] = true;
-        };
-
         // remove orphan nodes, and mark the intersection and endpoints
         console.log('marking endpoints and removing orphans');
-        mapg.nodes().forEach( function(n) {
-          switch (mapg.nodeEdges(n).length) {
+        mgraph.nodes().forEach( function(n) {
+          switch (n.edges.length) {
             case 0:
               console.log('deleting orphan node ' + n);
-              mapg.removeNode(n);
+              n.delete();
               break;
             case 1:
-              markEndpoint(n);
+              n.endpoint = true;
               break;
             case 2:
               // skip
               break;
             default:
-              markEndpoint(n);
-              markIntersection(n);
+              n.endpoint = true;
+              n.intersection = true;
               break;
           }
         });
@@ -141,9 +100,8 @@ var illumap = (function() {
 
     };
 
-    function findWayFromEdge(e) {
 
-
+    function findWayNodesFromEdge(e) {
       // Return nodes, not including the starting node, between start and closest endpoint in one direction
       function getNodesUntilEndpoint(startNode, currNode, debugDirection) {
 console.log(debugDirection +'about to traverse, startNode='+startNode+' currNode='+currNode);
@@ -151,10 +109,10 @@ console.log(debugDirection +'about to traverse, startNode='+startNode+' currNode
         var prevNode = startNode;
         var nextNode;
         var direction;
-        while (xNodes[currNode].endpoint === false) {
+        while ((currNode.endpoint === false) && (currNode.intersection === false)) {
           // get the 2 (because it's not an endpoint) neighbors, remove the visited-node, and get the remaining node
-          nextNode = mapg.neighbors(currNode).removeByValue(prevNode)[0];
-console.log('traversing path ['+path+']. prevNode:'+prevNode+' currNode:'+currNode+' nextNode:'+nextNode+'(this is added to the path)');
+          nextNode = currNode.neighbors.filter( function (n) { return (prevNode !== n); } )[0];
+console.log('traversing path ['+path+']. prevNode:'+prevNode.id+' currNode:'+currNode.id+' nextNode:'+nextNode.id+'(this is added to the path)');
           path.push(nextNode);
           prevNode = currNode;
           currNode = nextNode;
@@ -163,16 +121,15 @@ console.log('returning path: ['+path.join(',')+']');
         return path;
       }
 
-      var v = e.v;
-      var w = e.w;
+      var v,w = e.nodes;
       var path=[v];
       var reversePath=[];
       var forwardPath=[];
-      if (xNodes[v].endpoint) {
+      if (v.endpoint || v.intersection) {
         path = path.concat(getNodesUntilEndpoint(v, w,'from-end: '));
       } else {
-        forwardPath = getNodesUntilEndpoint(v, mapg.neighbors(v)[0],'forward: ');
-        reversePath = getNodesUntilEndpoint(v, mapg.neighbors(v)[1],'backward: ').reverse();
+        forwardPath = getNodesUntilEndpoint(v, v.neighbors[0],'forward: ');
+        reversePath = getNodesUntilEndpoint(v, v.neighbors[1],'backward: ').reverse();
         path = reversePath.concat(path, forwardPath);
       }
 console.log('full path: ['+path.join(',') +']');
@@ -180,55 +137,84 @@ console.log('full path: ['+path.join(',') +']');
     }
 
 
+    function findWayEdgesFromEdge(e) {
+      // Return nodes, not including the starting node, between start and closest endpoint in one direction
+      function getEdgesUntilEndpoint(startNode, startEdge, debugDirection) {
+console.log(debugDirection +'about to traverse, startNode='+startNode+' currNode='+currNode);
+        var pathEdges = [];
+        var pathNodes = [];
+        var prevNode = startNode;
+        var nextNode;
+        var direction;
+        var currNode = startEdge.otherNode(startNode);
+        pathNodes.push(currNode); // save the nodes for possible future use
+        // start collecting pathEdges, starting with the next edge from the one we were given
+        while ((currNode.endpoint === false) && (currNode.intersection === false)) {
+          nextNode = currEdge.otherNode(currNode);
+          nextEdge = currNode.getEdgeWithNode(nextNode);
+          pathEdges.push(nextEdge);
+          pathNodes.push(nextNode); // save the nodes for possible future use
+          currEdge = nextEdge;
+          currNode = nextNode;
+console.log('traversing path ['+pathNodes+']. currNode:'+currNode.id+' nextNode:'+nextNode.id+'(this is added to the path)');
+        }
+        return pathEdges;
+      }
 
-    // take a node, get its ways, remove the points from the global list, repeat
+      var n1 = e.nodes[0];
+      var n2 = e.nodes[1];
+      var pathEdges=[e];
+      var reversePathEdges=[];
+      var forwardPathEdges=[];
+      if (n1.endpoint || n1.intersection) {
+        pathEdges = pathEdges.concat(getNodesUntilEndpoint(n1, w,'from-end: '));
+      } else {
+        forwardPath = getEdgesUntilEndpoint(n1, e,'forward: ');
+        reversePath = getEdgesUntilEndpoint(n2, e,'backward: ').reverse();
+        edgePath = reversePath.concat(pathEdges, forwardPath);
+      }
+console.log('full path: ['+pathEdges.join(',') +']');
+      return pathEdges;
+    }
+
+
+
+    // take a node, find its ways by traversal, remove the points from the global list, repeat
     function buildAllWays() {
-      var n, wayPath, newWayId, oldEdgeCount;
-      // create temporary copy of graph for us to keep track of what edges we've visited
-      var g = graphlib.json.read(graphlib.json.write(mapg));
+      // Do we need to build ways manually?
+      // Yes. Assumption: Features are not like ways. Features may intersect other features, which leaves intersection nodes (such as a T-junction)
+      //  in the middle. Ways never have intersections in the middle.
+      // take a node
+      // if it has two edges, for each edge traverse until hitting an intersection or endpoint. assign the same wayids to both traversals
+      // if it has != two edges, for each edge traverse until hitting an intersection or endpoint. assign different wayids to each traversal
 
-oldEdgeCount = g.edgeCount();
-      while (g.edgeCount() > 0) {
-        newWayId = highestWayId;
-        highestWayId += 1;
-        e = g.edges()[0];
-        wayPath = findWayFromEdge(e);
-        ways[newWayId] = wayPath.slice();
-// if ( newWayId === 218 ) { debugger; }
+      // steps:
+      // take an edge
+      // follow it's neighboring edges in each direction if (and while) there is only one other edge attached in that direction
 
-        // function to add the way id to each node, and remove the node from the search list
-        var wayPathAddAndNodePrune = function wayPathAddAndNodePrune(n,i) {
-          xNodes[n].wayIds.push(newWayId);
-          if (i > 0) {  // skip the first node since we have one fewer edges than nodes/way-points
-            // record way in path
-            mapg.setEdge(wayPath[i-1], n, newEdge(wayPath[i-1]+n, {wayId: newWayId}));
+      mgraph.resetWays();
 
-            console.log('removing edge: ['+[wayPath[i-1],n].join(',')+']');
-
-            // debugging
-            if (g.hasEdge(wayPath[i-1], n) === false) {
-              console.log('no edge: ['+[wayPath[i-1], n].join(',')+']');
-              debugger;
-            }
-
-            // we use toString because hasEdge doesn't handle integer IDs consistently. https://github.com/cpettitt/graphlib/issues/47
-            // g.removeEdge(wayPath[i-1].toString(),n.toString());
-            g.removeEdge(wayPath[i-1], n);
-          }
-        };
-        // add the way id to each node, and remove the node from the search list
-        wayPath.forEach(wayPathAddAndNodePrune);
-
-console.log('----');
-// sanity check to prevent an infinite loop
-if (oldEdgeCount === g.edgeCount()) {
-  console.log('infinite loop detected');
-  debugger;
-}
-oldEdgeCount = g.edgeCount();
+      var remainingNodes = mgraph.nodes();
+      var remainingEdges = mgraph.edges();
+      var n,e,w;
+      while (remainingEdges.length > 0) {
+        oldEdgeCount = remainingEdges.length;
+        e = remainingEdges[0];
+        wayEdges = findWayFromEdge(e);
+        w = new Way({id: mgraph.edges.length, edges: wayEdges});
+        wayEdges.forEach( function (e) {
+          // add the way to each edge
+          e.way = w;
+          // remove the edge from the search list
+          remainingEdges.removeByValue(e);
+        });
+        // sanity check to prevent an infinite loop
+        if (oldEdgeCount === remainingEdges.length) {
+          console.log('infinite loop detected');
+          debugger;
+        }
       }
       graphStale = false;
-
     }
 
     var replayMutations = function replayMutations() {
@@ -258,9 +244,7 @@ oldEdgeCount = g.edgeCount();
       log('mutateGeneric: '+opts.mutationType);
       // mutate the graph
       mapg = mutators[opts.mutationType]({
-        'g':mapg,
-        "xNodes":xNodes,
-        "ways":ways,
+        'g':mgraph,
         "repulsionPoint":opts.repulsionPoint
       });
       if (opts.addToReplay !== false) {
@@ -345,10 +329,6 @@ console.log("running loadTileFromServer");
       illumap.graphics.requestRedraw();
     }
 
-    function edgeNodesCoordinates(e) {
-      return [xNodes[e.v].getCoordinates(), xNodes[e.w].getCoordinates()];
-    }
-
     var loadGeojsonFromLocal = function loadGeojsonFromLocal() {
       illumap.loadTileCache();
       geojsonBucket.reset();
@@ -417,9 +397,6 @@ console.log("running loadTileFromServer");
       loadTileFromServer: loadTileFromServer,
       mutateGeneric: mutateGeneric,
       replayMutations: replayMutations,
-      xNodes: xNodes,
-      // graphNodes: function() { return graphNodes; },
-      // ways: function() { return ways; },
       graphNodes: graphNodes, //deprecated
       ways: ways,
       source: source,

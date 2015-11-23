@@ -30,12 +30,20 @@ Graph.prototype.edge = function (id) {
   return this.xEdges[id];
 };
 
-Graph.prototype.addEdge = function (id, n1, n2) {
-  var e = new Edge({id: id, node1: n1, node2: n2, graph: this});
+Graph.prototype.addEdge = function (nodes) {
+  // check that edge doesn't already exist
+  var e = this.getEdge(nodes);
+  if (e) debugger;
+
+  e = new Edge({id: id, nodes: nodes, graph: this});
   xEdges[id] = e;
-  n1.edges.push(e);
-  n2.edges.push(e);
   return e;
+};
+
+Graph.prototype.getEdge = function(nodes) {
+  var id = nodes[0].id+nodes[1].id;
+  var idRev = nodes[1].id+nodes[0].id;
+  return this.edges[id] || this.edges[idRev] || undefined;
 };
 
 
@@ -49,11 +57,34 @@ Graph.prototype.way = function (id) {
 };
 
 Graph.prototype.addWay = function (id, nodeArray) {
+  if (xWays[id] !== undefined) {
+    console.log("way '"+id+"' already exists. adding nodes to it");
+    debugger;
+  }
   var w = new Way({id: id, nodes: nodeArray, graph: this});
   xWays[id] = w;
-  nodeArray.forEach ( function (n) { n.ways.push(w); });
+  nodeArray.forEach ( function (n) { n.ways.addWay(w); });
   return w;
 };
 
+Graph.prototype.resetWays = function () {
+  xNodes.forEach( function (n) {
+    n.ways.length = 0;
+  });
+  xWays = {};
+  return true;
+};
 
 
+// Graph.prototype.getEdgeWithNodes = function (nodes) {
+//   function union(arr1, arr2) {
+//     return arr1.filter(function(n) {
+//         return arr2.indexOf(n) != -1
+//     });
+//   }
+//   // Find the edge that's common to both nodes
+//   var edge = union(nodes[0].edges, nodes[1].edges);
+//   // Sanity check
+//   if (edge.length > 1) debugger;
+//   return edge[0];
+// };
