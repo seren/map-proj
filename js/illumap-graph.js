@@ -2,7 +2,6 @@ var Graph = function(args) {
   this.xNodes = {};
   this.xEdges = {};
   this.xWays = {};
-  return this;
 };
 
 // returns xNodes as an array

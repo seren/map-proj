@@ -14,7 +14,6 @@ var Node = function(args) {
   this.coordinates = (args.coordinates === undefined) ? [] : args.coordinates;
   this.graph = args.graph;
   this.rdpMetric = undefined;
-  return this;
 };
 
 // i don't think nodes should track ways. they can derive them from their edges if necessary

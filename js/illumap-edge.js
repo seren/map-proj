@@ -11,8 +11,6 @@ var Edge = function(args) {
     n.endpoint = (n.edges < 1);
     n.intersection = (n.edges > 2);
   });
-
-  return this;
 };
 
 Edge.prototype.otherNode = function (n1) {

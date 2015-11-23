@@ -3,7 +3,6 @@ var Way = function(args) {
   // this.nodes = (args.nodes === undefined) ? [] : args.nodes;  // should way keep track of nodes? probably not. can be derived from edges
   this.edges = (args.edges === undefined) ? [] : args.edges;
   this.graph = (args.graph === undefined) ? [] : args.graph;
-  return this;
 };
 
 Way.prototype.addNode = function (node) {
