@@ -16,14 +16,5 @@ Edge.prototype.delete = function() {
   // delete it from the master list
   this.graph.xEdges.delete(this);
   return true;
-}
+  }
 
-
-// Edge.prototype.getCoordinates = function() {
-//   return this._coordinates.slice();
-// }
-
-// Edge.prototype.setCoordinates = function(newCoords) {
-//   this._coordinates = newCoords.slice();
-//   return this;
-// }

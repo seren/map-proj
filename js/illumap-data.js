@@ -349,18 +349,6 @@ console.log("running loadTileFromServer");
       return [xNodes[e.v].getCoordinates(), xNodes[e.w].getCoordinates()];
     }
 
-
-    var pathsFromEdges = function pathsFromEdges() {
-      var linestring = function(e) {
-        return {
-          coordinates: edgeNodesCoordinates(e),
-          type: "LineString",
-          id: mapg.edge(e).wayId
-        };
-      };
-      return mapg.edges().map(linestring);
-    };
-
     var loadGeojsonFromLocal = function loadGeojsonFromLocal() {
       illumap.loadTileCache();
       geojsonBucket.reset();
@@ -389,40 +377,6 @@ console.log("running loadTileFromServer");
         }
       };
     };
-
-    // geometry wrapped up with feature values
-    function featureFromWay(w, id) {
-      return featureFromNodes(w, id);
-    }
-
-    var geojsonFromWays = function geojsonFromWays (waysArray) {
-      waysArray = (waysArray === undefined) ? [128, 127, 209, 61, 129] : waysArray; // use a sample array if need be
-      json = {};
-      waysArray.forEach(function(w) {
-        json[w]= featureFromWay(illumap.data.ways[w], w);
-      });
-      return JSON.stringify(json);
-    };
-
-
-
-// out-dated and wrong. shouldn't use features any more
-    // returns a list of all unique features (key-values: feature-id -> feature)
-    var featureListFromGraph = function featureListFromGraph(g) {
-      var features = {};
-      var feature;
-      mapg.nodes().forEach( function (n) {
-console.log(n);
-        feature = xNodes[n].features[0];
-        // feature = mapg.node(n).feature;
-        if (features[feature.id] === undefined) {
-          features[feature.id] = feature;
-        }
-      });
-      console.log('nodes: '+mapg.nodes().length+', unique feature-count: '+illumap.utility.objToArray(features).length);
-      return features;
-    };
-
 
     var loadTestGeojsonData = function loadTestGeojsonData(testType) {
       // pretty print: http://jsonformatter.curiousconcept.com/
@@ -461,11 +415,8 @@ console.log(n);
       mutationSequence: mutationSequence,  // list of changes performed on data
       mapg: mapg,
       loadTileFromServer: loadTileFromServer,
-      pathsFromEdges: pathsFromEdges,
       mutateGeneric: mutateGeneric,
       replayMutations: replayMutations,
-      featureListFromGraph: featureListFromGraph,
-      geojsonFromWays: geojsonFromWays,
       xNodes: xNodes,
       // graphNodes: function() { return graphNodes; },
       // ways: function() { return ways; },
@@ -500,41 +451,9 @@ console.log(n);
       getEdges: function getEdges() {
         if (graphStale === true) { buildGraph(); }
         var featureFromEdge = function (e) {
-          // does id need to be numeric? should derive it from the edge.
-          var edgeId = xNodes[e.v].numericId + xNodes[e.w].numericId;
-          return featureFromNodes([xNodes[e.v],xNodes[e.w]],edgeId);
+          return featureFromNodes(e.nodes,e.id);
         };
-        return mapg.edges().map(featureFromEdge);
-      },
-
-// old and should be removed
-      getMutatedData: function getMutatedData() {
-        console.log('loading mutated data from graph');
-        if (graphStale === true) { buildGraph(); }
-        // unfortunately I don't know how to get d3.geo.path to use straight up coordinate arrays rather than json feature sets
-        // just return an array of edges
-        // return mapg.edges().map( function (e) {
-        //   return [e.v.split(','),e.w.split(',')];
-        // });
-        // return an array of features in the graph
-        return illumap.utility.objToArray(featureListFromGraph(mapg));
-      },
-
-      mutate: function mutate() {
-        var arr = geojsonBucket.array();
-        var randomNode = arr[getRandomInt(0, arr.length)];
-        geojsonBucket.remove(randomNode);
-        console.log('mutated by removing ' + del.id + '. ' + geojsonBucket.length() + ' paths remain');
-      },
-
-      prune: function prune() {
-        var p = mutatedData.pop();
-        var action = {
-          pruned: p
-        };
-        mutationSequence.concat(action);
-        console.log('pruned ' + p);
-        console.log('remaining ' + mutatedData);
+        return mgraph.edges().map(featureFromEdge);
       },
 
       // used when restarting the mutation process. resets everything except tile caches and geojsonbucket

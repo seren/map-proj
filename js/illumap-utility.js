@@ -138,11 +138,6 @@ var illumap = (function() {
       return coordsInFeatureList(illumap.data.geojsonBucket);
     },
 
-    // coordsInGraph: function() {
-    //   // old version that uses features
-    //   return coordsInFeatureList(illumap.data.featureListFromGraph(illumap.data.mapg));
-    // }
-
     graphStats: function(g) {
       return 'nodes: ' + g.nodeCount() + ', edges: ' + g.edgeCount();
     },
