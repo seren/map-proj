@@ -77,7 +77,7 @@ var illumap = (function() {
         // remove orphan nodes, and mark the intersection and endpoints
         console.log('marking endpoints and removing orphans');
         mgraph.nodes().forEach( function(n) {
-          switch (n.edges.length) {
+          switch (n.getEdges().length) {
             case 0:
               console.log('deleting orphan node ' + n);
               n.delete();
@@ -121,7 +121,7 @@ console.log('returning path: ['+path.join(',')+']');
         return path;
       }
 
-      var v,w = e.nodes;
+      var v,w = e.getNodes();
       var path=[v];
       var reversePath=[];
       var forwardPath=[];
@@ -161,8 +161,8 @@ console.log('traversing path ['+pathNodes+']. currNode:'+currNode.id+' nextNode:
         return pathEdges;
       }
 
-      var n1 = e.nodes[0];
-      var n2 = e.nodes[1];
+      var n1 = e.getNodes()[0];
+      var n2 = e.getNodes()[1];
       var pathEdges=[e];
       var reversePathEdges=[];
       var forwardPathEdges=[];
@@ -428,7 +428,7 @@ console.log("running loadTileFromServer");
       getEdges: function getEdges() {
         if (graphStale === true) { buildGraph(); }
         var featureFromEdge = function (e) {
-          return featureFromNodes(e.nodes,e.id);
+          return featureFromNodes(e.getNodes(),e.id);
         };
         return mgraph.edges().map(featureFromEdge);
       },

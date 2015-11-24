@@ -1,36 +1,47 @@
 var Edge = function(args) {
+  var self = this;
   this.id = (args.id === undefined) ? '00' : args.id;
   this.graph = args.graph;
-  this.nodes = (args.nodes === undefined) ? [] : args.nodes;
+  this._nodes = (args.nodes === undefined) ? [] : args.nodes;
   // this.ways = (args.ways === undefined) ? [] : args.ways;
   this.way = (args.way === undefined) ? [] : args.way;
 
   // update nodes' edge list, and intersection and endpoint status
-  this.nodes.forEach( function (n) {
-    n.edges.push(this);
-    n.endpoint = (n.edges < 1);
-    n.intersection = (n.edges > 2);
+  this._nodes.forEach( function (n) {
+    n.addEdge(self);
+    n.endpoint = (n.getEdges() < 1);
+    n.intersection = (n.getEdges() > 2);
   });
-};
 
-Edge.prototype.otherNode = function (n1) {
-  return this.nodes.filter( function (n) { return (n !== n1); });
-};
-
-// deletes an edge and references to it
-Edge.prototype.delete = function() {
-  // remove this edge from nodes
-  nodes.forEach( function (n) {
-    n.edges.removeByValue(this);
-  });
-  // remove this edge from its way
-  this.way.removeEdge(this);
-  // delete it from the master list
-  if (this.graph.xEdges[e.id] === undefined) {
-    console.log("edge '"+e.id+"' doesn't exist in graph's list");
-    debugger;
+  this.getNodes = function getNodes() {
+    return self._nodes;
   }
-  delete this.graph.xEdges[e.id];
-  return true;
-};
 
+  this.addNode = function addNode(n) {
+    self._nodes.push(n);
+    if (self._nodes.length > 2) debugger;  //sanity check
+    return self._nodes;
+  }
+
+  this.otherNode = function otherNode(n1) {
+    return self._nodes.filter( function (n) { return (n !== n1); });
+  };
+
+  // deletes an edge and references to it
+  this.destroy = function destroy() {
+    // remove this edge from nodes
+    self._nodes.forEach( function (n) {
+      n.getEdges().removeByValue(self);
+    });
+    // remove this edge from its way
+    self.way.removeEdge(self);
+    // delete it from the master list
+    if (self.graph.xEdges[e.id] === undefined) {
+      console.log("edge '"+e.id+"' doesn't exist in graph's list");
+      debugger;
+    }
+    delete sel.graph.xEdges[e.id];
+    return true;
+  };
+
+};

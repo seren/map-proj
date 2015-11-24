@@ -1,79 +1,81 @@
 var Graph = function(args) {
+  var self = this;
   this.xNodes = {};
   this.xEdges = {};
   this.xWays = {};
-};
 
-// returns xNodes as an array
-Graph.prototype.nodes = function() {
-  return this.genericAsArray(this.xNodes);
-};
+  // returns xNodes as an array
+  this.nodes = function nodes() {
+    return self.genericAsArray(self.xNodes);
+  };
 
-Graph.prototype.node = function (id) {
-  return this.xNodes[id];
-};
+  this.node = function node (id) {
+    return self.xNodes[id];
+  };
 
-Graph.prototype.addNode = function (id) {
-  var n = new Node({id: id, graph: this});
-  this.xNodes[id] = n;
-  return n;
-};
-
-
-// returns xEdges as an array
-Graph.prototype.edges = function() {
-  return this.genericAsArray(this.xEdges);
-};
-
-Graph.prototype.edge = function (id) {
-  return this.xEdges[id];
-};
-
-Graph.prototype.addEdge = function (nodes) {
-  // check that edge doesn't already exist
-  var e = this.getEdge(nodes);
-  if (e) debugger;
-
-  var id = nodes[0].id+nodes[1].id;
-  e = new Edge({id: id, nodes: nodes, graph: this});
-  this.xEdges[id] = e;
-  return e;
-};
-
-Graph.prototype.getEdge = function(nodes) {
-  var id = nodes[0].id+nodes[1].id;
-  var idRev = nodes[1].id+nodes[0].id;
-  return this.edges[id] || this.edges[idRev] || undefined;
-};
+  this.addNode = function addNode (id) {
+    var n = new Node({id: id, graph: self});
+    self.xNodes[id] = n;
+    return n;
+  };
 
 
-// returns xWays as an array
-Graph.prototype.ways = function() {
-  return this.genericAsArray(xWays);
-};
+  // returns xEdges as an array
+  this.edges = function edges() {
+    return self.genericAsArray(self.xEdges);
+  };
 
-Graph.prototype.way = function (id) {
-  return this.xWays[id];
-};
+  this.edge = function edge (id) {
+    return self.xEdges[id];
+  };
 
-Graph.prototype.addWay = function (id, nodeArray) {
-  if (this.xWays[id] !== undefined) {
-    console.log("way '"+id+"' already exists. adding nodes to it");
-    debugger;
-  }
-  var w = new Way({id: id, nodes: nodeArray, graph: this});
-  this.xWays[id] = w;
-  nodeArray.forEach ( function (n) { n.ways.addWay(w); });
-  return w;
-};
+  this.addEdge = function addEdge (nodes) {
+    // check that edge doesn't already exist
+    var e = self.getEdge(nodes);
+    if (e) debugger;
 
-Graph.prototype.resetWays = function () {
-  var n = this.xNodes;
-  Object.keys(this.xNodes).forEach( function (k) {
-    n[k].ways.length = 0;
-  });
-  this.xWays = {};
-  return true;
+    var id = nodes[0].id+nodes[1].id;
+    e = new Edge({id: id, nodes: nodes, graph: self});
+    self.xEdges[id] = e;
+    return e;
+  };
+
+  this.getEdge = function getEdge(nodes) {
+    var id = nodes[0].id+nodes[1].id;
+    var idRev = nodes[1].id+nodes[0].id;
+    return self.edges[id] || self.edges[idRev] || undefined;
+  };
+
+
+  // returns xWays as an array
+  this.ways = function ways() {
+    return self.genericAsArray(xWays);
+  };
+
+  this.way = function way (id) {
+    return self.xWays[id];
+  };
+
+  this.addWay = function addWay (id, nodeArray) {
+    if (self.xWays[id] !== undefined) {
+      console.log("way '"+id+"' already exists. adding nodes to it");
+      debugger;
+    }
+    var w = new Way({id: id, nodes: nodeArray, graph: self});
+    self.xWays[id] = w;
+    nodeArray.forEach ( function (n) { n.ways.addWay(w); });
+    return w;
+  };
+
+  this.resetWays = function resetWays () {
+    var n = self.xNodes;
+    Object.keys(self.xNodes).forEach( function (k) {
+      n[k].ways.length = 0;
+    });
+    self.xWays = {};
+    return true;
+  };
+
 };
 
 
@@ -94,4 +96,4 @@ Graph.prototype.resetWays = function () {
 Graph.prototype.genericAsArray = function(o) {
   var obj = o;
   return Object.keys(obj).map(function (key) { return obj[key]; } );
-}
+};
