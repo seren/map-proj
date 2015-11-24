@@ -6,7 +6,7 @@ var Graph = function(args) {
 
 // returns xNodes as an array
 Graph.prototype.nodes = function() {
-  return this.genericAsArray(xNodes);
+  return this.genericAsArray(this.xNodes);
 };
 
 Graph.prototype.node = function (id) {
@@ -22,7 +22,7 @@ Graph.prototype.addNode = function (id) {
 
 // returns xEdges as an array
 Graph.prototype.edges = function() {
-  return this.genericAsArray(xEdges);
+  return this.genericAsArray(this.xEdges);
 };
 
 Graph.prototype.edge = function (id) {
@@ -68,8 +68,9 @@ Graph.prototype.addWay = function (id, nodeArray) {
 };
 
 Graph.prototype.resetWays = function () {
-  this.xNodes.forEach( function (n) {
-    n.ways.length = 0;
+  var n = this.xNodes;
+  Object.keys(this.xNodes).forEach( function (k) {
+    n[k].ways.length = 0;
   });
   this.xWays = {};
   return true;
@@ -90,7 +91,7 @@ Graph.prototype.resetWays = function () {
 // };
 
 
-Graph.prototype.genericAsArray = function(var) {
-  var obj = var;
+Graph.prototype.genericAsArray = function(o) {
+  var obj = o;
   return Object.keys(obj).map(function (key) { return obj[key]; } );
 }
