@@ -63,8 +63,7 @@ Mutators.prototype.relax = function(opts) {
   var offset0,
       offset1,
       nodeCoord,
-      newCoord0,
-      newCoord1,
+      newCoord = {},
       nbrVal; // value of the neighbor node
 
   // for each node, calculate the offset
@@ -78,18 +77,19 @@ Mutators.prototype.relax = function(opts) {
       offset0 += (nbrCoord[0] - nodeCoord[0]);
       offset1 += (nbrCoord[1] - nodeCoord[1]);
     });
-    newCoord0 = nodeCoord[0] + (offset0 * springForce);
-    newCoord1 = nodeCoord[1] + (offset1 * springForce);
+    newCoord[nd.id] = [nodeCoord[0] + (offset0 * springForce),
+                      nodeCoord[1] + (offset1 * springForce)];
   });
     // now update the nodes
   g.nodes().forEach( function(nd) {
 
 var oldcoord = nd.getCoordinates();
-    nd.setCoordinates([newCoord0, newCoord1]);
+    nd.setCoordinates(newCoord[nd.id]);
 var newcoord = nd.getCoordinates();
 
-console.log('changed node '+nd+' way '+nd.wayIds+' from ' + oldcoord +' to ' + newcoord);
+console.log('changed node '+nd.id+' from ' + oldcoord +' to ' + newcoord);
   });
+
   return g;
 };
 
