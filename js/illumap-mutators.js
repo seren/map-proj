@@ -24,7 +24,7 @@ Mutators.prototype.repulse = function(opts) {
       nbrVal; // value of the neighbor node
 
   // for each node, calculate the offset
-  g.nodes.forEach( function(nd) {
+  g.nodes().forEach( function(nd) {
 // debugger
     nodeCoord = nd.getCoordinates();
     offset0 = nodeCoord[0] - repulsionPoint[0];
@@ -43,7 +43,7 @@ Mutators.prototype.repulse = function(opts) {
 // debugger
   });
     // now update the nodes
-  g.nodes.forEach( function(nd) {
+  g.nodes().forEach( function(nd) {
 
 var oldcoord = nd.getCoordinates();
     nd.setCoordinates([newCoord0, newCoord1]);
@@ -68,7 +68,7 @@ Mutators.prototype.relax = function(opts) {
       nbrVal; // value of the neighbor node
 
   // for each node, calculate the offset
-  g.nodes.forEach( function(nd) {
+  g.nodes().forEach( function(nd) {
     nodeCoord = nd.getCoordinates();
     offset0 = 0;
     offset1 = 0;
@@ -82,7 +82,7 @@ Mutators.prototype.relax = function(opts) {
     newCoord1 = nodeCoord[1] + (offset1 * springForce);
   });
     // now update the nodes
-  g.nodes.forEach( function(nd) {
+  g.nodes().forEach( function(nd) {
 
 var oldcoord = nd.getCoordinates();
     nd.setCoordinates([newCoord0, newCoord1]);
@@ -107,7 +107,7 @@ log('mondrianizing');
       absLat,
       absLongCorrected;
 
-  g.nodes.forEach( function(nd) {
+  g.nodes().forEach( function(nd) {
     nodeCoord = nd.getCoordinates();
     offset0 = 0;
     offset1 = 0;
@@ -152,7 +152,7 @@ console.log('angle is close to diagonal');
     });
   });
   // now update the nodes
-  g.nodes.forEach( function(nd) {
+  g.nodes().forEach( function(nd) {
 
 var oldcoord = nd.getCoordinates();
     nd.setCoordinates([newCoord0, newCoord1]);
