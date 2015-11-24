@@ -4,6 +4,7 @@ var Edge = function(args) {
   this.graph = args.graph;
   this._nodes = (args.nodes === undefined) ? [] : args.nodes;
   // this.ways = (args.ways === undefined) ? [] : args.ways;
+  this.numericId = Math.floor( (this._nodes[0].numericId / 2) + (this._nodes[1].numericId / 2) );
   this.way = (args.way === undefined) ? [] : args.way;
 
   // update nodes' edge list, and intersection and endpoint status

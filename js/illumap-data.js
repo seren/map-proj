@@ -428,7 +428,7 @@ console.log("running loadTileFromServer");
       getEdges: function getEdges() {
         if (graphStale === true) { buildGraph(); }
         var featureFromEdge = function (e) {
-          return featureFromNodes(e.getNodes(),e.id);
+          return featureFromNodes(e.getNodes(),e.numericId);
         };
         return mgraph.edges().map(featureFromEdge);
       },
