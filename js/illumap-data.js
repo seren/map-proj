@@ -167,7 +167,7 @@ console.log('traversing path ['+pathNodes+']. currNode:'+currNode.id+' nextNode:
       var reversePathEdges=[];
       var forwardPathEdges=[];
       if (n1.endpoint || n1.intersection) {
-        pathEdges = pathEdges.concat(getNodesUntilEndpoint(n1, w,'from-end: '));
+        pathEdges = pathEdges.concat(getEdgesUntilEndpoint(n1, e,'from-end: '));
       } else {
         forwardPath = getEdgesUntilEndpoint(n1, e,'forward: ');
         reversePath = getEdgesUntilEndpoint(n2, e,'backward: ').reverse();
@@ -200,7 +200,7 @@ console.log('full path: ['+pathEdges.join(',') +']');
       while (remainingEdges.length > 0) {
         oldEdgeCount = remainingEdges.length;
         e = remainingEdges[0];
-        wayEdges = findWayFromEdge(e);
+        wayEdges = findWayEdgesFromEdge(e);
         w = new Way({id: mgraph.edges.length, edges: wayEdges});
         wayEdges.forEach( function (e) {
           // add the way to each edge
