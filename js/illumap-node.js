@@ -6,12 +6,9 @@ var Node = function(args) {
   this.features = (args.features === undefined) ? [] : args.features;
   this.endpoint = (args.endpoint === undefined) ? false : args.endpoint;
   this.intersection = (args.intersection === undefined) ? false : args.intersection;
-  // this.wayEnd = (args.wayEnd === undefined) ? false : args.wayEnd;
-  // this.wayIds = (args.wayIds === undefined) ? [] : args.wayIds;  // deprecate
   this.ways = (args.ways === undefined) ? [] : args.ways; // array of way objects
   this.edges = (args.edges === undefined) ? [] : args.edges;
   this._coordinates = (args.coordinates === undefined) ? [] : args.coordinates;
-  this.coordinates = (args.coordinates === undefined) ? [] : args.coordinates;
   this.graph = args.graph;
   this.rdpMetric = undefined;
 };
@@ -46,7 +43,6 @@ Node.prototype.getCoordinates = function() {
 
 Node.prototype.setCoordinates = function(newCoords) {
   this._coordinates = newCoords.slice();
-  this.coordinates = this._coordinates;
   return this;
 };
 
