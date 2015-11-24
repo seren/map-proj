@@ -13,8 +13,8 @@ var GeojsonBucket = function(uid) {
 GeojsonBucket.prototype.compareCoordinates = function(a,b) {
   return ((a[0] === b[0]) && (a[1] === b[1]));
 };
-  // joins two arrays of coordinates, as long as one has a head that matches the other's tail
 
+// joins two arrays of coordinates, as long as one has a head that matches the other's tail
 GeojsonBucket.prototype.joinCoordinateArrays = function(a,b,      j,d) {
   var joined;
 // if (j.id == '6530058') {
