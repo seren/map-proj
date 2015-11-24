@@ -30,7 +30,7 @@ var illumap = (function() {
       if (node === undefined) {
         console.log(nodeId);
         node = mgraph.addNode(nodeId);
-        node.coordinates = coordinates.slice();
+        node.setCoordinates(coordinates);
         node.features = [feature];
         node.endpoint = false;
         node.intersection = false;
