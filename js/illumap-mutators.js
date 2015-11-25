@@ -35,15 +35,15 @@ Mutators.prototype.repulse = function(opts) {
 
 // console.log('node:'+nd+' offsets:'+offset0+','+offset1+' force:'+force);
 // if (force > 1) { debugger }
-    newCoord[nd] = [nodeCoord[0] + (offset[0] * force),
-                    nodeCoord[1] + (offset[1] * force)];
+    newCoord[nd.id] = [nodeCoord[0] + (offset[0] * force),
+                       nodeCoord[1] + (offset[1] * force)];
 // debugger
   });
     // now update the nodes
   g.nodes().forEach( function(nd) {
 
 // var oldcoord = nd.getCoordinates();
-    nd.setCoordinates(newCoord[nd]);
+    nd.setCoordinates(newCoord[nd.id]);
 // var newcoord = nd.getCoordinates();
 
 // console.log('changed node '+nd+' way '+nd.wayIds+' from ' + oldcoord +' to ' + newcoord);
@@ -70,14 +70,14 @@ Mutators.prototype.relax = function(opts) {
       offset[0] += (nbrCoord[0] - nodeCoord[0]);
       offset[1] += (nbrCoord[1] - nodeCoord[1]);
     });
-    newCoord[nd] = [nodeCoord[0] + (offset[0] * springForce),
-                    nodeCoord[1] + (offset[1] * springForce)];
+    newCoord[nd.id] = [nodeCoord[0] + (offset[0] * springForce),
+                       nodeCoord[1] + (offset[1] * springForce)];
   });
     // now update the nodes
   g.nodes().forEach( function(nd) {
 
 var oldcoord = nd.getCoordinates();
-    nd.setCoordinates(newCoord[nd]);
+    nd.setCoordinates(newCoord[nd.id]);
 var newcoord = nd.getCoordinates();
 
 console.log('changed node '+nd.id+' from ' + oldcoord +' to ' + newcoord);
@@ -136,15 +136,15 @@ console.log('angle is close to diagonal');
         }
       }
 /// end algo
-      newCoord[nd] = [nodeCoord[0] + offset[0],
-                      nodeCoord[1] + offset[1]];
+      newCoord[nd.id] = [nodeCoord[0] + offset[0],
+                         nodeCoord[1] + offset[1]];
     });
   });
   // now update the nodes
   g.nodes().forEach( function(nd) {
 
 var oldcoord = nd.getCoordinates();
-    nd.setCoordinates(newCoord[nd]);
+    nd.setCoordinates(newCoord[nd.id]);
 var newcoord = nd.getCoordinates();
 
 console.log('changed node '+nd.id+' from ' + oldcoord +' to ' + newcoord);
