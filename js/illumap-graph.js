@@ -19,6 +19,10 @@ var Graph = function(args) {
     return n;
   };
 
+  this.nodeCount = function nodeCount() {
+    return self.nodes.length;
+  };
+
 
   // returns xEdges as an array
   this.edges = function edges() {
@@ -46,10 +50,14 @@ var Graph = function(args) {
     return self.edges[id] || self.edges[idRev] || undefined;
   };
 
+  this.edgeCount = function edgeCount() {
+    return self.edges.length;
+  };
+
 
   // returns xWays as an array
   this.ways = function ways() {
-    return self.genericAsArray(xWays);
+    return self.genericAsArray(self.xWays);
   };
 
   this.way = function way (id) {
@@ -74,6 +82,10 @@ var Graph = function(args) {
     });
     self.xWays = {};
     return true;
+  };
+
+  this.wayCount = function wayCount() {
+    return self.ways.length;
   };
 
   this.reset = function reset () {
