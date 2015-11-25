@@ -79,7 +79,7 @@ var illumap = (function() {
           switch (n.getEdges().length) {
             case 0:
               console.log('deleting orphan node ' + n);
-              n.delete();
+              n.destroy();
               break;
             case 1:
               n.endpoint = true;

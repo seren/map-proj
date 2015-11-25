@@ -219,7 +219,7 @@ Mutators.prototype.progressiveMesh = function(opts) {
     // reposition n1 toward n2
     n1.setCoordinates(midpoint(n1, n2));
 
-    n2.delete();
+    n2.destroy();
     return true;
   }
 
