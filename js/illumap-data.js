@@ -200,7 +200,7 @@ console.log('full path: ['+pathEdges.join(',') +']');
         oldEdgeCount = remainingEdges.length;
         e = remainingEdges[0];
         wayEdges = findWayEdgesFromEdge(e);
-        w = new Way({id: mgraph.edges.length, edges: wayEdges});
+        w = new Way({id: mgraph.edges.length, edges: wayEdges, graph: mgraph});
         wayEdges.forEach( function (e) {
           // add the way to each edge
           e.way = w;

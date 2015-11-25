@@ -13,6 +13,8 @@ var Node = function(args) {
   this.graph = args.graph;
   this.rdpMetric = undefined;
 
+  if (this.graph === undefined) debugger;
+
   this.getEdges = function getEdges() {
     return self._edges;
   }

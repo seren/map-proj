@@ -3,8 +3,8 @@ var Way = function(args) {
   this.id = (args.id === undefined) ? '0' : args.id;
   // this.nodes = (args.nodes === undefined) ? [] : args.nodes;  // should way keep track of nodes? probably not. can be derived from edges
   this.edges = (args.edges === undefined) ? [] : args.edges;
-  this.graph = (args.graph === undefined) ? [] : args.graph;
-
+  this.graph = args.graph;
+  if (this.graph === undefined) debugger;
 
   this.addNode = function addNode (node) {
     if (self.nodes[node.id] === undefined) {
