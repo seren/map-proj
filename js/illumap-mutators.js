@@ -130,7 +130,7 @@ Mutators.prototype.mondrianize = function(opts) {
       if (absLongCorrected > 0.01) {
         var angle = Math.acos(absLat / absLongCorrected);
         if (angle < 1) {
-console.log('angle is close to diagonal');
+          console.log('angle is close to diagonal');
           offset[0] += Math.random() * angle * delta[0];
           offset[1] += Math.random() * angle * delta[1];
         }
@@ -161,8 +161,8 @@ Mutators.prototype.progressiveMesh = function(opts) {
 
   // quick length generator (for when don't need absolute length, just roughly relative length)
   function edgeLengthSquared (e) {
-    var v = e.nodes[0];
-    var w = e.nodes[1];
+    var v = e.getNodes()[0];
+    var w = e.getNodes()[1];
     return (
       Math.pow((v.getCoordinates()[0] - w.getCoordinates()[0]), 2) +
       Math.pow((v.getCoordinates()[1] - w.getCoordinates()[1]), 2)
@@ -188,14 +188,14 @@ Mutators.prototype.progressiveMesh = function(opts) {
     // debugger
     var n1Frozen, n2Frozen, n1Neighbors, n2Neighbors, neighborWays, newEdge,
         g = e.graph,
-        n1 = e.nodes[0],
-        n2 = e.nodes[1];
+        n1 = e.getNodes()[0],
+        n2 = e.getNodes()[1];
     // can't collapse if they're both frozen
     if (n1.frozen && n2.frozen) { return false; }
     // if one is frozen, make sure it's not n2
     if (n2.frozen) {
-      n2 = e.nodes[0];
-      n1 = e.nodes[1];
+      n2 = e.getNodes()[0];
+      n1 = e.getNodes()[1];
     }
 
     // move edges from n2 to n1
@@ -230,7 +230,7 @@ Mutators.prototype.progressiveMesh = function(opts) {
     ];
   }
 
-  sortedEdges = g.edges.sort(edgeLengthComparator);
+  sortedEdges = g.edges().sort(edgeLengthComparator);
   // need extra logic if we want to support freezing certain nodes (e.g. endnodes, wayends, borders, connectors)
   collapseEdge(sortedEdges[0]);
   return g;
