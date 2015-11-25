@@ -101,12 +101,12 @@ var Node = function(args) {
     return edge[0];
   };
 
-};
 
+  this.rediscoverWaysFromEdges = function rediscoverWaysFromEdges() {
+    self.ways.length = 0;
+    self._edges.forEach( function(e) {
+      self.addWay(e.way);
+    });
+  };
 
-Node.prototype.rediscoverWaysFromEdges = function() {
-  self.ways.length = 0;
-  self._edges.forEach( function(e) {
-    self.addWay(e.way);
-  });
 };
