@@ -8,46 +8,43 @@ Mutators.prototype.generic = function(g, mutationFunc) {
 
 // force directed repulsion-from-point algorithm
 Mutators.prototype.repulse = function(opts) {
-  var g = opts.g; // graph
-  var repulsionPoint = opts.repulsionPoint;
-
-  var chargeForce = 80;
-  var attenuation = function attenuation (dist) {
-    // inverse-square law
-    return (1/(dist*dist));
-  };
-  var offset0,
-      offset1,
+  var g = opts.g, // graph
+      repulsionPoint = opts.repulsionPoint,
+      chargeForce = 80,
+      offset = [],
+      screenOffset = [],
+      newCoord = {},
       nodeCoord,
-      distnewCoord0,
-      newCoord1,
-      nbrVal; // value of the neighbor node
+      attenuation = function attenuation (dist) {
+        // inverse-square law
+        return (1/(dist*dist));
+      };
 
   // for each node, calculate the offset
   g.nodes().forEach( function(nd) {
 // debugger
     nodeCoord = nd.getCoordinates();
-    offset0 = nodeCoord[0] - repulsionPoint[0];
-    offset1 = nodeCoord[1] - repulsionPoint[1];
+    offset = [nodeCoord[0] - repulsionPoint[0],
+              nodeCoord[1] - repulsionPoint[1]];
 
     // calculate the force based on distance using the user's contex (screen distance)
-    screenOffset0 = illumap.d3projection(nodeCoord)[0] - illumap.d3projection(repulsionPoint)[0];
-    screenOffset1 = illumap.d3projection(nodeCoord)[1] - illumap.d3projection(repulsionPoint)[1];
-    screenDist = Math.sqrt((screenOffset0*screenOffset0) + (screenOffset1*screenOffset1));
+    screenOffset = [illumap.d3projection(nodeCoord)[0] - illumap.d3projection(repulsionPoint)[0],
+                    illumap.d3projection(nodeCoord)[1] - illumap.d3projection(repulsionPoint)[1]];
+    screenDist = Math.sqrt((screenOffset[0]*screenOffset[0]) + (screenOffset[1]*screenOffset[1]));
     force = Math.min(1, attenuation(screenDist) * chargeForce);
 
 // console.log('node:'+nd+' offsets:'+offset0+','+offset1+' force:'+force);
 // if (force > 1) { debugger }
-    newCoord0 = nodeCoord[0] + (offset0 * force);
-    newCoord1 = nodeCoord[1] + (offset1 * force);
+    newCoord[nd] = [nodeCoord[0] + (offset[0] * force),
+                    nodeCoord[1] + (offset[1] * force)];
 // debugger
   });
     // now update the nodes
   g.nodes().forEach( function(nd) {
 
-var oldcoord = nd.getCoordinates();
-    nd.setCoordinates([newCoord0, newCoord1]);
-var newcoord = nd.getCoordinates();
+// var oldcoord = nd.getCoordinates();
+    nd.setCoordinates(newCoord[nd]);
+// var newcoord = nd.getCoordinates();
 
 // console.log('changed node '+nd+' way '+nd.wayIds+' from ' + oldcoord +' to ' + newcoord);
   });
@@ -56,35 +53,31 @@ var newcoord = nd.getCoordinates();
 
 // force directed relaxation algorithm
 Mutators.prototype.relax = function(opts) {
-// debugger
-  var g = opts.g;
-
-  var springForce = 0.2;
-  var offset0,
-      offset1,
+  var g = opts.g, // graph
+      springForce = 0.2,
+      offset = [],
       nodeCoord,
-      newCoord = {},
-      nbrVal; // value of the neighbor node
+      nbrCoord,
+      newCoord = {};
 
   // for each node, calculate the offset
   g.nodes().forEach( function(nd) {
     nodeCoord = nd.getCoordinates();
-    offset0 = 0;
-    offset1 = 0;
+    offset = [0,0];
     // get the neighbors and calc the offset
     nd.neighbors().forEach( function(nbr) {
       nbrCoord = nbr.getCoordinates();
-      offset0 += (nbrCoord[0] - nodeCoord[0]);
-      offset1 += (nbrCoord[1] - nodeCoord[1]);
+      offset[0] += (nbrCoord[0] - nodeCoord[0]);
+      offset[1] += (nbrCoord[1] - nodeCoord[1]);
     });
-    newCoord[nd.id] = [nodeCoord[0] + (offset0 * springForce),
-                      nodeCoord[1] + (offset1 * springForce)];
+    newCoord[nd] = [nodeCoord[0] + (offset[0] * springForce),
+                    nodeCoord[1] + (offset[1] * springForce)];
   });
     // now update the nodes
   g.nodes().forEach( function(nd) {
 
 var oldcoord = nd.getCoordinates();
-    nd.setCoordinates(newCoord[nd.id]);
+    nd.setCoordinates(newCoord[nd]);
 var newcoord = nd.getCoordinates();
 
 console.log('changed node '+nd.id+' from ' + oldcoord +' to ' + newcoord);
@@ -95,30 +88,26 @@ console.log('changed node '+nd.id+' from ' + oldcoord +' to ' + newcoord);
 
 // orthoganalization algorithm
 Mutators.prototype.mondrianize = function(opts) {
-  var g = opts.g;
-  var dampeningFactor = 0.25;
-
-  // Note: the coordinates are stored: [longitude, latitude]
-log('mondrianizing');
-  var newCoord0,
-      newCoord1,
-      delta0,
-      delta1,
+  log('mondrianizing');
+  var g = opts.g,
+      dampeningFactor = 0.25,
+      newCoord = {}, // Note: the coordinates are stored: [longitude, latitude]
+      nodeCoord = [],
+      delta = [],
       absLat,
       absLongCorrected;
 
   g.nodes().forEach( function(nd) {
     nodeCoord = nd.getCoordinates();
-    offset0 = 0;
-    offset1 = 0;
+    offset = [0,0];
 
     // get the neighbors and calc the offset
     g.neighbors(nd).forEach( function(nbr) {
       nbrCoord = nbr.getCoordinates();
 
 // start algo
-      delta0 = (nbrCoord[0] - nodeCoord[0]);
-      delta1 = (nbrCoord[1] - nodeCoord[1]);
+      delta = [(nbrCoord[0] - nodeCoord[0]),
+               (nbrCoord[1] - nodeCoord[1])];
 
     // // since the longitude sections are thinning toward the pole
     // double effective_delta_longitude = delta_longitude * cos((float) (center_lattitude * PI / 180.0));
@@ -127,14 +116,14 @@ log('mondrianizing');
 
       // just used for checking which direction to offset
       // absLongCorrected = Math.abs(offset0) * longitudeFactor
-      absLongCorrected = Math.abs(offset0);
-      absLat = Math.abs(offset1);
+      absLongCorrected = Math.abs(offset[0]);
+      absLat = Math.abs(offset[1]);
 
       // check if edge is approximately horizontal or vertical
       if (absLongCorrected < absLat) {
-        offset0 += dampeningFactor * delta0;
+        offset[0] += dampeningFactor * delta[0];
       } else {
-        offset1 += dampeningFactor * delta1;
+        offset[1] += dampeningFactor * delta[1];
       }
 
       // check if edge is close to diagonal
@@ -142,23 +131,23 @@ log('mondrianizing');
         var angle = Math.acos(absLat / absLongCorrected);
         if (angle < 1) {
 console.log('angle is close to diagonal');
-          offset0 += Math.random() * angle * delta0;
-          offset1 += Math.random() * angle * delta1;
+          offset[0] += Math.random() * angle * delta[0];
+          offset[1] += Math.random() * angle * delta[1];
         }
       }
 /// end algo
-      newCoord0 = nodeCoord[0] + offset0;
-      newCoord1 = nodeCoord[1] + offset1;
+      newCoord[nd] = [nodeCoord[0] + offset[0],
+                      nodeCoord[1] + offset[1]];
     });
   });
   // now update the nodes
   g.nodes().forEach( function(nd) {
 
 var oldcoord = nd.getCoordinates();
-    nd.setCoordinates([newCoord0, newCoord1]);
+    nd.setCoordinates(newCoord[nd]);
 var newcoord = nd.getCoordinates();
 
-console.log('changed node '+nd+' way '+nd.wayIds+' from ' + oldcoord +' to ' + newcoord);
+console.log('changed node '+nd.id+' from ' + oldcoord +' to ' + newcoord);
   });
   return g;
 };
@@ -166,9 +155,8 @@ console.log('changed node '+nd+' way '+nd.wayIds+' from ' + oldcoord +' to ' + n
 
 // we may want to memoize the sorted array or some other data-structures
 Mutators.prototype.progressiveMesh = function(opts) {
-  var g = opts.g;
-
-  var sortedEdges,
+  var g = opts.g,
+      sortedEdges,
       ec;
 
   // quick length generator (for when don't need absolute length, just roughly relative length)
@@ -198,7 +186,7 @@ Mutators.prototype.progressiveMesh = function(opts) {
 
   function collapseEdge (e) {
     // debugger
-    var n1id, n2id, n1Frozen, n2Frozen, n1Neighbors, n2Neighbors, neighborWays, newEdge,
+    var n1Frozen, n2Frozen, n1Neighbors, n2Neighbors, neighborWays, newEdge,
         g = e.graph,
         n1 = e.nodes[0],
         n2 = e.nodes[1];
@@ -209,8 +197,6 @@ Mutators.prototype.progressiveMesh = function(opts) {
       n2 = e.nodes[0];
       n1 = e.nodes[1];
     }
-    n1id = n1.id;
-    n2id = n2.id;
 
     // move edges from n2 to n1
     n1Neighbors = n1.neighbors();
