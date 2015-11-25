@@ -4,6 +4,10 @@ var Graph = function(args) {
   this.xEdges = {};
   this.xWays = {};
 
+  this.debug = function debug() {
+    debugger;
+  };
+
   // returns xNodes as an array
   this.nodes = function nodes() {
     return self.genericAsArray(self.xNodes);
@@ -75,6 +79,7 @@ var Graph = function(args) {
     return w;
   };
 
+  // We use this when we want to rebuild the ways
   this.resetWays = function resetWays () {
     var n = self.xNodes;
     Object.keys(self.xNodes).forEach( function (k) {
