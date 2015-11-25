@@ -46,7 +46,7 @@ var Node = function(args) {
 
   this.deleteWay = function deleteWay(way) {
     if (self.ways.indexOf(way) === -1) debugger; // sanity check for to catch removing a non-member way
-    self.ways.delete(way);
+    self.ways.deleteByValue(way);
     return self;
   };
 
