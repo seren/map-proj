@@ -429,7 +429,7 @@ console.log('translation: '+illumap.d3projection.translate()+' -> '+zoomBehavior
 
   this.mutateProgressiveMesh = function mutateProgressiveMesh() {
 // debugger
-    var stepSize = Math.round(Math.log(illumap.data.mapg.edgeCount()));
+    var stepSize = Math.round(Math.log(illumap.data.mgraph.xEdges.length));
     for (var i=0; i < stepSize; i++) {
       illumap.data.mutateGeneric({mutationType: 'progressiveMesh'});
     }

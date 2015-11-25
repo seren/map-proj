@@ -7,7 +7,6 @@ var illumap = (function() {
       // mutatedData = [],
       mutationSequence = [],  // list of changes performed on data
       mutators,
-      mapg = new graphlib.Graph({ directed: false, multigraph: true }),
       mgraph = new Graph(),
       graphStale = true,
       tangentsStale = true,  // used to trigger a pre-calculation of all tangents of edges (for decoration)
@@ -232,7 +231,7 @@ console.log('full path: ['+pathEdges.join(',') +']');
     };
 
     var mutateGeneric = function mutateGeneric(opts) {
-      if (graphStale || (mapg.nodeCount < 1)) {
+      if (graphStale || (mgraph.nodes().length < 1)) {
         buildGraph();
       }
       if (mutators === undefined) {
@@ -243,7 +242,7 @@ console.log('full path: ['+pathEdges.join(',') +']');
       }
       log('mutateGeneric: '+opts.mutationType);
       // mutate the graph
-      mapg = mutators[opts.mutationType]({
+      mutators[opts.mutationType]({
         'g':mgraph,
         "repulsionPoint":opts.repulsionPoint
       });
@@ -393,7 +392,6 @@ console.log("running loadTileFromServer");
       buildGraph: buildGraph,
       geojsonBucket: geojsonBucket,  // module that holds features in current view (should we directly modify contents, or feed into something else?)
       mutationSequence: mutationSequence,  // list of changes performed on data
-      mapg: mapg,
       loadTileFromServer: loadTileFromServer,
       mutateGeneric: mutateGeneric,
       replayMutations: replayMutations,
@@ -401,6 +399,7 @@ console.log("running loadTileFromServer");
       ways: ways,
       source: source,
       loadGeojson: loadGeojson,
+      mgraph: mgraph,
 
       init: function init() {
         console.log('initing data');
@@ -440,7 +439,7 @@ console.log("running loadTileFromServer");
         highestWayId = 0;
         ways.length = 0;
         graphNodes.length = 0;
-        mapg.nodes().forEach(function (n) {mapg.removeNode(n); }); // reset graph without recreating
+        mgraph.reset();
         graphStale = true;
         console.log('reset data');
       },

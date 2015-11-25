@@ -76,6 +76,11 @@ var Graph = function(args) {
     return true;
   };
 
+  this.reset = function reset () {
+    self.xWays = {};
+    self.xNodes = {};
+    self.xEdges = {};
+  }
 };
 
 
