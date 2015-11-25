@@ -102,7 +102,7 @@ Mutators.prototype.mondrianize = function(opts) {
     offset = [0,0];
 
     // get the neighbors and calc the offset
-    g.neighbors(nd).forEach( function(nbr) {
+    nd.neighbors().forEach( function(nbr) {
       nbrCoord = nbr.getCoordinates();
 
 // start algo
