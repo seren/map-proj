@@ -88,6 +88,12 @@ var Graph = function(args) {
     return self.ways.length;
   };
 
+  // simple counter to give us unique id
+  this.wayCounter = (function wayCounter() {
+    var counter = 0;
+    return function () { return counter += 1; }
+  })();
+
   this.reset = function reset () {
     self.xWays = {};
     self.xNodes = {};
