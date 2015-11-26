@@ -51,7 +51,7 @@ var Graph = function(args) {
   this.getEdge = function getEdge(nodes) {
     var id = nodes[0].id+nodes[1].id;
     var idRev = nodes[1].id+nodes[0].id;
-    return self.edges[id] || self.edges[idRev] || undefined;
+    return self.xEdges[id] || self.xEdges[idRev] || undefined;
   };
 
   this.edgeCount = function edgeCount() {
