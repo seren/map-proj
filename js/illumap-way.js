@@ -1,9 +1,12 @@
 var Way = function(args) {
   var self = this;
-  // this.nodes = (args.nodes === undefined) ? [] : args.nodes;  // should way keep track of nodes? probably not. can be derived from edges
   self.graph = args.graph;
   if (self.graph === undefined) debugger;
   self.id = self.graph.wayCounter();
+  if (self.graph.xWays[self.id] !== undefined) {
+    console.log("way '"+self.id+"' already exists.");
+    debugger;
+  }
   self.edges = [];
   args.edges.forEach( function (e) { addEdge(e); }); // will addEdge be defined yet?
 
