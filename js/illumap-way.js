@@ -28,7 +28,8 @@ var Way = function(args) {
 
   this.removeEdge = function removeEdge (e) {
     if (self.edges.indexOf(e) === -1) {
-      debugger; // sanity check to catch trying to remove non-member edge
+      console.log('caught trying to remove non-member edge');
+      debugger;
     } else {
       self.edges.removeByValue(e);
     }

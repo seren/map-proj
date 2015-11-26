@@ -205,10 +205,10 @@ Mutators.prototype.progressiveMesh = function(opts) {
     // for each n2 neighbor (nbr), if it doesn't already connect to n1, create an edge [nbr, n1]
     n2Neighbors.forEach(function(nbr) {
       if ((n1Neighbors.indexOf(nbr) == -1) && (nbr !== n1)) {
-        console.log('creating edge ['+n1.id+','+nbr.id+'] from old edge ['+n2.id+','+nbr.id+'], wayid '+g.edge(n2id, nbr).wayId);
-        // create new edge, preserving the old edge's value
-        newEdge = g.addEdge([n1, nbr]);
         oldEdge = g.getEdge([n2, nbr]);
+        newEdge = g.addEdge([n1, nbr]);
+        console.log('creating edge ['+newEdge.id+'] from old edge ['+oldEdge.id+'], wayid '+oldEdge.way.id);
+        // create new edge, preserving the old edge's value
         newEdge.way = oldEdge.way;  // assign the old edge's way to the new edge
       }
     });
