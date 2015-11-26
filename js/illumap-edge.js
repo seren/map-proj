@@ -38,11 +38,11 @@ var Edge = function(args) {
     // remove this edge from its way
     self.way.removeEdge(self);
     // delete it from the master list
-    if (self.graph.xEdges[e.id] === undefined) {
-      console.log("edge '"+e.id+"' doesn't exist in graph's list");
+    if (self.graph.xEdges[self.id] === undefined) {
+      console.log("edge '"+self.id+"' doesn't exist in graph's list");
       debugger;
     }
-    delete sel.graph.xEdges[e.id];
+    delete self.graph.xEdges[self.id];
     return true;
   };
 
