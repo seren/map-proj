@@ -4,7 +4,7 @@ var Edge = function(args) {
   self.graph = args.graph;
   self._nodes = (args.nodes === undefined) ? [] : args.nodes;
   self.numericId = Math.floor( (this._nodes[0].numericId / 2) + (this._nodes[1].numericId / 2) );
-  self.way = (args.way === undefined) ? [] : args.way;
+  self.way = args.way;
 
   if (self.graph === undefined) debugger;
 
