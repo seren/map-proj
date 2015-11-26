@@ -24,7 +24,7 @@ var Graph = function(args) {
   };
 
   this.nodeCount = function nodeCount() {
-    return self.nodes.length;
+    return self.nodes().length;
   };
 
 
@@ -55,7 +55,7 @@ var Graph = function(args) {
   };
 
   this.edgeCount = function edgeCount() {
-    return self.edges.length;
+    return self.edges().length;
   };
 
 
@@ -90,7 +90,7 @@ var Graph = function(args) {
   };
 
   this.wayCount = function wayCount() {
-    return self.ways.length;
+    return self.ways().length;
   };
 
   // simple counter to give us unique id
