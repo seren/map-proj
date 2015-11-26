@@ -53,7 +53,7 @@ var illumap = (function() {
       //   console.log('graph is out of date. rebuilding from geojson');
       // }
 
-        mgraph = new Graph();
+        mgraph.reset();
 
         // have to copy features, since we'll be modifying the contents and don't want to affect the original
         var features = geojsonBucket.getFeaturesClone();
