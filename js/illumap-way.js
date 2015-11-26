@@ -1,10 +1,11 @@
 var Way = function(args) {
   var self = this;
   // this.nodes = (args.nodes === undefined) ? [] : args.nodes;  // should way keep track of nodes? probably not. can be derived from edges
-  self.edges = (args.edges === undefined) ? [] : args.edges;
   self.graph = args.graph;
   if (self.graph === undefined) debugger;
   self.id = self.graph.wayCounter();
+  self.edges = [];
+  args.edges.forEach( function (e) { addEdge(e); }); // will addEdge be defined yet?
 
 // debugger
   this.addNode = function addNode (node) {
@@ -14,14 +15,16 @@ var Way = function(args) {
     return self;
   };
 
-  this.addEdge = function addEdge (edge) {
+  this.addEdge = addEdge;
+  function addEdge (e) {
     if (self.edges.indexOf(e) === -1) {
-      self.edges[edge.id] = edge;
+      self.edges.push(e);
+      e.way = self;
     } else {
       debugger; // sanity check to catch re-adding edge
     }
     return self;
-  };
+  }
 
   this.removeEdge = function removeEdge (e) {
     if (self.edges.indexOf(e) === -1) {

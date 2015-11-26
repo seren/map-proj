@@ -68,14 +68,9 @@ var Graph = function(args) {
     return self.xWays[id];
   };
 
-  this.addWay = function addWay (id, nodeArray) {
-    if (self.xWays[id] !== undefined) {
-      console.log("way '"+id+"' already exists. adding nodes to it");
-      debugger;
-    }
-    var w = new Way({id: id, nodes: nodeArray, graph: self});
-    self.xWays[id] = w;
-    nodeArray.forEach ( function (n) { n.ways.addWay(w); });
+  this.addWay = function addWay (args) {
+    var w = new Way({edges: args.edgeArray, graph: self});
+    self.xWays[w.id] = w;
     return w;
   };
 
