@@ -1,8 +1,8 @@
 var Graph = function(args) {
   var self = this;
-  this.xNodes = {};
-  this.xEdges = {};
-  this.xWays = {};
+  self.xNodes = {};
+  self.xEdges = {};
+  self.xWays = {};
 
   this.debug = function debug() {
     debugger;

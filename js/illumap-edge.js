@@ -1,12 +1,12 @@
 var Edge = function(args) {
   var self = this;
-  this.id = (args.id === undefined) ? '00' : args.id;
-  this.graph = args.graph;
-  this._nodes = (args.nodes === undefined) ? [] : args.nodes;
-  this.numericId = Math.floor( (this._nodes[0].numericId / 2) + (this._nodes[1].numericId / 2) );
-  this.way = (args.way === undefined) ? [] : args.way;
+  self.id = (args.id === undefined) ? '00' : args.id;
+  self.graph = args.graph;
+  self._nodes = (args.nodes === undefined) ? [] : args.nodes;
+  self.numericId = Math.floor( (this._nodes[0].numericId / 2) + (this._nodes[1].numericId / 2) );
+  self.way = (args.way === undefined) ? [] : args.way;
 
-  if (this.graph === undefined) debugger;
+  if (self.graph === undefined) debugger;
 
   // update nodes' edge list, and intersection and endpoint status
   this._nodes.forEach( function (n) {
