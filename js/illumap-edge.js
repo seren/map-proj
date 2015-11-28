@@ -37,19 +37,19 @@ var Edge = function(args) {
     } else {
       console.log('destroying refs for edge: '+self.id);
       // Remove this edge from master list
-    if (self.graph.xEdges[self.id] === undefined) {
-      console.log("edge '"+self.id+"' doesn't exist in graph's list");
-      debugger;
-    }
-    console.log('deleting edge ['+self.id+'] from graph master list');
-    delete self.graph.xEdges[self.id];
+      if (self.graph.xEdges[self.id] === undefined) {
+        console.log("edge '"+self.id+"' doesn't exist in graph's list");
+        debugger;
+      }
+      console.log('deleting edge ['+self.id+'] from graph master list');
+      delete self.graph.xEdges[self.id];
       // remove this edge from nodes
       for (var i = self._nodes.length - 1; i >= 0; i--) {
         self._nodes[i].removeEdge(self);
       };
       // remove this edge from its way
       self.way.removeEdge(self);
-  }
+    }
     return true;
   };
 
