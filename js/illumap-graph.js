@@ -53,9 +53,8 @@ var Graph = function(args) {
     // check that edge doesn't already exist
     var e = self.getEdge(nodes);
     if (e) debugger;
-
-    self.xEdges[id] = e;
     e = new Edge({nodes: nodes, graph: self});
+    self.xEdges[e.id] = e;
     return e;
   };
 
@@ -123,7 +122,7 @@ var Graph = function(args) {
   // simple counter to give us unique id
   this.wayCounter = (function wayCounter() {
     var counter = 0;
-    return function () { return counter += 1; }
+    return function () { return counter += 1; };
   })();
 
   this.print = function print() {
@@ -136,7 +135,8 @@ var Graph = function(args) {
     self.xWays = {};
     self.xNodes = {};
     self.xEdges = {};
-  }
+  };
+
 };
 
 
@@ -153,8 +153,8 @@ var Graph = function(args) {
 //   return edge[0];
 // };
 
-
 Graph.prototype.genericAsArray = function(o) {
   var obj = o;
   return Object.keys(obj).map(function (key) { return obj[key]; } );
 };
+
