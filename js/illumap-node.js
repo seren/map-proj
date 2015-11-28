@@ -28,10 +28,10 @@ var Node = function(args) {
       return (self !== otherNode);
     }
     return self._edges.map( function (e) {
-      var nodes = e.getNodes().filter(isntMe);
+      var otherNodes = e.getNodes().filter(isntMe);
       // Sanity check. Each edge should only have 2 nodes, so length should be 1 after filtering away one.
-      if (nodes.length !== 1) { debugger; }
-      return nodes[0];
+      if (otherNodes.length !== 1) { debugger; }
+      return otherNodes[0];
     });
   };
 
