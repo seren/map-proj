@@ -214,8 +214,8 @@ Mutators.prototype.progressiveMesh = function(opts) {
         // create new edge, preserving the old edge's way value
         console.log('n1,nbr edges before: '+n1._edges.length+','+nbr._edges.length);
         newEdge = g.addEdge([n1, nbr]);
-        newEdge.way = oldEdge.way;  // assign the old edge's way to the new edge
         console.log('n1,nbr edges after: '+n1._edges.length+','+nbr._edges.length);
+        oldEdge.way.addEdge(newEdge);  // assign the old edge's way to the new edge
         console.log('PM: created edge ['+newEdge.id+'] from old edge ['+oldEdge.id+'], wayid '+oldEdge.way.id);
         // remove the old edge
         console.log('PM: destroying old edge ['+oldEdge.id+']');
