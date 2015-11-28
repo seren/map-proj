@@ -49,8 +49,8 @@ var Graph = function(args) {
   };
 
   this.getEdge = function getEdge(nodes) {
-    var id = nodes[0].id+nodes[1].id;
-    var idRev = nodes[1].id+nodes[0].id;
+    var id = nodes[0].id+'-'+nodes[1].id;
+    var idRev = nodes[1].id+'-'+nodes[0].id;
     return self.xEdges[id] || self.xEdges[idRev] || undefined;
   };
 
