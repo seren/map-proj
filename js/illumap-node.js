@@ -52,6 +52,7 @@ var Node = function(args) {
 
   // remove node from edges and graph. ways don't track nodes, so don't need to deal with them
   this.destroy = function destroy() {
+    console.log('destroying node: '+self.id);
     // delete edges that the node is a member of (edges have to have 2 points)
     self._edges.forEach( function (e) { e.destroy(); }); // we may be messing up our forEach if the e.delete alters the edges array while we're using it. may need a while loop.
     // delete this node from the master list

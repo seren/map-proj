@@ -32,6 +32,7 @@ var Edge = function(args) {
 
   // deletes an edge and references to it
   this.destroy = function destroy() {
+    console.log('destroying edge: '+self.id);
     // remove this edge from nodes
     self._nodes.forEach( function (n) {
       n.getEdges().removeByValue(self);
