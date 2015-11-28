@@ -27,6 +27,18 @@ var Graph = function(args) {
     return self.nodes().length;
   };
 
+  this.printNodes = function printNodes() {
+    console.log('nodes:');
+    var n = self.xNodes;
+    Object.keys(self.xNodes).forEach( function (k) {
+      console.log('id: '+n[k].id
+        // +' coordinates: '+ (n[k].getCoordinates().map(function(c) {return c.toString(); } ).toString())
+        // +' ways: '+ (n[k].ways.map(function(w) {return w.toString(); } ).toString())
+        +' numericId: '+ (n[k].numericId)
+      );
+    });
+  };
+
 
   // returns xEdges as an array
   this.edges = function edges() {
@@ -58,6 +70,17 @@ var Graph = function(args) {
     return self.edges().length;
   };
 
+  this.printEdges = function printEdges() {
+    console.log('edges:');
+    var e = self.xEdges;
+    Object.keys(self.xEdges).forEach( function (k) {
+      console.log('id: '+e[k].id
+        // +' nodes: '+(e[k].getNodes().map(function(n) {return n.id; } ).toString())
+        +' way: '+(e[k].way.id)
+      );
+    });
+  };
+
 
   // returns xWays as an array
   this.ways = function ways() {
@@ -72,6 +95,16 @@ var Graph = function(args) {
     var w = new Way({edges: args.edgeArray, graph: self});
     self.xWays[w.id] = w;
     return w;
+  };
+
+  this.printWays = function printWays() {
+    console.log('ways:');
+    var w = self.xWays;
+    Object.keys(self.xWays).forEach( function (k) {
+      console.log('id: '+w[k].id+' edges: '+
+        (w[k].edges.map(function(e) {return e.id; } ).toString())
+      );
+    });
   };
 
   // We use this when we want to rebuild the ways
@@ -93,6 +126,12 @@ var Graph = function(args) {
     var counter = 0;
     return function () { return counter += 1; }
   })();
+
+  this.print = function print() {
+    this.printNodes();
+    this.printEdges();
+    this.printWays();
+  }
 
   this.reset = function reset () {
     self.xWays = {};
