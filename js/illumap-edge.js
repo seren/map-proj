@@ -1,11 +1,10 @@
 var Edge = function(args) {
   var self = this;
   self.graph = args.graph;
-  self._nodes = (args.nodes === undefined) ? [] : args.nodes;
+  self._nodes = args.nodes;
   self.numericId = Math.floor( (this._nodes[0].numericId / 2) + (this._nodes[1].numericId / 2) );
   self.way = args.way;
   self.id = self._nodes[0].id+'-'+self._nodes[1].id;
-
 
   if (self.graph === undefined) debugger;
 
