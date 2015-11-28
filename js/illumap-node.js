@@ -50,13 +50,26 @@ var Node = function(args) {
     return self;
   };
 
-  // remove node from edges and graph. ways don't track nodes, so don't need to deal with them
+  // remove node from edges and master graph. ways don't track nodes, so don't need to deal with them
   this.destroy = function destroy() {
-    console.log('destroying node: '+self.id);
-    // delete edges that the node is a member of (edges have to have 2 points)
-    self._edges.forEach( function (e) { e.destroy(); }); // we may be messing up our forEach if the e.delete alters the edges array while we're using it. may need a while loop.
+    // sanity check to prevent loops
+    if (self.graph.xNodes[self.id] === undefined) {
+      console.log('node ['+self.id+'] already destroyed (or currently being destroyed)');
+    } else {
     // delete this node from the master list
+      if (self.graph.xNodes[self.id] === undefined) {
+        console.log("node '"+self.id+"' doesn't exist in graph's list");
+        debugger;
+      }
+      console.log('deleting node ['+self.id+'] from graph master list');
     delete self.graph.xNodes[self.id];
+      console.log('destroying '+self._edges.length+' edges for node ['+self.id+']: ['+self._edges.map(function(x) { return x.id; }).join('],[')+']');
+      // delete edges that the node is a member of, since edges have to have 2 points
+      // (can't use forEach since the e.delete alters the _edges array while we're using it)
+      for (var i = self._edges.length - 1; i >= 0; i--) {
+        self._edges[i].destroy();
+      };
+    }
     return true;
   };
 

@@ -31,20 +31,26 @@ var Edge = function(args) {
 
   // deletes an edge and references to it
   this.destroy = function destroy() {
-    console.log('destroying edge: '+self.id);
-    // remove this edge from nodes
-    self._nodes.forEach( function (n) {
-      n.getEdges().removeByValue(self);
-    });
-    // remove this edge from its way
-    self.way.removeEdge(self);
-    // delete it from the master list
+    // sanity check to prevent loops
+    if (self.graph.xEdges[self.id] === undefined) {
+      console.log('edge ['+self.id+'] already destroyed');
+    } else {
+      console.log('destroying refs for edge: '+self.id);
+      // Remove this edge from master list
     if (self.graph.xEdges[self.id] === undefined) {
       console.log("edge '"+self.id+"' doesn't exist in graph's list");
       debugger;
     }
     console.log('deleting edge ['+self.id+'] from graph master list');
     delete self.graph.xEdges[self.id];
-    return true;
+      // remove this edge from nodes
+      for (var i = self._nodes.length - 1; i >= 0; i--) {
+        self._nodes[i].removeEdge(self);
+      };
+      // remove this edge from its way
+      self.way.removeEdge(self);
   }
+    return true;
+  };
+
 };
