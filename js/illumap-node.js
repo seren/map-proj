@@ -39,8 +39,7 @@ var Node = function(args) {
   // OTH, we need to track ways so that when we're deleted, we can remove ourselves from the correct ways. sigh
   // to deprecate
   this.addWay = function addWay(way) {
-    if (self.ways.indexOf(way) !== -1) debugger; // sanity check for to catch re-adding a way
-    self.ways.push(way);
+    if (self.ways.indexOf(way) === -1) self.ways.push(way);
     return self;
   };
 
