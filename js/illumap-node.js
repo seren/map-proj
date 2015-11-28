@@ -22,7 +22,19 @@ var Node = function(args) {
   this.addEdge = function addEdge(e) {
     self._edges.push(e);
     return self;
-  }
+  };
+
+  this.removeEdge = function removeEdge(e) {
+    self._edges.removeByValue(e);
+    // if the node has no more edges, remove it too
+    console.log('edge ['+e.id+'] removed from node ['+self.id+']. '+self._edges.length+' edges remaining on node');
+    if (self._edges.length === 0) {
+      console.log('node '+self.id+' has no more edges. Destroying it');
+      self.destroy();
+      return self;
+    }
+    return self;
+  };
 
   this.neighbors = function neighbors() {
     function isntMe (otherNode) {
@@ -56,13 +68,13 @@ var Node = function(args) {
     if (self.graph.xNodes[self.id] === undefined) {
       console.log('node ['+self.id+'] already destroyed (or currently being destroyed)');
     } else {
-    // delete this node from the master list
+      // delete this node from the master list
       if (self.graph.xNodes[self.id] === undefined) {
         console.log("node '"+self.id+"' doesn't exist in graph's list");
         debugger;
       }
       console.log('deleting node ['+self.id+'] from graph master list');
-    delete self.graph.xNodes[self.id];
+      delete self.graph.xNodes[self.id];
       console.log('destroying '+self._edges.length+' edges for node ['+self.id+']: ['+self._edges.map(function(x) { return x.id; }).join('],[')+']');
       // delete edges that the node is a member of, since edges have to have 2 points
       // (can't use forEach since the e.delete alters the _edges array while we're using it)
