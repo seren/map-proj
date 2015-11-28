@@ -54,9 +54,8 @@ var Graph = function(args) {
     var e = self.getEdge(nodes);
     if (e) debugger;
 
-    var id = nodes[0].id+nodes[1].id;
-    e = new Edge({id: id, nodes: nodes, graph: self});
     self.xEdges[id] = e;
+    e = new Edge({nodes: nodes, graph: self});
     return e;
   };
 
