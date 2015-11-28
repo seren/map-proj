@@ -55,7 +55,7 @@ var Node = function(args) {
     // delete edges that the node is a member of (edges have to have 2 points)
     self._edges.forEach( function (e) { e.destroy(); }); // we may be messing up our forEach if the e.delete alters the edges array while we're using it. may need a while loop.
     // delete this node from the master list
-    delete self.graph.xNodes[self];
+    delete self.graph.xNodes[self.id];
     return true;
   };
 
