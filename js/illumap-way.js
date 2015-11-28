@@ -30,6 +30,7 @@ var Way = function(args) {
   }
 
   this.removeEdge = function removeEdge (e) {
+    console.log('way '+self.id+': remove edge ['+e.id+']');
     if (self.edges.indexOf(e) === -1) {
       console.log('caught trying to remove non-member edge');
       debugger;

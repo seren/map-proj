@@ -44,6 +44,7 @@ var Edge = function(args) {
       console.log("edge '"+self.id+"' doesn't exist in graph's list");
       debugger;
     }
+    console.log('deleting edge ['+self.id+'] from graph master list');
     delete self.graph.xEdges[self.id];
     return true;
   };

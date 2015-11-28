@@ -144,6 +144,7 @@ Mutators.prototype.mondrianize = function(opts) {
   g.nodes().forEach( function(nd) {
 
 var oldcoord = nd.getCoordinates();
+if (newCoord[nd.id] === undefined) debugger;
     nd.setCoordinates(newCoord[nd.id]);
 var newcoord = nd.getCoordinates();
 
@@ -185,6 +186,7 @@ Mutators.prototype.progressiveMesh = function(opts) {
   }
 
   function collapseEdge (e) {
+    console.log('PM: collapsing edge ['+e.id+']');
     // debugger
     var n1Frozen, n2Frozen, n1Neighbors, n2Neighbors, neighborWays, newEdge,
         g = e.graph,
@@ -202,6 +204,7 @@ Mutators.prototype.progressiveMesh = function(opts) {
     n1Neighbors = n1.neighbors();
     n2Neighbors = n2.neighbors();
 
+    console.log('n2 has '+n2Neighbors.length+' neighbors (one is n1)');
     // for each n2 neighbor (nbr), if it doesn't already connect to n1, create an edge [nbr, n1]
     n2Neighbors.forEach(function(nbr) {
       if ((n1Neighbors.indexOf(nbr) == -1) && (nbr !== n1)) {
@@ -209,12 +212,15 @@ Mutators.prototype.progressiveMesh = function(opts) {
         oldEdge = g.getEdge([n2, nbr]);
         if (oldEdge === undefined) debugger;
         // create new edge, preserving the old edge's way value
+        console.log('n1,nbr edges before: '+n1._edges.length+','+nbr._edges.length);
         newEdge = g.addEdge([n1, nbr]);
         newEdge.way = oldEdge.way;  // assign the old edge's way to the new edge
+        console.log('n1,nbr edges after: '+n1._edges.length+','+nbr._edges.length);
         console.log('PM: created edge ['+newEdge.id+'] from old edge ['+oldEdge.id+'], wayid '+oldEdge.way.id);
         // remove the old edge
         console.log('PM: destroying old edge ['+oldEdge.id+']');
         oldEdge.destroy();
+        console.log('n1,nbr edges after2: '+n1._edges.length+','+nbr._edges.length);
       }
     });
 
@@ -224,7 +230,9 @@ Mutators.prototype.progressiveMesh = function(opts) {
     // reposition n1 toward n2
     n1.setCoordinates(midpoint(n1, n2));
 
+    console.log('PM: destroy node: ['+n2.id+']');
     n2.destroy();
+    // e.destroy(); // destroying n2 will destroy e
     return true;
   }
 
