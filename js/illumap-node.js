@@ -17,10 +17,11 @@ var Node = function(args) {
 
   this.getEdges = function getEdges() {
     return self._edges;
-  }
+  };
+
   this.addEdge = function addEdge(e) {
     self._edges.push(e);
-    return self._edges;
+    return self;
   }
 
   this.neighbors = function neighbors() {

@@ -9,7 +9,7 @@ var Edge = function(args) {
   if (self.graph === undefined) debugger;
 
   // update nodes' edge list, and intersection and endpoint status
-  this._nodes.forEach( function (n) {
+  self._nodes.forEach( function (n) {
     n.addEdge(self);
     n.endpoint = (n.getEdges() < 1);
     n.intersection = (n.getEdges() > 2);
@@ -17,13 +17,13 @@ var Edge = function(args) {
 
   this.getNodes = function getNodes() {
     return self._nodes;
-  }
+  };
 
   this.addNode = function addNode(n) {
     self._nodes.push(n);
     if (self._nodes.length > 2) debugger;  //sanity check
     return self._nodes;
-  }
+  };
 
   this.otherNode = function otherNode(n1) {
     return self._nodes.filter( function (n) { return (n !== n1); });
@@ -46,6 +46,5 @@ var Edge = function(args) {
     console.log('deleting edge ['+self.id+'] from graph master list');
     delete self.graph.xEdges[self.id];
     return true;
-  };
-
+  }
 };

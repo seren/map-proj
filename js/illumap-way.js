@@ -39,7 +39,7 @@ var Way = function(args) {
     }
     // if this way has no more edges, delete it
     if (self.edges.length === 0) {
-      // delete it from the master list
+      // delete this way from the master list
       if (self.graph.xWays[self.id] === undefined) {
         console.log("way '"+self.id+"' doesn't exist in graph's list");
         debugger;
