@@ -208,7 +208,7 @@ Mutators.prototype.progressiveMesh = function(opts) {
     n1Neighbors = n1.neighbors();
     n2Neighbors = n2.neighbors();
 
-    console.log('n2 has '+n2Neighbors.length+' neighbors (one is n1)');
+    console.log('PM: n2 has '+n2Neighbors.length+' neighbors (one is n1)');
     // for each n2 neighbor (nbr), if it doesn't already connect to n1, create an edge [nbr, n1]
     n2Neighbors.forEach(function(nbr) {
       if ((n1Neighbors.indexOf(nbr) == -1) && (nbr !== n1)) {

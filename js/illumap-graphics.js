@@ -171,6 +171,8 @@ console.log('mutation count: '+illumap.data.mutationSequence.length);
 // debugger
       console.log('in svgDraw, drawing ' + paths.length + ' paths');
       svgClear();
+console.log('----'+paths[0].geometry.coordinates[0]);
+// console.log('----'+paths[0].geometry.getCoordinates()[0]);
 
       // create groups for each edge and its decorations
       var edges = svg.selectAll('.'+groupname)
