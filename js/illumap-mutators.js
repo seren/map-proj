@@ -233,6 +233,10 @@ Mutators.prototype.progressiveMesh = function(opts) {
     console.log('PM: destroy node: ['+n2.id+']');
     n2.destroy();
     // e.destroy(); // destroying n2 will destroy e
+
+    n1.updateGraphAttributes();
+    n1.neighbors().forEach(function(nbr) { nbr.updateGraphAttributes(); });
+
     return true;
   }
 
