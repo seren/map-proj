@@ -63,7 +63,7 @@ Mutators.prototype.relax = function(opts) {
   // for each node, calculate the offset
   g.nodes().forEach( function(nd) {
     nodeCoord = nd.getCoordinates();
-    if (nd.isFrozen()) {
+    if (nd.frozen) {
       newCoord[nd.id] = nodeCoord;
     } else {
       offset = [0,0];
@@ -197,12 +197,12 @@ Mutators.prototype.progressiveMesh = function(opts) {
         n1 = e.getNodes()[0],
         n2 = e.getNodes()[1];
     // can't collapse if they're both frozen
-    if (n1.isFrozen() && n2.isFrozen()) {
+    if (n1.frozen && n2.frozen) {
       console.log("PM: can't collapse. Both edges frozen.");
       return false;
     }
     // if one is frozen, make sure it's not n2
-    if (n2.isFrozen()) {
+    if (n2.frozen) {
       console.log('PM: n2 frozen. Swapping...');
       n2 = e.getNodes()[0];
       n1 = e.getNodes()[1];

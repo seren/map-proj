@@ -146,6 +146,7 @@ var self = this;
   function toggleFrozen() {
     self.frozen.endpoint = d3.select('#freezeEndpoints').property('checked');
     self.frozen.intersection = d3.select('#freezeIntersections').property('checked');
+    illumap.data.mgraph.updateNodeAttributes();
   }
   d3.selectAll('.freezeCheckbox').on('change', toggleFrozen);
 

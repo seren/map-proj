@@ -12,6 +12,7 @@ var Node = function(args) {
   this._coordinates = (args.coordinates === undefined) ? [] : args.coordinates;
   this.graph = args.graph;
   this.rdpMetric = undefined;
+  this.frozen = false;
 
   if (this.graph === undefined) debugger;
 
@@ -156,6 +157,7 @@ var Node = function(args) {
         self.intersection = true;
         break;
     }
+    self.frozen = self.isFrozen();
   }
 
   this.isFrozen = function isFrozen() {

@@ -27,6 +27,10 @@ var Graph = function(args) {
     return self.nodes().length;
   };
 
+  this.updateNodeAttributes = function updateNodeAttributes() {
+    Object.keys(self.xNodes).forEach( function (k) {self.xNodes[k].updateGraphAttributes(); });
+  }
+
   this.printNodes = function printNodes() {
     console.log('nodes:');
     var n = self.xNodes;
