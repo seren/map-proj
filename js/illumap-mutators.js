@@ -22,22 +22,24 @@ Mutators.prototype.repulse = function(opts) {
 
   // for each node, calculate the offset
   g.nodes().forEach( function(nd) {
-// debugger
     nodeCoord = nd.getCoordinates();
-    offset = [nodeCoord[0] - repulsionPoint[0],
-              nodeCoord[1] - repulsionPoint[1]];
+    if (nd.frozen) {
+      newCoord[nd.id] = nodeCoord;
+    } else {
+      offset = [nodeCoord[0] - repulsionPoint[0],
+                nodeCoord[1] - repulsionPoint[1]];
 
-    // calculate the force based on distance using the user's contex (screen distance)
-    screenOffset = [illumap.d3projection(nodeCoord)[0] - illumap.d3projection(repulsionPoint)[0],
-                    illumap.d3projection(nodeCoord)[1] - illumap.d3projection(repulsionPoint)[1]];
-    screenDist = Math.sqrt((screenOffset[0]*screenOffset[0]) + (screenOffset[1]*screenOffset[1]));
-    force = Math.min(1, attenuation(screenDist) * chargeForce);
+      // calculate the force based on distance using the user's contex (screen distance)
+      screenOffset = [illumap.d3projection(nodeCoord)[0] - illumap.d3projection(repulsionPoint)[0],
+                      illumap.d3projection(nodeCoord)[1] - illumap.d3projection(repulsionPoint)[1]];
+      screenDist = Math.sqrt((screenOffset[0]*screenOffset[0]) + (screenOffset[1]*screenOffset[1]));
+      force = Math.min(1, attenuation(screenDist) * chargeForce);
 
-// console.log('node:'+nd+' offsets:'+offset0+','+offset1+' force:'+force);
-// if (force > 1) { debugger }
-    newCoord[nd.id] = [nodeCoord[0] + (offset[0] * force),
-                       nodeCoord[1] + (offset[1] * force)];
-// debugger
+  // console.log('node:'+nd+' offsets:'+offset0+','+offset1+' force:'+force);
+  // if (force > 1) { debugger }
+      newCoord[nd.id] = [nodeCoord[0] + (offset[0] * force),
+                         nodeCoord[1] + (offset[1] * force)];
+   }
   });
     // now update the nodes
   g.nodes().forEach( function(nd) {
@@ -103,46 +105,50 @@ Mutators.prototype.mondrianize = function(opts) {
 
   g.nodes().forEach( function(nd) {
     nodeCoord = nd.getCoordinates();
-    offset = [0,0];
+    if (nd.frozen) {
+      newCoord[nd.id] = nodeCoord;
+    } else {
+      offset = [0,0];
 
-    // get the neighbors and calc the offset
-    nd.neighbors().forEach( function(nbr) {
-      nbrCoord = nbr.getCoordinates();
+      // get the neighbors and calc the offset
+      nd.neighbors().forEach( function(nbr) {
+        nbrCoord = nbr.getCoordinates();
 
-// start algo
-      delta = [(nbrCoord[0] - nodeCoord[0]),
-               (nbrCoord[1] - nodeCoord[1])];
+  // start algo
+        delta = [(nbrCoord[0] - nodeCoord[0]),
+                 (nbrCoord[1] - nodeCoord[1])];
 
-    // // since the longitude sections are thinning toward the pole
-    // double effective_delta_longitude = delta_longitude * cos((float) (center_lattitude * PI / 180.0));
-    // _longitudeFactor = effective_delta_longitude / delta_longitude;
+      // // since the longitude sections are thinning toward the pole
+      // double effective_delta_longitude = delta_longitude * cos((float) (center_lattitude * PI / 180.0));
+      // _longitudeFactor = effective_delta_longitude / delta_longitude;
 
 
-      // just used for checking which direction to offset
-      // absLongCorrected = Math.abs(offset0) * longitudeFactor
-      absLongCorrected = Math.abs(offset[0]);
-      absLat = Math.abs(offset[1]);
+        // just used for checking which direction to offset
+        // absLongCorrected = Math.abs(offset0) * longitudeFactor
+        absLongCorrected = Math.abs(offset[0]);
+        absLat = Math.abs(offset[1]);
 
-      // check if edge is approximately horizontal or vertical
-      if (absLongCorrected < absLat) {
-        offset[0] += dampeningFactor * delta[0];
-      } else {
-        offset[1] += dampeningFactor * delta[1];
-      }
-
-      // check if edge is close to diagonal
-      if (absLongCorrected > 0.01) {
-        var angle = Math.acos(absLat / absLongCorrected);
-        if (angle < 1) {
-          console.log('angle is close to diagonal');
-          offset[0] += Math.random() * angle * delta[0];
-          offset[1] += Math.random() * angle * delta[1];
+        // check if edge is approximately horizontal or vertical
+        if (absLongCorrected < absLat) {
+          offset[0] += dampeningFactor * delta[0];
+        } else {
+          offset[1] += dampeningFactor * delta[1];
         }
-      }
-/// end algo
-      newCoord[nd.id] = [nodeCoord[0] + offset[0],
-                         nodeCoord[1] + offset[1]];
-    });
+
+        // check if edge is close to diagonal
+        if (absLongCorrected > 0.01) {
+          var angle = Math.acos(absLat / absLongCorrected);
+          if (angle < 1) {
+            console.log('angle is close to diagonal');
+            offset[0] += Math.random() * angle * delta[0];
+            offset[1] += Math.random() * angle * delta[1];
+          }
+        }
+  /// end algo
+        newCoord[nd.id] = [nodeCoord[0] + offset[0],
+                           nodeCoord[1] + offset[1]];
+      });
+    }
   });
   // now update the nodes
   g.nodes().forEach( function(nd) {
