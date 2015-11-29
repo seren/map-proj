@@ -63,15 +63,19 @@ Mutators.prototype.relax = function(opts) {
   // for each node, calculate the offset
   g.nodes().forEach( function(nd) {
     nodeCoord = nd.getCoordinates();
-    offset = [0,0];
-    // get the neighbors and calc the offset
-    nd.neighbors().forEach( function(nbr) {
-      nbrCoord = nbr.getCoordinates();
-      offset[0] += (nbrCoord[0] - nodeCoord[0]);
-      offset[1] += (nbrCoord[1] - nodeCoord[1]);
-    });
-    newCoord[nd.id] = [nodeCoord[0] + (offset[0] * springForce),
-                       nodeCoord[1] + (offset[1] * springForce)];
+    if (nd.isFrozen()) {
+      newCoord[nd.id] = nodeCoord;
+    } else {
+      offset = [0,0];
+      // get the neighbors and calc the offset
+      nd.neighbors().forEach( function(nbr) {
+        nbrCoord = nbr.getCoordinates();
+        offset[0] += (nbrCoord[0] - nodeCoord[0]);
+        offset[1] += (nbrCoord[1] - nodeCoord[1]);
+      });
+      newCoord[nd.id] = [nodeCoord[0] + (offset[0] * springForce),
+                         nodeCoord[1] + (offset[1] * springForce)];
+    }
   });
     // now update the nodes
   g.nodes().forEach( function(nd) {
