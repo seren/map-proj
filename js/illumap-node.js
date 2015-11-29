@@ -137,4 +137,25 @@ var Node = function(args) {
     });
   };
 
+  this.updateGraphAttributes = function updateGraphAttributes() {
+    switch (self._edges.length) {
+      case 0:
+        console.log('deleting orphan node ' + self);
+        self.destroy();
+        break;
+      case 1:
+        self.endpoint = true;
+        self.intersection = false;
+        break;
+      case 2:
+        self.endpoint = false;
+        self.intersection = false;
+        break;
+      default:  // more than 2
+        self.endpoint = true;
+        self.intersection = true;
+        break;
+    }
+  }
+
 };

@@ -73,27 +73,9 @@ var illumap = (function() {
           }
         });
 
-        // remove orphan nodes, and mark the intersection and endpoints
-        console.log('marking endpoints and removing orphans');
-        mgraph.nodes().forEach( function(n) {
-          switch (n.getEdges().length) {
-            case 0:
-              console.log('deleting orphan node ' + n);
-              n.destroy();
-              break;
-            case 1:
-              n.endpoint = true;
-              break;
-            case 2:
-              // skip
-              break;
-            default:
-              n.endpoint = true;
-              n.intersection = true;
-              break;
-          }
-        });
-  // debugger
+        console.log('marking intersections and endpoints, and removing orphans');
+        mgraph.nodes().forEach( function(n) { n.updateGraphAttributes(); });
+
         buildAllWays();
       }
 
