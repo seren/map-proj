@@ -22,9 +22,9 @@ var self = this;
   // this.mapCenter = [6.166667,53.483333];
   // this.mapZoomLevel = 21;
 
-
+  // settings for what types of things are currently frozen
   this.frozen = {
-    wayEnd: false,
+    // wayEnd: false,
     intersection: false,
     endpoint: false
   };
@@ -142,25 +142,10 @@ var self = this;
   }
   d3.selectAll('.highlightCheckbox').on('change', toggleHighlights);
 
+  // updates variables when checkboxes are modified
   function toggleFrozen() {
-    // debugger
-    console.log('button ' + this.id + ' triggered a recalc of node mobility');
-    // var checked = d3.selectAll('.freezeCheckbox').property('checked');
-
-    var checkedIntersections = d3.select('#freezeIntersections').property('checked');
-    var checkedEndpoints = d3.select('#freezeEndpoints').property('checked');
-
-    // build a function to feed all nodes into
-    var checkerFunction = (function checkerFunction(checkedIntersections, checkedEndpoints) {
-      var intersections = checkedIntersections;
-      var endpoints = checkedEndpoints;
-      return function(node) {
-        node.frozen = (intersections && node.intersection) || (endpoints && node.intersection);
-      };
-    }(checkedIntersections, checkedEndpoints));
-
-    // run against all nodes (todo)
-    // illumap.data.modifyNodes(checkerFunction);
+    self.frozen.endpoint = d3.select('#freezeEndpoints').property('checked');
+    self.frozen.intersection = d3.select('#freezeIntersections').property('checked');
   }
   d3.selectAll('.freezeCheckbox').on('change', toggleFrozen);
 

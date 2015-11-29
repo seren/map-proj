@@ -158,4 +158,12 @@ var Node = function(args) {
     }
   }
 
+  this.isFrozen = function isFrozen() {
+    function nodeTypeMatchesFrozenType(k) {
+      if (self[k] === undefined) { throw("Our global frozen setting contain a setting that our node doesn't have: '"+k+"'"); }
+      return (illumap.frozen[k] && self[k]);
+    }
+    return Object.keys(illumap.frozen).some(nodeTypeMatchesFrozenType);
+  }
+
 };

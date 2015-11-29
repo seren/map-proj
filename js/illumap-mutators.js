@@ -193,9 +193,13 @@ Mutators.prototype.progressiveMesh = function(opts) {
         n1 = e.getNodes()[0],
         n2 = e.getNodes()[1];
     // can't collapse if they're both frozen
-    if (n1.frozen && n2.frozen) { return false; }
+    if (n1.isFrozen() && n2.isFrozen()) {
+      console.log("PM: can't collapse. Both edges frozen.");
+      return false;
+    }
     // if one is frozen, make sure it's not n2
-    if (n2.frozen) {
+    if (n2.isFrozen()) {
+      console.log('PM: n2 frozen. Swapping...');
       n2 = e.getNodes()[0];
       n1 = e.getNodes()[1];
     }
@@ -247,9 +251,14 @@ Mutators.prototype.progressiveMesh = function(opts) {
     ];
   }
 
+  // try to collapse edges
   sortedEdges = g.edges().sort(edgeLengthComparator);
-  // need extra logic if we want to support freezing certain nodes (e.g. endnodes, wayends, borders, connectors)
-  collapseEdge(sortedEdges[0]);
+  var i = 0;
+  var len = sortedEdges.length;
+  while ( (i < len ) && (!collapseEdge(sortedEdges[i])) ) {
+    console.log('PM: edge ['+sortedEdges[i].id+'] cannot be collapsed. Trying next...');
+    i+=1;
+  }
   return g;
 };
 

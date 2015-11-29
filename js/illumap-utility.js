@@ -183,20 +183,6 @@ var illumap = (function() {
       return result;
     },
 
-    nodeFrozen: function nodeFrozen (n) {
-      // settings
-      // for each node-type that is set frozen, check if the node matches
-      Object.keys(illumap.frozen).forEach( function(k) {
-// debugger
-        // sanity check
-        if (n[k] === undefined) { debugger; throw("our global frozen setting contain a setting that our node doesn't have."); }
-        if (illumap.frozen[k] && n[k]) {
-          return true;
-        }
-      });
-      return false;
-    },
-
     currier: function currier (fn) {
       var args = Array.prototype.slice.call(arguments, 1);
       return function() {
