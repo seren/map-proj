@@ -188,7 +188,7 @@ Mutators.prototype.progressiveMesh = function(opts) {
   function collapseEdge (e) {
     console.log('PM: collapsing edge ['+e.id+']');
     // debugger
-    var n1Frozen, n2Frozen, n1Neighbors, n2Neighbors, neighborWays, newEdge,
+    var n1Neighbors, n2Neighbors, neighborWays, newEdge,
         g = e.graph,
         n1 = e.getNodes()[0],
         n2 = e.getNodes()[1];
