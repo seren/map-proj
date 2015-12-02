@@ -411,8 +411,8 @@ console.log("running loadTileFromServer");
       // returns graph data in a collection of feature-geometry-style objects: {coordinates: ['10','20','30'], type: "LineString"}
       getEdges: function getEdges() {
         if (graphStale === true) { buildGraph(); }
-        var featureFromEdge = function (e) {
-          return featureFromNodes(e.getNodes(),e.numericId);
+        featureFromEdge = function (e) {
+          return featureFromNodes(e.getNodes(),e.numericId+'-f'+e.featureId);
         };
         return mgraph.edges().map(featureFromEdge);
       },
