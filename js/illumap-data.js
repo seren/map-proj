@@ -152,7 +152,7 @@ console.log('traversing path ['+pathNodes+']. currNode:'+currNode.id+' nextNode:
       } else {
         forwardPath = getEdgesUntilEndpoint(n1, e,'forward: ');
         reversePath = getEdgesUntilEndpoint(n2, e,'backward: ').reverse();
-        edgePath = reversePath.concat(pathEdges, forwardPath);
+        pathEdges = reversePath.concat(pathEdges, forwardPath);
       }
 console.log('full path: ['+pathEdges.join(',') +']');
       return pathEdges;
