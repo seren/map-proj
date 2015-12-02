@@ -26,7 +26,7 @@ var self = this;
   this.frozen = {
     // wayEnd: false,
     intersection: false,
-    endpoint: false
+    endpoint: true
   };
 
   this.globalLoglevel = 'DEBUG';
