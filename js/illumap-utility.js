@@ -197,13 +197,6 @@ var illumap = (function() {
       return sum;
     },
 
-    wayNeighbors: function wayNeighbors (wayId) {
-      var waysOfNodes = function(nodeId) {
-        return illumap.data.graphNodes[nodeId].wayIds.filter(function(w) { return w !== wayId; });
-      };
-      return illumap.data.ways[wayId].map(waysOfNodes).flatten().unique();
-    },
-
     // LZW code from https://gist.github.com/revolunet/843889
 
     // LZW-compress a string
@@ -264,8 +257,26 @@ var illumap = (function() {
       var e = 1;
       while (Math.round(a * e) / e !== a) e *= 10;
       return Math.round(Math.log(e) / Math.LN10);
-    }
+    },
 
+    // Calc the length on an edge
+    distanceBetweenPoints: function distanceBetweenPoints (a,b) {
+      var offset0 = a[0] - b[0];
+      var offset1 = a[1] - b[1];
+      return Math.sqrt((offset0*offset0) + (offset1*offset1));
+    },
+
+    time: function time(method, context, times) {
+      var t = times || 1;
+      var t0 = performance.now();
+      for (var i = 0; i < t; i++) {
+        method.call(context);
+        // method();
+      };
+      var t1 = performance.now();
+      alert("Call took " + (t1 - t0) + " ms")
+      // console.log("Call took " + (t1 - t0) + " ms")
+    }
   };
 
   return this;
