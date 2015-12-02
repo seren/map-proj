@@ -27,7 +27,7 @@ var Edge = function(args) {
   };
 
   this.otherNode = function otherNode(n1) {
-    return self._nodes.filter( function (n) { return (n !== n1); });
+    return self._nodes.filter( function (n) { return (n !== n1); })[0];
   };
 
   // deletes an edge and references to it
