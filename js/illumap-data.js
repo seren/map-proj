@@ -129,17 +129,19 @@ console.log(debugDirection +'about to traverse, startNode='+startNode+' currNode
         var prevNode = startNode;
         var nextNode;
         var direction;
-        var currNode = startEdge.otherNode(startNode);
+        var currEdge = startEdge;
+        var currNode = startNode;
+        startEdge.otherNode(startNode);
         pathNodes.push(currNode); // save the nodes for possible future use
         // start collecting pathEdges, starting with the next edge from the one we were given
         while ((currNode.endpoint === false) && (currNode.intersection === false)) {
-          nextNode = currEdge.otherNode(currNode);
-          nextEdge = currNode.getEdgeWithNode(nextNode);
+          nextEdge = currNode.getEdges().filter(function (e) { return (e !== currEdge); })[0];
+          nextNode = nextEdge.otherNode(currNode);
           pathEdges.push(nextEdge);
           pathNodes.push(nextNode); // save the nodes for possible future use
           currEdge = nextEdge;
           currNode = nextNode;
-console.log('traversing path ['+pathNodes+']. currNode:'+currNode.id+' nextNode:'+nextNode.id+'(this is added to the path)');
+console.log('traversing ('+debugDirection+') path ['+pathNodes.map(function(n) { return n.debugId(); })+']. currNode:'+currNode.id+' nextNode:'+nextNode.id+'(this is added to the path)');
         }
         return pathEdges;
       }
