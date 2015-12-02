@@ -366,6 +366,7 @@ console.log('translation: '+illumap.d3projection.translate()+' -> '+zoomBehavior
       drawraw: illumap.svgDrawRaw,
       drawmutated: illumap.drawMutated,
       reload: illumap.reload,
+      timer: illumap.timer,
       save: function() { illumap.save(parseInt(this.attributes.format.value)); },
       _default: function() {
         console.log("Action: "+action+" unknown. Button press ignored.");
@@ -449,9 +450,11 @@ console.log('translation: '+illumap.d3projection.translate()+' -> '+zoomBehavior
     var formats = ["png","svg","link","text"];
     // todo: check if valid format
     // todo: save various forms
-  }
+  };
 
-
+  this.timer = function timer () {
+    illumap.utility.time(illumap.data.rebuildWays,this, 5)
+  };
 
 
   // Module to run tests
