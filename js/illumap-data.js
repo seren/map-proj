@@ -47,6 +47,7 @@ var illumap = (function() {
     // graph nodes: id:(lat-lon) val:(ref to feature coordinates and feature)
     // ignore feature/way ids; make our own ids. combine all overlapping points and create ways at junctions of degree >2
     var buildGraph = function buildGraph() {
+      var e;
       while (graphStale) {
         graphStale = false;
       // if (graphStale === true) {
@@ -64,7 +65,8 @@ var illumap = (function() {
               prevNode = addNode(feature, 0);
               for (var i = 0, len = featureCoordinates.length; i < len - 1 ; i++) {
                 currNode = addNode(feature, i+1);
-                mgraph.addEdge([prevNode, currNode]);
+                e = mgraph.addEdge([prevNode, currNode]);
+                e.featureId = feature.id;
                 console.log('graph: added edge from featureId:index: ' + feature.id + ':' + i + ' c1: ' + prevNode.id + ' c2: ' + currNode.id);
                 prevNode = currNode;
               }

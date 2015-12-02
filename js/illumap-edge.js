@@ -5,6 +5,7 @@ var Edge = function(args) {
   self.numericId = Math.floor( (this._nodes[0].numericId / 2) + (this._nodes[1].numericId / 2) );
   self.way = args.way;
   self.id = self._nodes[0].id+'-'+self._nodes[1].id;
+  self.featureId; // for debugging
 
   if (self.graph === undefined) debugger;
 
