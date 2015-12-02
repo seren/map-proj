@@ -471,6 +471,7 @@ console.log('translation: '+illumap.d3projection.translate()+' -> '+zoomBehavior
       source = ['test','minimal'];
       source = ['test','orthotesting'];
       source = ['test','fullmutated'];
+      source = ['test','line'];
       // debugger;
       illumap.graphics.init( {width: illumap.width, height: illumap.height} );
       illumap.data.init({source: source});
