@@ -49,6 +49,15 @@ var Way = function(args) {
     return true;
   };
 
+  this.nodes = function nodes () {
+    var ns = [];
+    return self.edges.reduce( function (acc, e) {
+      ns = e.getNodes();
+      if (acc.indexOf(ns[0]) === -1) acc.push(ns[0]);
+      if (acc.indexOf(ns[1]) === -1) acc.push(ns[1]);
+      return acc;
+    },[]);
+  };
 
   // check to make sure that way edges are ordered
   this.checkEdgesOrdered = function checkEdgesOrdered() {
