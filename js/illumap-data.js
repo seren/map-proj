@@ -141,7 +141,7 @@ console.log(debugDirection +'about to traverse, startNode='+startNode+' currNode
           pathNodes.push(nextNode); // save the nodes for possible future use
           currEdge = nextEdge;
           currNode = nextNode;
-console.log('traversing ('+debugDirection+') path ['+pathNodes.map(function(n) { return n.debugId(); })+']. currNode:'+currNode.id+' nextNode:'+nextNode.id+'(this is added to the path)');
+console.log('traversing ('+debugDirection+') path ['+pathNodes.map(function(n) { return n.prettyId(); })+']. currNode:'+currNode.id+' nextNode:'+nextNode.id+'(this is added to the path)');
         }
         return pathEdges;
       }
@@ -185,7 +185,7 @@ console.log('full path: ['+pathEdges.join(',') +']');
       // loop over all the edges, finding connected edges and saving them into ways
       while (remainingEdges.length > 0) {
         oldEdgeCount = remainingEdges.length;
-        e = remainingEdges[0];
+        e = remainingEdges.pop();
         wayEdges = findWayEdgesFromEdge(e);
         w = mgraph.addWay({edgeArray: wayEdges});
         wayEdges.forEach( function (e) {
