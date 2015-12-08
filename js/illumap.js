@@ -352,6 +352,27 @@ console.log('translation: '+illumap.d3projection.translate()+' -> '+zoomBehavior
     return this;
   };
 
+  // Checks for duplicates
+  Array.prototype.containsDuplicates = function() {
+    var l = this.length;
+    var counter = 0;
+    var x = this[counter];
+    for (var counter = 0; counter < l; counter++) {
+      x = this[counter];
+      for (var j = counter + 1; j < l; j++) {
+        if (this[j] === x) return true;
+      };
+    };
+    return false;
+  };
+
+  Array.prototype.flatten = function() {
+    return this.reduce(function(a, b) {
+      return a.concat(b);
+    }, []);
+  }
+
+
   this.buttonAction = function buttonAction() {
 // debugger
     var action = this.attributes.action.value;
