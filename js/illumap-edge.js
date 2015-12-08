@@ -30,13 +30,16 @@ var Edge = function(args) {
     return self._nodes.filter( function (n) { return (n !== n1); })[0];
   };
 
+  this.endpoint = function endpoint() {
+    return self._nodes.filter( function(n) { return n.endpoint; })[0];
+  }
+
   // deletes an edge and references to it
   this.destroy = function destroy() {
     // sanity check to prevent loops
     if (self.graph.xEdges[self.id] === undefined) {
       console.log('edge ['+self.id+'] already destroyed');
     } else {
-      console.log('destroying refs for edge: '+self.id);
       // Remove this edge from master list
       if (self.graph.xEdges[self.id] === undefined) {
         console.log("edge '"+self.id+"' doesn't exist in graph's list");
