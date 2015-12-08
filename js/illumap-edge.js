@@ -44,9 +44,9 @@ var Edge = function(args) {
       }
       console.log('deleting edge ['+self.id+'] from graph master list');
       delete self.graph.xEdges[self.id];
-      // remove this edge from nodes
+      // remove this edge from nodes and recalc their attributes (endpoint, etc)
       for (var i = self._nodes.length - 1; i >= 0; i--) {
-        self._nodes[i].removeEdge(self);
+        self._nodes[i].removeEdge(self).updateGraphAttributes();
       };
       // remove this edge from its way
       self.way.removeEdge(self);
