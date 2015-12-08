@@ -29,7 +29,8 @@ var Node = function(args) {
       }
       return Math.abs(hash).toString(16);
     }
-    return hashCode(self.id);
+    self._prettyId = self._prettyId || hashCode(self.id); // cache result if not already calculated
+    return self._prettyId;
   }
 
   this.getEdges = function getEdges() {
