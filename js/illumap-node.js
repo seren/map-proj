@@ -158,7 +158,7 @@ var Node = function(args) {
   this.updateGraphAttributes = function updateGraphAttributes() {
     switch (self._edges.length) {
       case 0:
-        console.log('deleting orphan node ' + self);
+        console.log('deleting orphan node ' + self.id);
         self.destroy();
         break;
       case 1:

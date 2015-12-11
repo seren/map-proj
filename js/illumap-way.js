@@ -8,7 +8,7 @@ var Way = function(args) {
     debugger;
   }
   self.edges = [];
-  args.edges.forEach( function (e) { addEdge(e); }); // will addEdge be defined yet?
+  args.edges.forEach( function (e) { addEdge(e); });
 
 // debugger
   this.addNode = function addNode (node) {
@@ -18,6 +18,8 @@ var Way = function(args) {
     return self;
   };
 
+  // adds an edge without regard to order. Efficient for bulk loading, followed by an explicit ordering call
+  // this.addEdgeUnordered = addEdgeUnordered;
   this.addEdge = addEdge;
   function addEdge (e) {
     if (self.edges.indexOf(e) === -1) {
@@ -111,7 +113,7 @@ var Way = function(args) {
         if (self.edges[i] !== ordered[len - i - 1]) debugger;
       }
     }
-    console.log("everything looks ok");
+    console.log("edges in way "+self.id+" seem ordered. yay.");
   };
 
 };
