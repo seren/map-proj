@@ -35,8 +35,8 @@ var Edge = function(args) {
     return self._nodes.filter( function (n) { return (n !== n1); })[0];
   };
 
-  this.endpoint = function endpoint() {
-    return self._nodes.filter( function(n) { return n.endpoint; })[0];
+  this.getEndpoints = function getEndpoints() {
+    return self._nodes.filter( function(n) { return n.endpoint; });
   }
 
   // deletes an edge and references to it
