@@ -91,20 +91,19 @@ var Way = function(args) {
 
   this.getOrderedNodes = getOrderedNodes;
   function getOrderedNodes() {
-    if (self.edges.length === 0) {
-      return [];
-    }
+    if (self.edges.length === 0) { return []; } // no nodes to return
     // self.edges = getOrderedEdges();  // shouldn't be necessary if the edges are already in order
-    var first = self.edges[0].getEndpoints()[0];
-    if (first === undefined) {
+    var orderedNodes = [self.edges[0].getEndpoints()[0]];
+    if (orderedNodes[0] === undefined) {
       console.log('Our first edge should have had a node that was an endpoint.');
       debugger;
     } else {
-      return self.edges.reduce( function (nodes, e) {
-      // return self.edges.reduce( function (nodes, e) {
-        nodes.push(e.otherNode(nodes[0]));
-        return nodes;
-      },[first]);
+      var orderedNodes = [self.edges[0].getEndpoints()[0]];
+      var len = self.edges.length;
+      for (var i = 0; i < len; i++) {
+        orderedNodes.push(self.edges[i].otherNode(orderedNodes[i]));
+      };
+      return orderedNodes;
     }
   }
 
