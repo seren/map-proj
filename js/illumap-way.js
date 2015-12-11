@@ -40,12 +40,12 @@ var Way = function(args) {
       if (nodes[i].endpoint) break;
     }
     return nodes[i];
-  };
+  }
 
   this.orderEdges = function orderEdges() {
     self.edges = getOrderedEdges();
     return self;
-  }
+  };
 
   function getOrderedEdges() {
     // find endpoint
@@ -67,7 +67,7 @@ var Way = function(args) {
       currNode = prevEdge.getNodes().filter(function(n) { return (n !== prevNode); })[0];
     } while (!currNode.endpoint);
     return orderedEdges;
-  };
+  }
 
   this.removeEdge = function removeEdge (e) {
     console.log('way '+self.id+': remove edge ['+e.id+']');
@@ -94,12 +94,13 @@ var Way = function(args) {
     if (self.edges.length === 0) { return []; } // no nodes to return
     // self.edges = getOrderedEdges();  // shouldn't be necessary if the edges are already in order
     var orderedNodes = [self.edges[0].getEndpoints()[0]];
+    var len;
     if (orderedNodes[0] === undefined) {
       console.log('Our first edge should have had a node that was an endpoint.');
       debugger;
     } else {
-      var orderedNodes = [self.edges[0].getEndpoints()[0]];
-      var len = self.edges.length;
+      orderedNodes = [self.edges[0].getEndpoints()[0]];
+      len = self.edges.length;
       for (var i = 0; i < len; i++) {
         orderedNodes.push(self.edges[i].otherNode(orderedNodes[i]));
       };
