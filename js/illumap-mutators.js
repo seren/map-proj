@@ -338,19 +338,19 @@ Mutators.prototype.RDP = function(opts) {
     });
     if (orderedWayNodes.flatten().containsDuplicates()) debugger; // Sanity check: there shouldn't be any duplicates
     // take all the arrays of sorted nodes, and merge them, maintaining the order of each array's nodes
-debugger
-    // merge
-    var a1, a2;
-    while (orderedWayNodes.length > 1) {
-      a1 = [];
-      a2 = [];
-      do { a1 = orderedWayNodes.pop(); } while (a1.length === 0 && orderedWayNodes.length > 1);
-      do { a2 = orderedWayNodes.pop(); } while (a2.length === 0 && orderedWayNodes.length > 1);
-      orderedWayNodes.unshift(mergeArrays(a1,a2,rdpNodeComparator));
-    }
-debugger
-    g.rdpSequence = orderedWayNodes[0];
-
+    // if (true) {  // we cheat at the moment and...
+      g.rdpSequence = orderedWayNodes.flatten().sort(rdpNodeComparator).reverse(); // ...just order everything by rdpMetric value
+    // } else {
+    //   var a1, a2;
+    //   while (orderedWayNodes.length > 1) {
+    //     a1 = [];
+    //     a2 = [];
+    //     do { a1 = orderedWayNodes.pop(); } while (a1.length === 0 && orderedWayNodes.length > 1); // find a non-empty sorted way
+    //     do { a2 = orderedWayNodes.pop(); } while (a2.length === 0 && orderedWayNodes.length > 1); // find a non-empty sorted way
+    //     orderedWayNodes.unshift(mergeArrays(a1,a2,rdpNodeComparator)); // add the merged arrays onto the end
+    //   }
+    //   g.rdpSequence = orderedWayNodes[0];
+    // }
 
     // takes a series of connected nodes (e.g. a way) and returns a sequence for removing them to arrive at a simple line segment
     function waySortRDPStyle(path, w) {
