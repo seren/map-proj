@@ -336,7 +336,7 @@ Mutators.prototype.RDP = function(opts) {
       g.xWays[k].nodesRdpSorted = waySortRDPStyle( w.getOrderedNodes(), w );
       return g.xWays[k].nodesRdpSorted;
     });
-    if (orderedWayNodes.containsDuplicates()) debugger; // Sanity check: there shouldn't be any duplicates
+    if (orderedWayNodes.flatten().containsDuplicates()) debugger; // Sanity check: there shouldn't be any duplicates
     // take all the arrays of sorted nodes, and merge them, maintaining the order of each array's nodes
 debugger
     // merge
