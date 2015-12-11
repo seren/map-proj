@@ -321,6 +321,21 @@ console.log('translation: '+illumap.d3projection.translate()+' -> '+zoomBehavior
         return self.indexOf(value) === index;
     });
   };
+  // need to test performance difference
+  Array.prototype.uniqueFast = function() {
+    var seen = {};
+    var out = [];
+    var len = this.length;
+    var j = 0;
+    for(var i = 0; i < len; i++) {
+         var item = this[i];
+         if(seen[item] !== 1) {
+               seen[item] = 1;
+               out[j++] = item;
+         }
+    }
+    return out;
+  };
 
   // Add useful array function
   Array.prototype.removeByValue = function() {
