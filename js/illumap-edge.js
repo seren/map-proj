@@ -5,6 +5,7 @@ var Edge = function(args) {
   self.numericId = Math.floor( (this._nodes[0].numericId / 2) + (this._nodes[1].numericId / 2) );
   self.way = args.way;
   self.id = args.id || self._nodes[0].id+'-'+self._nodes[1].id;
+  self._prettyId = self._nodes[0].prettyId()+'-'+self._nodes[1].prettyId()
   self.featureId; // for debugging
 
   if (self.graph === undefined) debugger;
@@ -15,6 +16,10 @@ var Edge = function(args) {
     n.endpoint = (n.getEdges() < 1);
     n.intersection = (n.getEdges() > 2);
   });
+
+  this.prettyId = function prettyId() {
+    return self._prettyId;
+  }
 
   this.getNodes = function getNodes() {
     return self._nodes;
