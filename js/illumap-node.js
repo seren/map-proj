@@ -21,7 +21,7 @@ var Node = function(args) {
     // from http://werxltd.com/wp/2010/05/13/javascript-implementation-of-javas-string-hashcode-method/
     function hashCode(str){
       var hash = 0;
-      if (str.length == 0) return hash;
+      if (str.length === 0) return hash;
       for (i = 0; i < str.length; i++) {
         char = str.charCodeAt(i);
         hash = ((hash<<5)-hash)+char;
