@@ -459,6 +459,15 @@ console.log('translation: '+illumap.d3projection.translate()+' -> '+zoomBehavior
     illumap.drawMutated();
   };
 
+  this.mutateRDP = function mutateRDP() {
+    var stepSize = Math.round(Math.log(self.data.mgraph.edgeCount()));
+    // for (var i=0; i < stepSize; i++) {
+      illumap.data.mutateGeneric({mutationType: 'RDP'});
+    // }
+    console.log('stepSize:'+stepSize);
+    illumap.drawMutated();
+  };
+
   this.replay = function replay() {
     illumap.data.replayMutations();
     illumap.drawMutated();

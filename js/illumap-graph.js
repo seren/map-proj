@@ -4,6 +4,7 @@ var Graph = function(args) {
   self.xEdges = {};
   self.xWays = {};
 
+  self.rdpStale = true;
   this.debug = function debug() {
     debugger;
   };

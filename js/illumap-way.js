@@ -9,6 +9,7 @@ var Way = function(args) {
   }
   self.edges = [];
   args.edges.forEach( function (e) { addEdge(e); });
+  self.nodesRdpSorted = undefined;
 
 // debugger
   this.addNode = function addNode (node) {

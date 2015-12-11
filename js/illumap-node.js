@@ -11,7 +11,7 @@ var Node = function(args) {
   this._edges = (args.edges === undefined) ? [] : args.edges;
   this._coordinates = (args.coordinates === undefined) ? [] : args.coordinates;
   this.graph = args.graph;
-  this.rdpMetric = undefined;
+  this.rdpMetric = 0.0;
   this.frozen = false;
 
   if (this.graph === undefined) debugger;

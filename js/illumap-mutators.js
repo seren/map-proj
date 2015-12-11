@@ -273,10 +273,269 @@ Mutators.prototype.progressiveMesh = function(opts) {
 };
 
 
+
+
+
+
+
 // Ramer-Douglas-Peucker
-Mutators.prototype.rpd = function(opts) {
-  return false;
+Mutators.prototype.RDP = function(opts) {
+  var g = opts.g,
+      sortedEdges,
+      ec,
+      n;
+
+  if (g.rdpStale) {
+    generateRdpSequence(g);
+    g.rdpStale = false;
+  }
+// debugger;
+  if (g.rdpSequence.length === 0) { // if we have no more nodes we can eliminate, return
+    return false;
+  }
+  n = g.rdpSequence.pop()
+// could do n.getEdges, find the edge's index in the way
+  // var newEdge = joinNeighbors(n);
+  var neighbors = n.neighbors();
+  if (neighbors.length !== 2) debugger; // our node should be in the middle of an array, so should have 2 neighbors
+  var w = n.getEdges()[0].way;
+  n.destroy();
+  var newEdge = g.addEdge(neighbors);
+  newEdge.way = w;
+  w.addEdge(newEdge);
+  w.orderEdges();
+  newEdge.way.checkEdgesOrdered();
+// debugger
+
+  function joinNeighbors(n) {
+    var ns = n.neighbors();
+    var oldEdge = n.getEdges()[0];
+    var w = oldEdge.way;
+
+    var e = g.addEdge(ns);
+    e.way = w;
+    var i = w.edges.indexOf(oldEdge);
+    // w.edges[i] = e;
+    w.edges.push(e);
+    // console.log('may throw debugger since we are replacing an edge that Way.removeEdge expects to be there');
+    return e;
+  }
+
+
+  // Computers a modified RDP sequence to simplify map. Can be reused until map is modified with some other technique
+  function generateRdpSequence (g) {
+
+    var nodeRdpOrder = [];
+    // reset nodes' error metrics
+    Object.keys(g.xNodes).forEach(function (k) {g.xNodes[k].rdpMetric = undefined; } );
+    // reset ways' sorted nodes list
+    Object.keys(g.xWays).forEach(function (k) {g.xWays[k].nodesRdpSorted = undefined; } );
+    // build array of ways containing nodes in retention order (highest to lowest)
+    var orderedWayNodes = Object.keys(g.xWays).map(function (k) {
+      var w = g.xWays[k];
+      g.xWays[k].nodesRdpSorted = waySortRDPStyle( w.getOrderedNodes(), w );
+      return g.xWays[k].nodesRdpSorted;
+    });
+    if (orderedWayNodes.containsDuplicates()) debugger; // Sanity check: there shouldn't be any duplicates
+    // take all the arrays of sorted nodes, and merge them, maintaining the order of each array's nodes
+debugger
+    // merge
+    var a1, a2;
+    while (orderedWayNodes.length > 1) {
+      a1 = [];
+      a2 = [];
+      do { a1 = orderedWayNodes.pop(); } while (a1.length === 0 && orderedWayNodes.length > 1);
+      do { a2 = orderedWayNodes.pop(); } while (a2.length === 0 && orderedWayNodes.length > 1);
+      orderedWayNodes.unshift(mergeArrays(a1,a2,rdpNodeComparator));
+    }
+debugger
+    g.rdpSequence = orderedWayNodes[0];
+
+
+    // takes a series of connected nodes (e.g. a way) and returns a sequence for removing them to arrive at a simple line segment
+    function waySortRDPStyle(path, w) {
+      if (path.length < 3) {
+        return [];  // can't simplify only two points
+      } else {
+        // debugger
+        generateRdpMetrics(path, 0, path.length - 1, '', 0, w);
+        return path.slice(1,-1).sort(rdpNodeComparator); // remove the first node since it can't be simplified (the algorithm already removed the fixed last node)
+        // var p = generateRdpMetrics(path, 0, path.length - 1, '', 0, w);
+        // return p.concat([path[path.length - 1]]);
+      }
+    }
+
+    // from http://stackoverflow.com/questions/22512532/d3-js-how-to-simplify-a-complex-path-using-a-custom-algorithm
+    function generateRdpMetrics(path, first, last, name, depth, w) {
+      var ii = first, // ii is index of the candidate point for removal
+      max = -1,
+      circular = false,
+      d,
+      pf, pfx, pfy,
+      pl, plx, ply,
+      p, qx, qy,
+      nn, nx, ny,
+      i,
+      p1, p2;
+
+      // if (depth > 30) debugger;
+      if (first + 1  < last) {
+        console.log(name+' f: '+first+' l: '+last);
+      } else {
+        // If we only have two points left, return them
+        console.log(name+' f: '+first+' l: '+last+' returning');
+if (path[first] === undefined) debugger;
+        return [path[first]];
+      }
+
+      // get the first and last points
+      pf = path[first].getCoordinates();
+      pfx = pf[0];
+      pfy = pf[1];
+      pl = path[last].getCoordinates();
+      plx = pl[0];
+      ply = pl[1];
+
+      if (path[first] === path[last]) {
+        console.log('circular way: first and last points are identical');
+        circular = true;
+      } else {
+        if (Math.sqrt((pfx*plx) + (pfy*ply)) < 0.00001) {
+          console.log('circular way: first and last points are almost at the same location');
+debugger;
+          circular = true;
+        }
+      }
+
+      // if path is circular, just find the point furthest away from the start
+      if (circular) {
+        for (i = first + 1; i < last; i++) {
+          p = path[i].getCoordinates();
+          qx = p[0] - pfx;
+          qy = p[1] - pfy;
+          d = Math.sqrt((qx*qx) + (qy*qy));
+          if (d > max) {
+console.log('new distance max found: '+d+' (point '+ii+', '+path[ii].id+')');
+            max = d;
+            ii = i;
+          }
+        }
+      } else {
+        // calculate the normal {nx, ny} on the line vector {dx, dy} between the first and last point
+        dx = plx - pfx;
+        dy = ply - pfy;
+        nn = Math.sqrt(dx*dx + dy*dy);
+        nx = -dy / nn;
+        ny = dx / nn;
+
+        for (i = first + 1; i < last; i++) {
+          p = path[i].getCoordinates();
+          qx = p[0] - pfx;
+          qy = p[1] - pfy;
+
+          d = Math.abs(qx * nx + qy * ny);
+          if (d > max) {
+console.log('new max found: '+d+' (point '+ii+', '+path[ii].id+')');
+            max = d;
+            ii = i;
+          }
+        }
+      }
+      // if (path[ii].rdpMetric !== 0.0) debugger
+      path[ii].rdpMetric = max; // store the metric in the point, now that we found the max
+// debugger
+console.log('metric saved: '+max+' (point '+ii+', '+path[ii].id+', endpoint: '+path[ii].endpoint+', intersection: '+path[ii].intersection+')');
+// console.log('recursing, mid-point: '+ii);
+// console.log('6.1576,53.47892: '+illumap.data.mgraph.xNodes['6.1576,53.47892'].rdpMetric);
+// if (ii > 200) {
+//   debugger;
+//   return false;
+// }
+
+      p1 = generateRdpMetrics(path, first, ii, name+'left,', depth+1, w);
+      p2 = generateRdpMetrics(path, ii, last, name+'right,', depth+1, w);
+// console.log('6.1576,53.47892: '+illumap.data.mgraph.xNodes['6.1576,53.47892'].rdpMetric);
+// if (p1.indexOf(undefined) !== -1) debugger;
+// if (p2.indexOf(undefined) !== -1) debugger;
+      // the ways can b
+      // return mergeArrays(p1,p2,rdpNodeComparator);
+    }
+
+    function mergeArrays (a1,a2,comparator) {
+      var t;
+      var len1 = a1.length;
+      var len2 = a2.length;
+      var counter1 = 0;
+      var counter2 = 0;
+      var a3 = [];
+// debugger
+      while ((counter1 < len1) && (counter2 < len2)) {
+        switch (comparator(a1[counter1],a2[counter2])) {
+          case 0: // metrics are the same
+          case 1: // first metric is bigger than second
+            a3.push(a1[counter1]);
+            counter1 += 1;
+// debugger
+            break;
+          default: // first metric is smaller than second
+            a3.push(a2[counter2]);
+            counter2 += 1;
+// debugger
+            break;
+        }
+      };
+// debugger
+      // append the rest of the remaining array
+      if (counter1 == len1) {
+if (a3.concat(a2.slice(counter2)).indexOf(undefined) !== -1) debugger; // make sure we don't have undefined values in our new array
+        return a3.concat(a2.slice(counter2));
+      }
+      if (counter2 == len2) {
+if (a3.concat(a1.slice(counter1)).indexOf(undefined) !== -1) debugger; // make sure we don't have undefined values in our new array
+        return a3.concat(a1.slice(counter1));
+      }
+      debugger // we shouldn't get here
+    }
+
+
+    // from https://gist.github.com/rhyolight/2846020
+    function findPerpendicularDistance(point, line) {
+        var pointX = point[0],
+            pointY = point[1],
+            lineStart = {
+                x: line[0][0],
+                y: line[0][1]
+            },
+            lineEnd = {
+                x: line[1][0],
+                y: line[1][1]
+            },
+            slope = (lineEnd.y - lineStart.y) / (lineEnd.x - lineStart.x),
+            intercept = lineStart.y - (slope * lineStart.x),
+            result;
+        result = Math.abs(slope * pointX - pointY + intercept) / Math.sqrt(Math.pow(slope, 2) + 1);
+        return result;
+    }
+    function rdpBuild () {
+
+    }
+
+    function rdpNodeComparator (a,b) {
+if ((a === undefined) || (b === undefined)) debugger
+      if (a.rdpMetric < b.rdpMetric)
+        return -1;
+      if (a.rdpMetric > b.rdpMetric)
+        return 1;
+      return 0;
+    }
+
+
+
+  }
+
+
+
+
+
+
 };
-
-
-
