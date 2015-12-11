@@ -31,6 +31,43 @@ var Way = function(args) {
     return self;
   }
 
+  this.findEndpoint = findEndpoint;
+  function findEndpoint(nodes) {
+    nodes = nodes || self.nodes();
+    var i;
+    for (i = nodes.length - 1; i >= 0; i--) {
+      if (nodes[i].endpoint) break;
+    }
+    return nodes[i];
+  };
+
+  this.orderEdges = function orderEdges() {
+    self.edges = getOrderedEdges();
+    return self;
+  }
+
+  function getOrderedEdges() {
+    // find endpoint
+    var endpoint = findEndpoint();
+    // from one endpoint, get other node, find common edge from hash, repeat till other endpoint
+    var edgesCopy = self.edges.slice();
+    var len = edgesCopy.length;
+    var neigborNode;
+    var prevEdge;
+    var currNode = endpoint;
+    var orderedEdges = [];
+    // rebuild the self.edges array in order
+    do {
+      // find the edge containing the current node ( isn't the previous node,
+      currEdge = currNode.getEdges().filter(function(e) { return ((e.way === self) && (e !== prevEdge)); })[0];
+      orderedEdges.push(currEdge);
+      prevEdge = currEdge;
+      prevNode = currNode;
+      currNode = prevEdge.getNodes().filter(function(n) { return (n !== prevNode); })[0];
+    } while (!currNode.endpoint);
+    return orderedEdges;
+  };
+
   this.removeEdge = function removeEdge (e) {
     console.log('way '+self.id+': remove edge ['+e.id+']');
     if (self.edges.indexOf(e) === -1) {
@@ -50,6 +87,25 @@ var Way = function(args) {
     }
     return true;
   };
+
+  this.getOrderedNodes = getOrderedNodes;
+  function getOrderedNodes() {
+    if (self.edges.length === 0) {
+      return [];
+    }
+    // self.edges = getOrderedEdges();  // shouldn't be necessary if the edges are already in order
+    var first = self.edges[0].getEndpoints()[0];
+    if (first === undefined) {
+      console.log('Our first edge should have had a node that was an endpoint.');
+      debugger;
+    } else {
+      return self.edges.reduce( function (nodes, e) {
+      // return self.edges.reduce( function (nodes, e) {
+        nodes.push(e.otherNode(nodes[0]));
+        return nodes;
+      },[first]);
+    }
+  }
 
   this.nodes = function nodes () {
     var ns = [];
