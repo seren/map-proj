@@ -59,6 +59,8 @@ var Graph = function(args) {
     if (e) debugger;
     e = new Edge({nodes: nodes, graph: self});
     self.xEdges[e.id] = e;
+    nodes[0].updateGraphAttributes();
+    nodes[1].updateGraphAttributes();
     return e;
   };
 
