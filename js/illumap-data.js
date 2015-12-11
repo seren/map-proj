@@ -192,6 +192,7 @@ console.log('full path: ['+pathEdges.join(',') +']');
           // remove the edge from the search list
           remainingEdges.removeByValue(e);
         });
+        w.orderEdges(); // useful for RDP mutation
         // sanity check to prevent an infinite loop
         if (oldEdgeCount === remainingEdges.length) {
           console.log('infinite loop detected');
