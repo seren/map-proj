@@ -83,18 +83,18 @@ var Way = function(args) {
     if (endEdges.length !== 2) debugger;
 
     // prev - curr - next
-
     ordered.push(endEdges[0]);
     var nextNode = nonEndNodes[0];
     var currNode = endNodes[0];
     var prevNode;
+    function nodeNotPrevNode() { return arguments[0] !== prevNode; }
     while (ordered.length < self.edges.length) {
       if (nextNode.endpoint) debugger; // we shouldn't hit an endpoint since the loop should exit before then
       if (nextEdge === endEdges[1]) debugger; // we should quit before we hit this
       if (nextNode.neighbors().length !== 2) debugger; // we shouldn't hit a node with more than 2 neighbors
       prevNode = currNode;
       currNode = nextNode;
-      nextNode = currNode.neighbors().filter(function (n) { return n !== prevNode; })[0];
+      nextNode = currNode.neighbors().filter(nodeNotPrevNode)[0];
       if (nextNode === undefined) debugger;
       nextEdge = self.graph.getEdge([currNode,nextNode]);
       ordered.push(nextEdge);
