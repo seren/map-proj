@@ -104,7 +104,8 @@ console.log('returning path: ['+path.join(',')+']');
         return path;
       }
 
-      var v,w = e.getNodes();
+      var v = e.getNodes()[0];
+      var w = e.getNodes()[1];
       var path=[v];
       var reversePath=[];
       var forwardPath=[];
