@@ -323,14 +323,15 @@ console.log("running loadTileFromServer");
 
     // coordinates: [[1,2],[3,4],[5,6]]
     // produces a geojson-like feature from an array of coordinate arrays. used for d3 path generation.
-    var featureFromNodes = function featureFromNodes(nodes, id) {
-      id = (id === undefined) ? 0 : id;
+    var featureFromNodes = function featureFromNodes(nodes, numericId, featureId) {
+      var debugId = numericId+'f'+featureId;
       var coordinates = nodes.map( function(n) {
         return n.getCoordinates();
       });
       return {
         // type: "Feature",
-        id: id,
+        id: numericId,
+        debugId: debugId,
         nodes: nodes,
         properties: {
           sort_key: -6
@@ -338,7 +339,8 @@ console.log("running loadTileFromServer");
         geometry: {
           coordinates: coordinates,
           type: "LineString",
-          id: id
+          id: numericId,
+          debugId: debugId
         }
       };
     };
@@ -413,7 +415,7 @@ console.log("running loadTileFromServer");
       getEdges: function getEdges() {
         if (graphStale === true) { buildGraph(); }
         featureFromEdge = function (e) {
-          return featureFromNodes(e.getNodes(),e.numericId+'-f'+e.featureId);
+          return featureFromNodes(e.getNodes(),e.numericId,e.featureId);
         };
         return mgraph.edges().map(featureFromEdge);
       },
