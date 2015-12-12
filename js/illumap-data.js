@@ -188,13 +188,13 @@ console.log('for way '+w.id+', found edges: ['+ w.edges.map(fid).join('],[') +']
           // remove the edge from the search list
           remainingEdges.removeByValue(e);
         });
-        w.orderEdges(); // useful for RDP mutation
         // sanity check to prevent an infinite loop
         if (oldEdgeCount === remainingEdges.length) {
           console.log('infinite loop detected');
           debugger;
         }
       }
+      mgraph.ways().forEach(function(w) {w.orderEdges();}); // useful for RDP mutation
       graphStale = false;
     }
 
