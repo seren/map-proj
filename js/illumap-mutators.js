@@ -374,12 +374,12 @@ Mutators.prototype.RDP = function(opts) {
       p, qx, qy,
       nn, nx, ny;
 
-      if (first + 1  < last) {
-        console.log(name+' f: '+first+' l: '+last);
-      } else {
+      if (first >= last - 1) {
         // If we only have two points left, return them
         console.log(name+' f: '+first+' l: '+last+' returning since only 2 points left ('+path[first].id+' '+path[last].id+')');
         return [path[first]];
+      } else {
+        console.log(name+' f: '+first+' l: '+last);
       }
 
       // get the first and last points
