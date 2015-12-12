@@ -362,7 +362,7 @@ Mutators.prototype.RDP = function(opts) {
       }
     }
 
-    // from http://stackoverflow.com/questions/22512532/d3-js-how-to-simplify-a-complex-path-using-a-custom-algorithm
+    // modified from http://stackoverflow.com/questions/22512532/d3-js-how-to-simplify-a-complex-path-using-a-custom-algorithm
     function generateRdpMetrics(path, first, last, name, depth, w) {
       var ii = first, // ii is index of the candidate point for removal
       max = -1,
@@ -379,7 +379,7 @@ Mutators.prototype.RDP = function(opts) {
         console.log(name+' f: '+first+' l: '+last);
       } else {
         // If we only have two points left, return them
-        console.log(name+' f: '+first+' l: '+last+' returning');
+        console.log(name+' f: '+first+' l: '+last+' returning since only 2 points left ('+path[first].id+' '+path[last].id+')');
         return [path[first]];
       }
 
@@ -408,7 +408,6 @@ Mutators.prototype.RDP = function(opts) {
           qy = p[1] - pfy;
           d = Math.sqrt((qx*qx) + (qy*qy));
           if (d > max) {
-console.log('new distance max found: '+d+' (point '+ii+', '+path[ii].id+')');
             max = d;
             ii = i;
           }
@@ -428,14 +427,13 @@ console.log('new distance max found: '+d+' (point '+ii+', '+path[ii].id+')');
 
           d = Math.abs(qx * nx + qy * ny);
           if (d > max) {
-console.log('new max found: '+d+' (point '+ii+', '+path[ii].id+')');
             max = d;
             ii = i;
           }
         }
       }
-      path[ii].rdpMetric = max; // store the metric in the point, now that we found the max
-console.log('metric saved: '+max+' (point '+ii+', '+path[ii].id+', endpoint: '+path[ii].endpoint+', intersection: '+path[ii].intersection+')');
+      path[ii].rdpMetric = max; // store the metric in the node, now that we found the max
+// console.log('metric saved: '+max+' (point '+ii+', '+path[ii].id+', endpoint: '+path[ii].endpoint+', intersection: '+path[ii].intersection+')');
 
       p1 = generateRdpMetrics(path, first, ii, name+'left,', depth+1, w);
       p2 = generateRdpMetrics(path, ii, last, name+'right,', depth+1, w);

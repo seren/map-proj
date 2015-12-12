@@ -87,7 +87,7 @@ var illumap = (function() {
     function findWayNodesFromEdge(e) {
       // Return nodes, not including the starting node, between start and closest endpoint in one direction
       function getNodesUntilEndpoint(startNode, currNode, debugDirection) {
-console.log(debugDirection +'about to traverse, startNode='+startNode+' currNode='+currNode);
+console.log('direction: '+debugDirection +'about to traverse, startNode='+startNode.id+' currNode='+currNode.id);
         var path=[currNode];
         var prevNode = startNode;
         var nextNode;
@@ -110,7 +110,7 @@ console.log('returning path: ['+path.join(',')+']');
       var reversePath=[];
       var forwardPath=[];
       if (v.endpoint || v.intersection) {
-        path = path.concat(getNodesUntilEndpoint(v, w,'from-end: '));
+        path = path.concat(getNodesUntilEndpoint(v, w,'from-endpoint: '));
       } else {
         forwardPath = getNodesUntilEndpoint(v, v.neighbors[0],'forward: ');
         reversePath = getNodesUntilEndpoint(v, v.neighbors[1],'backward: ').reverse();
@@ -124,7 +124,7 @@ console.log('full path: ['+path.join(',') +']');
     function findWayEdgesFromEdge(e) {
       // Return nodes, not including the starting node, between start and closest endpoint in one direction
       function getEdgesUntilEndpoint(startNode, startEdge, debugDirection) {
-console.log(debugDirection +'about to traverse, startNode='+startNode+' currNode='+currNode);
+console.log('direction: '+debugDirection +'about to traverse, startNode='+startNode.id);
         var pathEdges = [];
         var pathNodes = [];
         var prevNode = startNode;
@@ -142,7 +142,7 @@ console.log(debugDirection +'about to traverse, startNode='+startNode+' currNode
           pathNodes.push(nextNode); // save the nodes for possible future use
           currEdge = nextEdge;
           currNode = nextNode;
-console.log('traversing ('+debugDirection+') path ['+pathNodes.map(function(n) { return n.prettyId(); })+']. currNode:'+currNode.id+' nextNode:'+nextNode.id+'(this is added to the path)');
+console.log('traversing ('+debugDirection+') path ['+pathNodes.map(function(n) { return n.id; })+']. currNode:'+currNode.id+' nextNode:'+nextNode.id+'(this is added to the path)');
         }
         return pathEdges;
       }
@@ -159,7 +159,7 @@ console.log('traversing ('+debugDirection+') path ['+pathNodes.map(function(n) {
         reversePath = getEdgesUntilEndpoint(n2, e,'backward: ').reverse();
         pathEdges = reversePath.concat(pathEdges, forwardPath);
       }
-console.log('full path: ['+pathEdges.join(',') +']');
+console.log('full path: ['+pathEdges.map(function(e){return e.id;}).join(',') +']');
       return pathEdges;
     }
 
@@ -189,6 +189,7 @@ console.log('full path: ['+pathEdges.join(',') +']');
         e = remainingEdges.pop();
         wayEdges = findWayEdgesFromEdge(e);
         w = mgraph.addWay({edgeArray: wayEdges});
+console.log('for way '+w.id+', found edges: ['+ w.edges.map(fid).join('],[') +']');
         wayEdges.forEach( function (e) {
           // remove the edge from the search list
           remainingEdges.removeByValue(e);
