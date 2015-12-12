@@ -489,9 +489,6 @@ if (a3.concat(a1.slice(counter1)).indexOf(undefined) !== -1) debugger; // make s
         result = Math.abs(slope * pointX - pointY + intercept) / Math.sqrt(Math.pow(slope, 2) + 1);
         return result;
     }
-    function rdpBuild () {
-
-    }
 
     function rdpNodeComparator (a,b) {
       if ((a === undefined) || (b === undefined)) debugger
