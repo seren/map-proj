@@ -8,7 +8,7 @@ var illumap = (function() {
       mutationSequence = [],  // list of changes performed on data
       mutators,
       mgraph = new Graph(),
-      graphStale = true,
+      graphStale = true,  // marks whether we need to rebuild the graph from the JSON (because new JSON is available, or the view has changed enough that we need to use different JSON)
       tangentsStale = true,  // used to trigger a pre-calculation of all tangents of edges (for decoration)
       mutatedFeatureList = {}, // we build our own geojson features list so that d3 can generate geo paths from it
       graphNodes = [],  // holds all nodes. node = {coordinates: [lat,lon], wayIds: [], features: [], endpoint}  //deprecated
@@ -127,11 +127,11 @@ console.log('full path: ['+path.join(',') +']');
 console.log('direction: '+debugDirection +'about to traverse, startNode='+startNode.id);
         var pathEdges = [];
         var pathNodes = [];
-        var prevNode = startNode;
-        var nextNode;
         var direction;
         var currEdge = startEdge;
+        var nextNode;
         var currNode = startNode;
+        var prevNode = startNode;
         startEdge.otherNode(startNode);
         pathNodes.push(currNode); // save the nodes for possible future use
         // start collecting pathEdges, starting with the next edge from the one we were given
