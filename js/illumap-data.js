@@ -147,18 +147,12 @@ console.log('traversing ('+debugDirection+') path ['+pathNodes.map(function(n) {
         return pathEdges;
       }
 
-      var n1 = e.getNodes()[0];
-      var n2 = e.getNodes()[1];
       var pathEdges=[e];
       var reversePathEdges=[];
       var forwardPathEdges=[];
-      if (n1.endpoint || n1.intersection) {
-        pathEdges = pathEdges.concat(getEdgesUntilEndpoint(n1, e,'from-end: '));
-      } else {
-        forwardPath = getEdgesUntilEndpoint(n1, e,'forward: ');
-        reversePath = getEdgesUntilEndpoint(n2, e,'backward: ').reverse();
-        pathEdges = reversePath.concat(pathEdges, forwardPath);
-      }
+      forwardPath = getEdgesUntilEndpoint(e.getNodes()[0], e,'forward: ');
+      reversePath = getEdgesUntilEndpoint(e.getNodes()[1], e,'backward: ').reverse();
+      pathEdges = reversePath.concat(pathEdges, forwardPath);
 console.log('full path: ['+pathEdges.map(function(e){return e.id;}).join(',') +']');
       return pathEdges;
     }
