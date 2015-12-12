@@ -312,24 +312,5 @@ console.log('----'+paths[0].geometry.coordinates[0]);
     }; // end return
   }(); // end graphics
 
-
-
-  // // not sure how to reference this from everywhere, instead of having to repeat it in each sub-module
-  // function merge() {
-  //   var obj = {},
-  //       i = 0,
-  //       il = arguments.length,
-  //       key;
-  //   for (; i < il; i++) {
-  //       for (key in arguments[i]) {
-  //           if (arguments[i].hasOwnProperty(key)) {
-  //               obj[key] = arguments[i][key];
-  //           }
-  //       }
-  //   }
-  //   return obj;
-  // }
-
-
   return this;
 }).apply(illumap);

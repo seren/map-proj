@@ -357,11 +357,8 @@ Mutators.prototype.RDP = function(opts) {
       if (path.length < 3) {
         return [];  // can't simplify only two points
       } else {
-        // debugger
         generateRdpMetrics(path, 0, path.length - 1, '', 0, w);
         return path.slice(1,-1).sort(rdpNodeComparator); // remove the first node since it can't be simplified (the algorithm already removed the fixed last node)
-        // var p = generateRdpMetrics(path, 0, path.length - 1, '', 0, w);
-        // return p.concat([path[path.length - 1]]);
       }
     }
 
@@ -378,13 +375,11 @@ Mutators.prototype.RDP = function(opts) {
       i,
       p1, p2;
 
-      // if (depth > 30) debugger;
       if (first + 1  < last) {
         console.log(name+' f: '+first+' l: '+last);
       } else {
         // If we only have two points left, return them
         console.log(name+' f: '+first+' l: '+last+' returning');
-if (path[first] === undefined) debugger;
         return [path[first]];
       }
 
@@ -402,11 +397,9 @@ if (path[first] === undefined) debugger;
       } else {
         if (Math.sqrt((pfx*plx) + (pfy*ply)) < 0.00001) {
           console.log('circular way: first and last points are almost at the same location');
-debugger;
           circular = true;
         }
       }
-
       // if path is circular, just find the point furthest away from the start
       if (circular) {
         for (i = first + 1; i < last; i++) {
@@ -441,24 +434,11 @@ console.log('new max found: '+d+' (point '+ii+', '+path[ii].id+')');
           }
         }
       }
-      // if (path[ii].rdpMetric !== 0.0) debugger
       path[ii].rdpMetric = max; // store the metric in the point, now that we found the max
-// debugger
 console.log('metric saved: '+max+' (point '+ii+', '+path[ii].id+', endpoint: '+path[ii].endpoint+', intersection: '+path[ii].intersection+')');
-// console.log('recursing, mid-point: '+ii);
-// console.log('6.1576,53.47892: '+illumap.data.mgraph.xNodes['6.1576,53.47892'].rdpMetric);
-// if (ii > 200) {
-//   debugger;
-//   return false;
-// }
 
       p1 = generateRdpMetrics(path, first, ii, name+'left,', depth+1, w);
       p2 = generateRdpMetrics(path, ii, last, name+'right,', depth+1, w);
-// console.log('6.1576,53.47892: '+illumap.data.mgraph.xNodes['6.1576,53.47892'].rdpMetric);
-// if (p1.indexOf(undefined) !== -1) debugger;
-// if (p2.indexOf(undefined) !== -1) debugger;
-      // the ways can b
-      // return mergeArrays(p1,p2,rdpNodeComparator);
     }
 
     function mergeArrays (a1,a2,comparator) {
@@ -468,23 +448,19 @@ console.log('metric saved: '+max+' (point '+ii+', '+path[ii].id+', endpoint: '+p
       var counter1 = 0;
       var counter2 = 0;
       var a3 = [];
-// debugger
       while ((counter1 < len1) && (counter2 < len2)) {
         switch (comparator(a1[counter1],a2[counter2])) {
           case 0: // metrics are the same
           case 1: // first metric is bigger than second
             a3.push(a1[counter1]);
             counter1 += 1;
-// debugger
             break;
           default: // first metric is smaller than second
             a3.push(a2[counter2]);
             counter2 += 1;
-// debugger
             break;
         }
       };
-// debugger
       // append the rest of the remaining array
       if (counter1 == len1) {
 if (a3.concat(a2.slice(counter2)).indexOf(undefined) !== -1) debugger; // make sure we don't have undefined values in our new array
