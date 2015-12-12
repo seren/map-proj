@@ -118,6 +118,18 @@ var Way = function(args) {
     },[]);
   };
 
+  // more efficient way? need to test
+  this.nodes2 = function nodes2() {
+    var nodeHash = {};
+    var ns;
+    self.edges.forEach(function(e) {
+      ns = e.getNodes();
+      nodeHash[ns[0].id] = ns[0];
+      nodeHash[ns[1].id] = ns[1];
+    });
+    return Object.keys(nodeHash).map(function (k) { return obj[k]; } );
+  };
+
   // check to make sure that way edges are ordered
   this.checkEdgesOrdered = function checkEdgesOrdered() {
     var endEdges = [];
