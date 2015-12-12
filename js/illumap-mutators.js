@@ -367,13 +367,12 @@ Mutators.prototype.RDP = function(opts) {
       var ii = first, // ii is index of the candidate point for removal
       max = -1,
       circular = false,
-      d,
+      d, i,
+      p1, p2,
       pf, pfx, pfy,
       pl, plx, ply,
       p, qx, qy,
-      nn, nx, ny,
-      i,
-      p1, p2;
+      nn, nx, ny;
 
       if (first + 1  < last) {
         console.log(name+' f: '+first+' l: '+last);
@@ -495,7 +494,7 @@ if (a3.concat(a1.slice(counter1)).indexOf(undefined) !== -1) debugger; // make s
     }
 
     function rdpNodeComparator (a,b) {
-if ((a === undefined) || (b === undefined)) debugger
+      if ((a === undefined) || (b === undefined)) debugger
       if (a.rdpMetric < b.rdpMetric)
         return -1;
       if (a.rdpMetric > b.rdpMetric)
