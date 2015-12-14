@@ -374,15 +374,15 @@ Mutators.prototype.RDP = function(opts) {
       p, qx, qy,
       nn, nx, ny;
 
-      if (first >= last - 1) {
         // If we only have two points left, return them
+      if (first >= last - 1) {
         console.log(name+' f: '+first+' l: '+last+' returning since only 2 points left ('+path[first].id+' '+path[last].id+')');
         return [path[first]];
       } else {
         console.log(name+' f: '+first+' l: '+last);
       }
 
-      // get the first and last points
+      // get the first and last points in the path
       pf = path[first].getCoordinates();
       pfx = pf[0];
       pfy = pf[1];
@@ -390,6 +390,7 @@ Mutators.prototype.RDP = function(opts) {
       plx = pl[0];
       ply = pl[1];
 
+      // check that the path isn't circular
       if (path[first] === path[last]) {
         console.log('circular way: first and last points are identical');
         circular = true;
@@ -412,6 +413,8 @@ Mutators.prototype.RDP = function(opts) {
           }
         }
       } else {
+        // find the point furthest from the line between the first and last point
+
         // calculate the normal {nx, ny} on the line vector {dx, dy} between the first and last point
         dx = plx - pfx;
         dy = ply - pfy;
@@ -419,11 +422,11 @@ Mutators.prototype.RDP = function(opts) {
         nx = -dy / nn;
         ny = dx / nn;
 
+        // find the point with the max distance from the normal
         for (i = first + 1; i < last; i++) {
           p = path[i].getCoordinates();
           qx = p[0] - pfx;
           qy = p[1] - pfy;
-
           d = Math.abs(qx * nx + qy * ny);
           if (d > max) {
             max = d;
@@ -438,6 +441,7 @@ Mutators.prototype.RDP = function(opts) {
       p2 = generateRdpMetrics(path, ii, last, name+'right,', depth+1, w);
     }
 
+    // step along the each array, comparing elements.
     function mergeArrays (a1,a2,comparator) {
       var t;
       var len1 = a1.length;
@@ -490,6 +494,7 @@ if (a3.concat(a1.slice(counter1)).indexOf(undefined) !== -1) debugger; // make s
         return result;
     }
 
+    // returns 1 if a is bigger, -1 is b is bigger
     function rdpNodeComparator (a,b) {
       if ((a === undefined) || (b === undefined)) debugger
       if (a.rdpMetric < b.rdpMetric)
@@ -499,13 +504,5 @@ if (a3.concat(a1.slice(counter1)).indexOf(undefined) !== -1) debugger; // make s
       return 0;
     }
 
-
-
   }
-
-
-
-
-
-
 };
