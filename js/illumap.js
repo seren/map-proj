@@ -1,5 +1,11 @@
 // outstanding bugs: some lines don't get put into the graph...
 
+// for debugging: edges.map(fid)
+function fid(x) {return x.id; }
+function fprettyId(x) {return x.prettyId(); }
+function fep(x) {return x.endpoint;}
+debugging = false;
+
 function Illumap() {
   // Global vars
 var self = this;
