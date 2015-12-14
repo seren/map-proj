@@ -443,7 +443,6 @@ Mutators.prototype.RDP = function(opts) {
 
     // step along the each array, comparing elements.
     function mergeArrays (a1,a2,comparator) {
-      var t;
       var len1 = a1.length;
       var len2 = a2.length;
       var counter1 = 0;
@@ -451,15 +450,17 @@ Mutators.prototype.RDP = function(opts) {
       var a3 = [];
       while ((counter1 < len1) && (counter2 < len2)) {
         switch (comparator(a1[counter1],a2[counter2])) {
-          case 0: // metrics are the same
-          case 1: // first metric is bigger than second
+          case -1: // first metric is smaller than second
             a3.push(a1[counter1]);
             counter1 += 1;
             break;
-          default: // first metric is smaller than second
+          case 0: // metrics are the same
+          case 1: // first metric is bigger than second
             a3.push(a2[counter2]);
             counter2 += 1;
             break;
+          default: // should never get here
+            debugger;
         }
       };
       // append the rest of the remaining array
