@@ -293,7 +293,7 @@ Mutators.prototype.RDP = function(opts) {
   if (g.rdpSequence.length === 0) { // if we have no more nodes we can eliminate, return
     return false;
   }
-  n = g.rdpSequence.pop()
+  n = g.rdpSequence.shift()
 // could do n.getEdges, find the edge's index in the way
   // var newEdge = joinNeighbors(n);
   var neighbors = n.neighbors();
@@ -323,6 +323,7 @@ Mutators.prototype.RDP = function(opts) {
 
 
   // Computers a modified RDP sequence to simplify map. Can be reused until map is modified with some other technique
+  // Sequence is array of nodes, orded from smallest metric to largest
   function generateRdpSequence (g) {
 
     var nodeRdpOrder = [];
@@ -330,7 +331,7 @@ Mutators.prototype.RDP = function(opts) {
     Object.keys(g.xNodes).forEach(function (k) {g.xNodes[k].rdpMetric = undefined; } );
     // reset ways' sorted nodes list
     Object.keys(g.xWays).forEach(function (k) {g.xWays[k].nodesRdpSorted = undefined; } );
-    // build array of ways containing nodes in retention order (highest to lowest)
+    // build array of ways containing nodes in retention order (lowest to highest error)
     var orderedWayNodes = Object.keys(g.xWays).map(function (k) {
       var w = g.xWays[k];
       g.xWays[k].nodesRdpSorted = waySortRDPStyle( w.getOrderedNodes(), w );
@@ -339,20 +340,21 @@ Mutators.prototype.RDP = function(opts) {
     if (orderedWayNodes.flatten().containsDuplicates()) debugger; // Sanity check: there shouldn't be any duplicates
     // take all the arrays of sorted nodes, and merge them, maintaining the order of each array's nodes
     // if (true) {  // we cheat at the moment and...
-      g.rdpSequence = orderedWayNodes.flatten().sort(rdpNodeComparator).reverse(); // ...just order everything by rdpMetric value
+      // g.rdpSequence = orderedWayNodes.flatten().sort(rdpNodeComparator).reverse(); // ...just order everything by rdpMetric value
     // } else {
-    //   var a1, a2;
-    //   while (orderedWayNodes.length > 1) {
-    //     a1 = [];
-    //     a2 = [];
-    //     do { a1 = orderedWayNodes.pop(); } while (a1.length === 0 && orderedWayNodes.length > 1); // find a non-empty sorted way
-    //     do { a2 = orderedWayNodes.pop(); } while (a2.length === 0 && orderedWayNodes.length > 1); // find a non-empty sorted way
-    //     orderedWayNodes.unshift(mergeArrays(a1,a2,rdpNodeComparator)); // add the merged arrays onto the end
-    //   }
-    //   g.rdpSequence = orderedWayNodes[0];
+      var a1, a2;
+      while (orderedWayNodes.length > 1) {
+        a1 = [];
+        a2 = [];
+        do { a1 = orderedWayNodes.pop(); } while (a1.length === 0 && orderedWayNodes.length > 1); // find a non-empty sorted way
+        do { a2 = orderedWayNodes.pop(); } while (a2.length === 0 && orderedWayNodes.length > 1); // find a non-empty sorted way
+        orderedWayNodes.unshift(mergeArrays(a1,a2,rdpNodeComparator)); // add the merged arrays onto the end
+      }
+      g.rdpSequence = orderedWayNodes[0];
     // }
 
-    // takes a series of connected nodes (e.g. a way) and returns a sequence for removing them to arrive at a simple line segment
+
+    // takes a series of connected nodes (e.g. a way) and returns a sequence for removing them to arrive at a simple line segment (smallest error metric to largest)
     function waySortRDPStyle(path, w) {
       if (path.length < 3) {
         return [];  // can't simplify only two points
@@ -360,86 +362,87 @@ Mutators.prototype.RDP = function(opts) {
         generateRdpMetrics(path, 0, path.length - 1, '', 0, w);
         return path.slice(1,-1).sort(rdpNodeComparator); // remove the first node since it can't be simplified (the algorithm already removed the fixed last node)
       }
-    }
+      // modified from http://stackoverflow.com/questions/22512532/d3-js-how-to-simplify-a-complex-path-using-a-custom-algorithm
+      // operates on each way, ordering it
 
-    // modified from http://stackoverflow.com/questions/22512532/d3-js-how-to-simplify-a-complex-path-using-a-custom-algorithm
-    function generateRdpMetrics(path, first, last, name, depth, w) {
-      var ii = first, // ii is index of the candidate point for removal
-      max = -1,
-      circular = false,
-      d, i,
-      p1, p2,
-      pf, pfx, pfy,
-      pl, plx, ply,
-      p, qx, qy,
-      nn, nx, ny;
+      function generateRdpMetrics(path, first, last, name, depth, w) {
+        var ii = first, // ii is index of the candidate point for removal
+        max = -1,
+        circular = false,
+        d, i,
+        p1, p2,
+        pf, pfx, pfy,
+        pl, plx, ply,
+        p, qx, qy,
+        nn, nx, ny;
 
-        // If we only have two points left, return them
-      if (first >= last - 1) {
-        console.log(name+' f: '+first+' l: '+last+' returning since only 2 points left ('+path[first].id+' '+path[last].id+')');
-        return [path[first]];
-      } else {
-        console.log(name+' f: '+first+' l: '+last);
-      }
+          // If we only have two points left, return them
+        if (first >= last - 1) {
+          console.log(name+' f: '+first+' l: '+last+' returning since only 2 points left ('+path[first].id+' '+path[last].id+')');
+          return [path[first]];
+        } else {
+          console.log(name+' f: '+first+' l: '+last);
+        }
 
-      // get the first and last points in the path
-      pf = path[first].getCoordinates();
-      pfx = pf[0];
-      pfy = pf[1];
-      pl = path[last].getCoordinates();
-      plx = pl[0];
-      ply = pl[1];
+        // get the first and last points in the path
+        pf = path[first].getCoordinates();
+        pfx = pf[0];
+        pfy = pf[1];
+        pl = path[last].getCoordinates();
+        plx = pl[0];
+        ply = pl[1];
 
-      // check that the path isn't circular
-      if (path[first] === path[last]) {
-        console.log('circular way: first and last points are identical');
-        circular = true;
-      } else {
-        if (Math.sqrt((pfx*plx) + (pfy*ply)) < 0.00001) {
-          console.log('circular way: first and last points are almost at the same location');
+        // check that the path isn't circular
+        if (path[first] === path[last]) {
+          console.log('circular way: first and last points are identical');
           circular = true;
-        }
-      }
-      // if path is circular, just find the point furthest away from the start
-      if (circular) {
-        for (i = first + 1; i < last; i++) {
-          p = path[i].getCoordinates();
-          qx = p[0] - pfx;
-          qy = p[1] - pfy;
-          d = Math.sqrt((qx*qx) + (qy*qy));
-          if (d > max) {
-            max = d;
-            ii = i;
+        } else {
+          if (Math.sqrt((pfx*plx) + (pfy*ply)) < 0.00001) {
+            console.log('circular way: first and last points are almost at the same location');
+            circular = true;
           }
         }
-      } else {
-        // find the point furthest from the line between the first and last point
+        // if path is circular, just find the point furthest away from the start
+        if (circular) {
+          for (i = first + 1; i < last; i++) {
+            p = path[i].getCoordinates();
+            qx = p[0] - pfx;
+            qy = p[1] - pfy;
+            d = Math.sqrt((qx*qx) + (qy*qy));
+            if (d > max) {
+              max = d;
+              ii = i;
+            }
+          }
+        } else {
+          // find the point furthest from the line between the first and last point
 
-        // calculate the normal {nx, ny} on the line vector {dx, dy} between the first and last point
-        dx = plx - pfx;
-        dy = ply - pfy;
-        nn = Math.sqrt(dx*dx + dy*dy);
-        nx = -dy / nn;
-        ny = dx / nn;
+          // calculate the normal {nx, ny} on the line vector {dx, dy} between the first and last point
+          dx = plx - pfx;
+          dy = ply - pfy;
+          nn = Math.sqrt(dx*dx + dy*dy);
+          nx = -dy / nn;
+          ny = dx / nn;
 
-        // find the point with the max distance from the normal
-        for (i = first + 1; i < last; i++) {
-          p = path[i].getCoordinates();
-          qx = p[0] - pfx;
-          qy = p[1] - pfy;
-          d = Math.abs(qx * nx + qy * ny);
-          if (d > max) {
-            max = d;
-            ii = i;
+          // find the point with the max distance from the normal
+          for (i = first + 1; i < last; i++) {
+            p = path[i].getCoordinates();
+            qx = p[0] - pfx;
+            qy = p[1] - pfy;
+            d = Math.abs(qx * nx + qy * ny);
+            if (d > max) {
+              max = d;
+              ii = i;
+            }
           }
         }
-      }
-      path[ii].rdpMetric = max; // store the metric in the node, now that we found the max
-// console.log('metric saved: '+max+' (point '+ii+', '+path[ii].id+', endpoint: '+path[ii].endpoint+', intersection: '+path[ii].intersection+')');
+        path[ii].rdpMetric = max; // store the metric in the node, now that we found the max
+  // console.log('metric saved: '+max+' (point '+ii+', '+path[ii].id+', endpoint: '+path[ii].endpoint+', intersection: '+path[ii].intersection+')');
 
-      p1 = generateRdpMetrics(path, first, ii, name+'left,', depth+1, w);
-      p2 = generateRdpMetrics(path, ii, last, name+'right,', depth+1, w);
-    }
+        p1 = generateRdpMetrics(path, first, ii, name+'left,', depth+1, w);
+        p2 = generateRdpMetrics(path, ii, last, name+'right,', depth+1, w);
+      }
+  }
 
     // step along the each array, comparing elements.
     function mergeArrays (a1,a2,comparator) {
