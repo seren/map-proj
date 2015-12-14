@@ -464,17 +464,16 @@ Mutators.prototype.RDP = function(opts) {
         }
       };
       // append the rest of the remaining array
-      if (counter1 == len1) {
-if (a3.concat(a2.slice(counter2)).indexOf(undefined) !== -1) debugger; // make sure we don't have undefined values in our new array
-        return a3.concat(a2.slice(counter2));
-      }
-      if (counter2 == len2) {
-if (a3.concat(a1.slice(counter1)).indexOf(undefined) !== -1) debugger; // make sure we don't have undefined values in our new array
+      if (counter1 < len1) {
+        // if (a3.concat(a1.slice(counter1)).indexOf(undefined) !== -1) debugger; // make sure we don't have undefined values in our new array
         return a3.concat(a1.slice(counter1));
+      }
+      if (counter2 < len2) {
+        // if (a3.concat(a2.slice(counter2)).indexOf(undefined) !== -1) debugger; // make sure we don't have undefined values in our new array
+        return a3.concat(a2.slice(counter2));
       }
       debugger // we shouldn't get here
     }
-
 
     // from https://gist.github.com/rhyolight/2846020
     function findPerpendicularDistance(point, line) {
