@@ -34,7 +34,7 @@ var Way = function(args) {
 
   this.findEndpoint = findEndpoint;
   function findEndpoint(nodes) {
-    nodes = nodes || self.nodes();
+    nodes = nodes || self.getNodes();
     var i;
     for (i = nodes.length - 1; i >= 0; i--) {
       if (nodes[i].endpoint) break;
@@ -108,7 +108,7 @@ var Way = function(args) {
     }
   }
 
-  this.nodes = function nodes () {
+  this.getNodes = function getNodes() {
     var ns = [];
     return self.edges.reduce( function (acc, e) {
       ns = e.getNodes();
