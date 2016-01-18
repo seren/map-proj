@@ -166,8 +166,8 @@ var Node = function(args) {
         self.intersection = false;
         break;
       case 2:
-        self.endpoint = false;
-        self.intersection = false;
+        self.intersection = !(self._edges[0].way === self._edges[1].way);
+        self.endpoint = self.intersection;
         break;
       default:  // more than 2
         self.endpoint = true;
