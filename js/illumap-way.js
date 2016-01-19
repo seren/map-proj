@@ -57,8 +57,8 @@ console.log('way:'+self.id+' added edge '+e.id);
   function getOrderedEdges() {
     // find endpoint
     var endpoint = findEndpoint();
-    // from one endpoint, get other node, find common edge from hash, repeat till other endpoint
-    var edgesCopy = self.edges.slice();
+    // from one endpoint, get other node, find common edge, repeat till other endpoint
+    var edgesCopy = self._edges.slice();
     var len = edgesCopy.length;
     var neigborNode;
     var prevEdge;
@@ -78,14 +78,14 @@ console.log('way:'+self.id+' added edge '+e.id);
 
   this.removeEdge = function removeEdge (e) {
     console.log('way '+self.id+': remove edge ['+e.id+']');
-    if (self.edges.indexOf(e) === -1) {
+    if (self._edges.indexOf(e) === -1) {
       console.log('caught trying to remove non-member edge');
       debugger;
     } else {
-      self.edges.removeByValue(e);
+      self._edges.removeByValue(e);
     }
     // if this way has no more edges, delete it
-    if (self.edges.length === 0) {
+    if (self._edges.length === 0) {
       // delete this way from the master list
       if (self.graph.xWays[self.id] === undefined) {
         console.log("way '"+self.id+"' doesn't exist in graph's list");
@@ -98,18 +98,18 @@ console.log('way:'+self.id+' added edge '+e.id);
 
   this.getOrderedNodes = getOrderedNodes;
   function getOrderedNodes() {
-    if (self.edges.length === 0) { return []; } // no nodes to return
-    // self.edges = getOrderedEdges();  // shouldn't be necessary if the edges are already in order
-    var orderedNodes = [self.edges[0].getEndpoints()[0]];
+    if (self._edges.length === 0) { return []; } // no nodes to return
+    // self._edges = getOrderedEdges();  // shouldn't be necessary if the edges are already in order
+    var orderedNodes = [self._edges[0].getEndpoints()[0]];
     var len;
     if (orderedNodes[0] === undefined) {
       console.log('Our first edge should have had a node that was an endpoint.');
       debugger;
     } else {
-      orderedNodes = [self.edges[0].getEndpoints()[0]];
-      len = self.edges.length;
+      orderedNodes = [self._edges[0].getEndpoints()[0]];
+      len = self._edges.length;
       for (var i = 0; i < len; i++) {
-        orderedNodes.push(self.edges[i].otherNode(orderedNodes[i]));
+        orderedNodes.push(self._edges[i].otherNode(orderedNodes[i]));
       };
       return orderedNodes;
     }
@@ -117,7 +117,7 @@ console.log('way:'+self.id+' added edge '+e.id);
 
   this.getNodes = function getNodes() {
     var ns = [];
-    return self.edges.reduce( function (acc, e) {
+    return self._edges.reduce( function (acc, e) {
       ns = e.getNodes();
       if (acc.indexOf(ns[0]) === -1) acc.push(ns[0]);
       if (acc.indexOf(ns[1]) === -1) acc.push(ns[1]);
@@ -129,7 +129,7 @@ console.log('way:'+self.id+' added edge '+e.id);
   this.nodes2 = function nodes2() {
     var nodeHash = {};
     var ns;
-    self.edges.forEach(function(e) {
+    self._edges.forEach(function(e) {
       ns = e.getNodes();
       nodeHash[ns[0].id] = ns[0];
       nodeHash[ns[1].id] = ns[1];
@@ -145,15 +145,15 @@ console.log('way:'+self.id+' added edge '+e.id);
     var ordered = [];
     var nodes;
     var i;
-    for (i = self.edges.length - 1; i >= 0; i--) {
-      nodes = self.edges[i].getNodes();
+    for (i = self._edges.length - 1; i >= 0; i--) {
+      nodes = self._edges[i].getNodes();
       if (nodes[0].endpoint) {
-        endEdges.push(self.edges[i]);
+        endEdges.push(self._edges[i]);
         endNodes.push(nodes[0]);
         nonEndNodes.push(nodes[1]);
       }
       if (nodes[1].endpoint) {
-        endEdges.push(self.edges[i]);
+        endEdges.push(self._edges[i]);
         endNodes.push(nodes[1]);
         nonEndNodes.push(nodes[0]);
       }
@@ -166,7 +166,7 @@ console.log('way:'+self.id+' added edge '+e.id);
     var currNode = endNodes[0];
     var prevNode;
     function nodeNotPrevNode() { return arguments[0] !== prevNode; }
-    while (ordered.length < self.edges.length) {
+    while (ordered.length < self._edges.length) {
       if (nextNode.endpoint) debugger; // we shouldn't hit an endpoint since the loop should exit before then
       if (nextEdge === endEdges[1]) debugger; // we should quit before we hit this
       if (nextNode.neighbors().length !== 2) debugger; // we shouldn't hit a node with more than 2 neighbors
@@ -179,14 +179,14 @@ console.log('way:'+self.id+' added edge '+e.id);
     }
 
     // we now have an ordered set of edges. compare to the normal edge list and see if it's the same (back or forward)
-    var len = self.edges.length;
-    if (ordered[0] === self.edges[0]) {
+    var len = self._edges.length;
+    if (ordered[0] === self._edges[0]) {
       for (i = 0; i < len; i++) {
-        if (self.edges[i] !== ordered[i]) debugger;
+        if (self._edges[i] !== ordered[i]) debugger;
       }
     } else {
       for (i = 0; i < len; i++) {
-        if (self.edges[i] !== ordered[len - i - 1]) debugger;
+        if (self._edges[i] !== ordered[len - i - 1]) debugger;
       }
     }
     console.log("edges in way "+self.id+" seem ordered. yay.");
