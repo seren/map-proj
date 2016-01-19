@@ -13,8 +13,7 @@ var Edge = function(args) {
   // update nodes' edge list, and intersection and endpoint status
   self._nodes.forEach( function (n) {
     n.addEdge(self);
-    n.endpoint = (n.getEdges() < 1);
-    n.intersection = (n.getEdges() > 2);
+    n.updateGraphAttributes();
   });
 
   this.prettyId = function prettyId() {
