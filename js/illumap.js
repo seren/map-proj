@@ -86,6 +86,12 @@ var self = this;
 
   var container = d3.select('.container');
 
+  var svg = d3.select(".container").append("svg")
+    .attr("width", this.width)
+    .attr("height", this.height);
+    // .attr('class', 'svg');
+
+
   var zoomBehavior = d3.behavior.zoom()
     .scale(this.d3projection.scale() * 2 * Math.PI)
     .scaleExtent([1 << 20, 1 << 23])
@@ -97,16 +103,16 @@ var self = this;
 
 
   // container.call(dragBehavior); // assign zooming behavior to the container
-  container.on("mousemove", mousemoved); // set mousemovement listener on container
+  svg.on("mousemove", mousemoved); // set mousemovement listener on container
 
   function enableZoom() {
-    container.on('.drag', null);
-    container.call(zoomBehavior);
+    svg.on('.drag', null);
+    svg.call(zoomBehavior);
   }
 
   function enableDrag() {
-    container.on('.zoom', null);
-    container.call(dragBehavior);
+    svg.on('.zoom', null);
+    svg.call(dragBehavior);
   }
 
   // Set up control panel actions

@@ -267,6 +267,7 @@ console.log('----'+paths[0].geometry.coordinates[0]);
         this.height = opts.height;
 
         console.log('graphics inited');
+        svg = d3.select("svg")
         if ((svg === undefined) || (d3.select('svg')[0][0] === null)) {
           svg = d3.select(".container").append("svg")
               .attr("width", this.width)
