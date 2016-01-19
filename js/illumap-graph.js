@@ -30,7 +30,7 @@ var Graph = function(args) {
 
   this.updateNodeAttributes = function updateNodeAttributes() {
     Object.keys(self.xNodes).forEach( function (k) {self.xNodes[k].updateGraphAttributes(); });
-  }
+  };
 
   this.printNodes = function printNodes() {
     console.log('nodes:');
@@ -140,13 +140,60 @@ console.log('new edge '+e.id+' created');
     this.printNodes();
     this.printEdges();
     this.printWays();
-  }
+  };
 
   this.reset = function reset () {
     self.xWays = {};
     self.xNodes = {};
     self.xEdges = {};
   };
+
+  this.selfTest = function selfTest() {
+  var nodesInWays = self.ways().map(function(w) {return w.getNodes();}).flatten();
+  var nodesInEdges = self.edges().map(function(e) {return e.getNodes();}).flatten();
+  var edgesInWays = self.ways().map(function(w) {return w.getEdges();}).flatten();
+  var allEdges = self.edges();
+  var allNodes = self.nodes();
+  // edges in ways should == edges total
+  if (edgesInWays.length !== allEdges.length) debugger;
+  // // nodes in ways should == nodes in edges
+  // if (nodesInWays.length !== nodesInEdges.length) debugger;
+  // unique nodes in ways == all nodes
+  if (nodesInWays.unique().length !== allNodes.length) debugger;
+  // unique nodes in edges == all nodes
+  if (nodesInEdges.unique().length !== allNodes.length) debugger;
+  // no way should share a non-endpoint node
+  var nonEndpointToWayHash = {};
+  var neps;
+  function nep(x) {return !x.endpoint; }
+  self.ways().forEach(function(w) {
+// console.log('working on way '+w.id);
+    neps = w.getNodes().filter(nep);
+    neps.forEach(function(n) {
+// console.log('non-endpoint '+n.id+', hash: '+objToArray(nonEndpointToWayHash));
+      if (nonEndpointToWayHash[n.id] === undefined) {
+        nonEndpointToWayHash[n.id] = w;
+      } else {
+        console.log('non-endpoint node ['+n.id+'] is in way '+w.id+', and also way '+nonEndpointToWayHash[n.id].id);
+        debugger; // we found a non-endpoint way-member that was already in a different way
+      }
+    });
+  });
+  // all ways should have 2 endpoints (or 1 if they're circular)
+  self.ways().forEach(function(w) {
+    if (w.getNodes().filter(fep).length !== 2) {
+      if (w.getNodes().filter(fep).length === 1) {
+        console.log('way '+w.id+' is circular (has one endpoint)');
+      } else {
+        console.log('way '+w.id+' should have 1 or 2 endpoints, not '+w.getNodes().filter(fep).length);
+        debugger;
+      }
+    }
+  });
+
+};
+
+
 
 };
 
