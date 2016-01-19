@@ -139,7 +139,7 @@ console.log('full path: ['+pathEdges.map(function(e){return e.id;}).join(',') +'
 
       var remainingNodes = mgraph.nodes();
       var remainingEdges = mgraph.edges();
-      var n,e,w;
+      var n,e,w,endpoints;
       // loop over all the edges, finding connected edges and saving them into ways
       while (remainingEdges.length > 0) {
         oldEdgeCount = remainingEdges.length;
@@ -147,6 +147,8 @@ console.log('full path: ['+pathEdges.map(function(e){return e.id;}).join(',') +'
         wayEdges = findWayEdgesFromEdge(e);
         w = mgraph.addWay({edgeArray: wayEdges});
         console.log('for way '+w.id+', found edges: ['+ w.getEdges().map(fid).join('],[') +']');
+        endpoints = w.getNodes().filter(function (n) { return n.endpoint; });
+        if ((endpoints.length > 2) || (endpoints.length < 1)) debugger; // all ways should have 2 (or 1 if circular) endpoints
         wayEdges.forEach( function (e) {
           // remove the edge from the search list
           remainingEdges.removeByValue(e);
