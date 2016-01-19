@@ -57,7 +57,10 @@ var Graph = function(args) {
   this.addEdge = function addEdge (nodes) {
     // check that edge doesn't already exist
     var e = self.getEdge(nodes);
-    if (e) debugger;
+    if (e) {
+      console.log('edge '+e.id+' already exists. returning it');
+      return e;
+    }
     e = new Edge({nodes: nodes, graph: self});
     self.xEdges[e.id] = e;
     nodes[0].updateGraphAttributes();
