@@ -111,7 +111,7 @@ console.log('new edge '+e.id+' created');
     var w = self.xWays;
     Object.keys(self.xWays).forEach( function (k) {
       console.log('id: '+w[k].id+' edges: '+
-        (w[k].edges.map(function(e) {return e.id; } ).toString())
+        (w[k].getEdges().map(function(e) {return e.id; } ).toString())
       );
     });
   };
