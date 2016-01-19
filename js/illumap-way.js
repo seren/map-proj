@@ -48,7 +48,9 @@ console.log('way:'+self.id+' added edge '+e.id);
   }
 
   this.orderEdges = function orderEdges() {
-    self.edges = getOrderedEdges();
+    var ordered = getOrderedEdges();
+    if (ordered.length !== self._edges.length) debugger;  // sanity check
+    self._edges = ordered;
     return self;
   };
 
