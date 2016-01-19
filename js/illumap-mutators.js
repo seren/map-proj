@@ -285,6 +285,7 @@ Mutators.prototype.RDP = function(opts) {
       ec,
       n;
 
+  // generate the RDP sequence if necessary
   if (g.rdpStale) {
     generateRdpSequence(g);
     g.rdpStale = false;
@@ -293,18 +294,39 @@ Mutators.prototype.RDP = function(opts) {
   if (g.rdpSequence.length === 0) { // if we have no more nodes we can eliminate, return
     return false;
   }
-  n = g.rdpSequence.shift()
+
+  // grab the next node to remove
+  n = g.rdpSequence.shift();
+  if (n.endpoint) debugger; // sanity check. we shouldn't be operating on endpoints
 // could do n.getEdges, find the edge's index in the way
   // var newEdge = joinNeighbors(n);
   var neighbors = n.neighbors();
-  if (neighbors.length !== 2) debugger; // our node should be in the middle of an array, so should have 2 neighbors
+  if (neighbors.length !== 2) debugger; // sanity check: our node should be in the middle of an array, so should have 2 neighbors
+
+  // get the way that our node is a part of (should only be part of one way since it's not an endpoint or intersection)
   var w = n.getEdges()[0].way;
+  // remove node, which will remove edges it's a member of
   n.destroy();
+  // create a replacement edge from the deleted-node's neighbors
   var newEdge = g.addEdge(neighbors);
-  newEdge.way = w;
-  w.addEdge(newEdge);
-  w.orderEdges();
-  newEdge.way.checkEdgesOrdered();
+  // Check that our new edge didn't already exist, which could happen if we've reduced a
+  // way down to two points, but there's already a different way between those two points.
+  // If it really is a new edge, assign it to the way. If not (we got back a pre-existing edge),
+  // do nothing. The way we're shortening and that would have been reduced to a single duplicate
+  // edge but is now empty will have already been deleted (ways delete themselves when they become empty).
+  if (newEdge.way === undefined) {  // if it is a new way
+    newEdge.way = w;
+    w.addEdge(newEdge);
+    newEdge.getNodes()[0].updateGraphAttributes();
+    newEdge.getNodes()[1].updateGraphAttributes();
+
+    w.orderEdges();
+
+    newEdge.way.checkEdgesOrdered();
+  } else {
+    if (newEdge.way ===  w) // if our overlapping edge is in the same way, we've reduced a circular way to 2 overlapping edges. Destroy one edge.
+
+  return true; // end RDP mutation
 // debugger
 
   function joinNeighbors(n) {
@@ -314,12 +336,11 @@ Mutators.prototype.RDP = function(opts) {
 
     var e = g.addEdge(ns);
     e.way = w;
-    var i = w.edges.indexOf(oldEdge);
-    // w.edges[i] = e;
-    w.edges.push(e);
+    var i = w.getEdges().indexOf(oldEdge);
+    w.addEdge(e);
     // console.log('may throw debugger since we are replacing an edge that Way.removeEdge expects to be there');
     return e;
-  }
+  } // end joinNeighbors
 
 
   // Computers a modified RDP sequence to simplify map. Can be reused until map is modified with some other technique
@@ -339,19 +360,16 @@ Mutators.prototype.RDP = function(opts) {
     });
     if (orderedWayNodes.flatten().containsDuplicates()) debugger; // Sanity check: there shouldn't be any duplicates
     // take all the arrays of sorted nodes, and merge them, maintaining the order of each array's nodes
-    // if (true) {  // we cheat at the moment and...
-      // g.rdpSequence = orderedWayNodes.flatten().sort(rdpNodeComparator).reverse(); // ...just order everything by rdpMetric value
-    // } else {
-      var a1, a2;
-      while (orderedWayNodes.length > 1) {
-        a1 = [];
-        a2 = [];
-        do { a1 = orderedWayNodes.pop(); } while (a1.length === 0 && orderedWayNodes.length > 1); // find a non-empty sorted way
-        do { a2 = orderedWayNodes.pop(); } while (a2.length === 0 && orderedWayNodes.length > 1); // find a non-empty sorted way
-        orderedWayNodes.unshift(mergeArrays(a1,a2,rdpNodeComparator)); // add the merged arrays onto the end
-      }
-      g.rdpSequence = orderedWayNodes[0];
-    // }
+    var a1, a2;
+    while (orderedWayNodes.length > 1) {
+      a1 = [];
+      a2 = [];
+      do { a1 = orderedWayNodes.pop(); } while (a1.length === 0 && orderedWayNodes.length > 1); // find a non-empty sorted way
+      do { a2 = orderedWayNodes.pop(); } while (a2.length === 0 && orderedWayNodes.length > 1); // find a non-empty sorted way
+      orderedWayNodes.unshift(mergeArrays(a1,a2,rdpNodeComparator)); // add the merged arrays onto the end
+    }
+    g.rdpSequence = orderedWayNodes[0];
+    return g.rdpSequence;
 
 
     // takes a series of connected nodes (e.g. a way) and returns a sequence for removing them to arrive at a simple line segment (smallest error metric to largest)
@@ -442,7 +460,7 @@ Mutators.prototype.RDP = function(opts) {
         p1 = generateRdpMetrics(path, first, ii, name+'left,', depth+1, w);
         p2 = generateRdpMetrics(path, ii, last, name+'right,', depth+1, w);
       }
-  }
+    } // end waySortRDPStyle
 
     // step along the each array, comparing elements.
     function mergeArrays (a1,a2,comparator) {
@@ -476,7 +494,7 @@ Mutators.prototype.RDP = function(opts) {
         return a3.concat(a2.slice(counter2));
       }
       debugger // we shouldn't get here
-    }
+    } // end mergeArrays
 
     // from https://gist.github.com/rhyolight/2846020
     function findPerpendicularDistance(point, line) {
@@ -505,7 +523,8 @@ Mutators.prototype.RDP = function(opts) {
       if (a.rdpMetric > b.rdpMetric)
         return 1;
       return 0;
-    }
+    } // end rdpNodeComparator
 
-  }
+  } // end generateRdpSequence
+
 };
