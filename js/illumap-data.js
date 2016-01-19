@@ -27,7 +27,7 @@ var illumap = (function() {
       var nodeId = coordinates[0] + ',' + coordinates[1];
       var node = mgraph.node(nodeId);
       if (node === undefined) {
-        console.log(nodeId);
+        console.log('addNode create: '+nodeId);
         node = mgraph.addNode(nodeId);
         node.setCoordinates(coordinates);
         node.features = [feature];
@@ -35,7 +35,7 @@ var illumap = (function() {
         node.intersection = false;
         node.wayEnd = false;
       } else {
-        console.log('addNode id:'+nodeId);
+        console.log('addNode exists:'+nodeId);
         node.features.push(feature);
       }
       return node;
@@ -140,9 +140,9 @@ console.log('direction: '+debugDirection +'about to traverse, startNode='+startN
           nextNode = nextEdge.otherNode(currNode);
           pathEdges.push(nextEdge);
           pathNodes.push(nextNode); // save the nodes for possible future use
+console.log('traversing ('+debugDirection+') path ['+pathNodes.map(function(n) { return n.id; })+']. currNode:'+currNode.id+' nextNode:'+nextNode.id+'(this is has been added to the path)');
           currEdge = nextEdge;
           currNode = nextNode;
-console.log('traversing ('+debugDirection+') path ['+pathNodes.map(function(n) { return n.id; })+']. currNode:'+currNode.id+' nextNode:'+nextNode.id+'(this is added to the path)');
         }
         return pathEdges;
       }
@@ -183,7 +183,7 @@ console.log('full path: ['+pathEdges.map(function(e){return e.id;}).join(',') +'
         e = remainingEdges.pop();
         wayEdges = findWayEdgesFromEdge(e);
         w = mgraph.addWay({edgeArray: wayEdges});
-console.log('for way '+w.id+', found edges: ['+ w.edges.map(fid).join('],[') +']');
+        console.log('for way '+w.id+', found edges: ['+ w.getEdges().map(fid).join('],[') +']');
         wayEdges.forEach( function (e) {
           // remove the edge from the search list
           remainingEdges.removeByValue(e);

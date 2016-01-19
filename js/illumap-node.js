@@ -158,7 +158,7 @@ var Node = function(args) {
   this.updateGraphAttributes = function updateGraphAttributes() {
     switch (self._edges.length) {
       case 0:
-        console.log('deleting orphan node ' + self.id);
+        console.log('orphan node ' + self.id+' deleting itself');
         self.destroy();
         break;
       case 1:
@@ -175,6 +175,7 @@ var Node = function(args) {
         break;
     }
     self.frozen = self.isFrozen();
+console.log('node ['+self.id+'] attributes set: endpoint: '+self.endpoint+' intersection: '+self.intersection);
   }
 
   this.isFrozen = function isFrozen() {

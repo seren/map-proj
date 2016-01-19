@@ -7,25 +7,30 @@ var Way = function(args) {
     console.log("way '"+self.id+"' already exists.");
     debugger;
   }
-  self.edges = [];
+  self._edges = [];
   args.edges.forEach( function (e) { addEdge(e); });
   self.nodesRdpSorted = undefined;
 
 // debugger
   this.addNode = function addNode (node) {
-    if (self.edges.indexOf(e) === -1) {
+    if (self._edges.indexOf(e) === -1) {
       self.nodes[node.id] = node;
     }
     return self;
+  };
+
+  this.getEdges = function getEdges() {
+    return self._edges.slice();
   };
 
   // adds an edge without regard to order. Efficient for bulk loading, followed by an explicit ordering call
   // this.addEdgeUnordered = addEdgeUnordered;
   this.addEdge = addEdge;
   function addEdge (e) {
-    if (self.edges.indexOf(e) === -1) {
-      self.edges.push(e);
+    if (self._edges.indexOf(e) === -1) {
+      self._edges.push(e);
       e.way = self;
+console.log('way:'+self.id+' added edge '+e.id);
     } else {
       debugger; // sanity check to catch re-adding edge
     }

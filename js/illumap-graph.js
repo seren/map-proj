@@ -62,6 +62,7 @@ var Graph = function(args) {
     self.xEdges[e.id] = e;
     nodes[0].updateGraphAttributes();
     nodes[1].updateGraphAttributes();
+console.log('new edge '+e.id+' created');
     return e;
   };
 
