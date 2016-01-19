@@ -84,43 +84,6 @@ var illumap = (function() {
     };
 
 
-    function findWayNodesFromEdge(e) {
-      // Return nodes, not including the starting node, between start and closest endpoint in one direction
-      function getNodesUntilEndpoint(startNode, currNode, debugDirection) {
-console.log('direction: '+debugDirection +'about to traverse, startNode='+startNode.id+' currNode='+currNode.id);
-        var path=[currNode];
-        var prevNode = startNode;
-        var nextNode;
-        var direction;
-        while ((currNode.endpoint === false) && (currNode.intersection === false)) {
-          // get the 2 (because it's not an endpoint) neighbors, remove the visited-node, and get the remaining node
-          nextNode = currNode.neighbors.filter( function (n) { return (prevNode !== n); } )[0];
-console.log('traversing path ['+path+']. prevNode:'+prevNode.id+' currNode:'+currNode.id+' nextNode:'+nextNode.id+'(this is added to the path)');
-          path.push(nextNode);
-          prevNode = currNode;
-          currNode = nextNode;
-        }
-console.log('returning path: ['+path.join(',')+']');
-        return path;
-      }
-
-      var v = e.getNodes()[0];
-      var w = e.getNodes()[1];
-      var path=[v];
-      var reversePath=[];
-      var forwardPath=[];
-      if (v.endpoint || v.intersection) {
-        path = path.concat(getNodesUntilEndpoint(v, w,'from-endpoint: '));
-      } else {
-        forwardPath = getNodesUntilEndpoint(v, v.neighbors[0],'forward: ');
-        reversePath = getNodesUntilEndpoint(v, v.neighbors[1],'backward: ').reverse();
-        path = reversePath.concat(path, forwardPath);
-      }
-console.log('full path: ['+path.join(',') +']');
-      return path;
-    }
-
-
     function findWayEdgesFromEdge(e) {
       // Return nodes, not including the starting node, between start and closest endpoint in one direction
       function getEdgesUntilEndpoint(startNode, startEdge, debugDirection) {
