@@ -4,7 +4,9 @@
 function fid(x) {return x.id; }
 function fprettyId(x) {return x.prettyId(); }
 function fep(x) {return x.endpoint;}
+function fint(x) {return x.intersection;}
 debugging = false;
+
 
 function Illumap() {
   // Global vars
