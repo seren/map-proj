@@ -54,6 +54,7 @@ console.log('way:'+self.id+' added edge '+e.id);
     return self;
   };
 
+  this.getOrderedEdges = getOrderedEdges;
   function getOrderedEdges() {
     // find endpoint
     var endpoint = findEndpoint();
@@ -61,6 +62,7 @@ console.log('way:'+self.id+' added edge '+e.id);
     var edgesCopy = self._edges.slice();
     var len = edgesCopy.length;
     var neigborNode;
+    var currEdge;
     var prevEdge;
     var currNode = endpoint;
     var orderedEdges = [];
