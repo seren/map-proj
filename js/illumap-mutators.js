@@ -298,12 +298,11 @@ Mutators.prototype.RDP = function(opts) {
   // grab the next node to remove
   n = g.rdpSequence.shift();
   if (n.endpoint) debugger; // sanity check. we shouldn't be operating on endpoints
-// could do n.getEdges, find the edge's index in the way
-  // var newEdge = joinNeighbors(n);
+  // Join the neighbors
   var neighbors = n.neighbors();
   if (neighbors.length !== 2) debugger; // sanity check: our node should be in the middle of an array, so should have 2 neighbors
 
-  // get the way that our node is a part of (should only be part of one way since it's not an endpoint or intersection)
+  // get the way that our node is a member of (should only be part of one way since it's not an endpoint or intersection)
   var w = n.getEdges()[0].way;
   // remove node, which will remove edges it's a member of
   n.destroy();
@@ -328,19 +327,6 @@ Mutators.prototype.RDP = function(opts) {
 
   return true; // end RDP mutation
 // debugger
-
-  function joinNeighbors(n) {
-    var ns = n.neighbors();
-    var oldEdge = n.getEdges()[0];
-    var w = oldEdge.way;
-
-    var e = g.addEdge(ns);
-    e.way = w;
-    var i = w.getEdges().indexOf(oldEdge);
-    w.addEdge(e);
-    // console.log('may throw debugger since we are replacing an edge that Way.removeEdge expects to be there');
-    return e;
-  } // end joinNeighbors
 
 
   // Computers a modified RDP sequence to simplify map. Can be reused until map is modified with some other technique
