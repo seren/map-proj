@@ -401,6 +401,10 @@ console.log('translation: '+illumap.d3projection.translate()+' -> '+zoomBehavior
     }, []);
   }
 
+  Array.prototype.last = function() {
+    return this[this.length - 1];
+  }
+
 
   this.buttonAction = function buttonAction() {
 // debugger
